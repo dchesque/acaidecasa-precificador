@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { 
   Settings, 
@@ -12,31 +13,32 @@ import {
 } from "lucide-react";
 
 const navigationItems = [
-  { id: "dashboard", label: "Dashboard", icon: MenuSquare, active: true },
-  { id: "configuracoes", label: "Configurações", icon: Settings },
-  { id: "fornecedores", label: "Fornecedores", icon: Users },
-  { id: "insumos", label: "Insumos", icon: Package },
-  { id: "embalagens", label: "Embalagens", icon: Archive },
-  { id: "receitas", label: "Receitas", icon: ChefHat },
-  { id: "copos-base", label: "Copos Base", icon: Coffee },
-  { id: "combinados", label: "Combinados", icon: Layers },
-  { id: "cardapio", label: "Cardápio", icon: MenuSquare },
+  { id: "dashboard", label: "Dashboard", icon: MenuSquare, path: "/" },
+  { id: "configuracoes", label: "Configurações", icon: Settings, path: "/configuracoes" },
+  { id: "fornecedores", label: "Fornecedores", icon: Users, path: "/fornecedores" },
+  { id: "insumos", label: "Insumos", icon: Package, path: "/insumos" },
+  { id: "embalagens", label: "Embalagens", icon: Archive, path: "/embalagens" },
+  { id: "receitas", label: "Receitas", icon: ChefHat, path: "/receitas" },
+  { id: "copos-base", label: "Copos Base", icon: Coffee, path: "/copos-base" },
+  { id: "combinados", label: "Combinados", icon: Layers, path: "/combinados" },
+  { id: "cardapio", label: "Cardápio", icon: MenuSquare, path: "/cardapio" },
 ];
 
 export const Navigation = () => {
-  const [activeItem, setActiveItem] = useState("dashboard");
+  const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <nav className="w-64 bg-white border-r border-border p-4">
       <div className="space-y-2">
         {navigationItems.map((item) => {
           const Icon = item.icon;
-          const isActive = activeItem === item.id;
+          const isActive = location.pathname === item.path;
           
           return (
             <button
               key={item.id}
-              onClick={() => setActiveItem(item.id)}
+              onClick={() => navigate(item.path)}
               className={cn(
                 "w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                 isActive
