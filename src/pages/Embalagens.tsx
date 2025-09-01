@@ -1,117 +1,54 @@
+import { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Archive, Truck, Calculator, Edit, Trash2, Search } from "lucide-react";
+import { EmbalagemModal } from "@/components/modals/EmbalagemModal";
+import { useAppContext } from "@/contexts/AppContext";
+import { Embalagem } from "@/types/database";
+import { formatarMoeda } from "@/utils/calculations";
+import { Plus, Archive, Edit, Trash2, Search, Package } from "lucide-react";
 
 const Embalagens = () => {
-  const embalagens = [
-    {
-      id: 1,
-      nome: "Pote Plástico 300ml",
-      categoria: "Potes",
-      fornecedor: "Embalagens Express",
-      custoUnitario: 0.85,
-      estoqueAtual: 500,
-      estoqueMinimo: 100,
-      capacidade: "300ml",
-      material: "Plástico PP",
-      cor: "Transparente",
-      status: "disponivel"
-    },
-    {
-      id: 2,
-      nome: "Pote Plástico 500ml",
-      categoria: "Potes",
-      fornecedor: "Embalagens Express",
-      custoUnitario: 1.20,
-      estoqueAtual: 250,
-      estoqueMinimo: 80,
-      capacidade: "500ml",
-      material: "Plástico PP",
-      cor: "Transparente",
-      status: "disponivel"
-    },
-    {
-      id: 3,
-      nome: "Pote Plástico 1L",
-      categoria: "Potes",
-      fornecedor: "Embalagens Express",
-      custoUnitario: 1.85,
-      estoqueAtual: 45,
-      estoqueMinimo: 50,
-      capacidade: "1000ml",
-      material: "Plástico PP",
-      cor: "Transparente",
-      status: "baixo"
-    },
-    {
-      id: 4,
-      nome: "Tampa para Pote 300ml",
-      categoria: "Tampas",
-      fornecedor: "Embalagens Express",
-      custoUnitario: 0.35,
-      estoqueAtual: 480,
-      estoqueMinimo: 100,
-      capacidade: "Para pote 300ml",
-      material: "Plástico PP",
-      cor: "Branca",
-      status: "disponivel"
-    },
-    {
-      id: 5,
-      nome: "Colher Plástica Descartável",
-      categoria: "Utensílios",
-      fornecedor: "Descartáveis Silva",
-      custoUnitario: 0.08,
-      estoqueAtual: 1500,
-      estoqueMinimo: 500,
-      capacidade: "Pequena",
-      material: "Plástico PS",
-      cor: "Branca",
-      status: "disponivel"
-    },
-    {
-      id: 6,
-      nome: "Sacola Plástica 30x40cm",
-      categoria: "Sacolas",
-      fornecedor: "Embalagens Express",
-      custoUnitario: 0.15,
-      estoqueAtual: 200,
-      estoqueMinimo: 300,
-      capacidade: "30x40cm",
-      material: "Plástico PEBD",
-      cor: "Branca",
-      status: "critico"
-    }
-  ];
+  const { state, dispatch } = useAppContext();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingEmbalagem, setEditingEmbalagem] = useState<Embalagem | undefined>();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedSupplier, setSelectedSupplier] = useState("");
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "disponivel":
-        return "default";
-      case "baixo":
-        return "outline";
-      case "critico":
-        return "destructive";
-      default:
-        return "secondary";
+  const filteredEmbalagens = state.embalagens.filter((embalagem) => {
+    const matchesSearch = embalagem.nome.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = !selectedCategory || embalagem.categoriaId === selectedCategory;
+    const matchesSupplier = !selectedSupplier || embalagem.fornecedorPrincipalId === selectedSupplier;
+    return matchesSearch && matchesCategory && matchesSupplier;
+  });
+
+  const handleNewEmbalagem = () => {
+    setEditingEmbalagem(undefined);
+    setModalOpen(true);
+  };
+
+  const handleEditEmbalagem = (embalagem: Embalagem) => {
+    setEditingEmbalagem(embalagem);
+    setModalOpen(true);
+  };
+
+  const handleDeleteEmbalagem = (embalagem: Embalagem) => {
+    if (window.confirm(`Tem certeza que deseja excluir "${embalagem.nome}"?`)) {
+      dispatch({ type: 'DELETE_EMBALAGEM', payload: embalagem.id });
     }
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "disponivel":
-        return "Disponível";
-      case "baixo":
-        return "Estoque Baixo";
-      case "critico":
-        return "Estoque Crítico";
-      default:
-        return "Indisponível";
-    }
+  const stats = {
+    totalEmbalagens: state.embalagens.filter(e => e.ativo).length,
+    custoMedio: state.embalagens.length > 0 
+      ? state.embalagens.reduce((acc, e) => acc + e.custoPorUnidade, 0) / state.embalagens.length 
+      : 0,
+    fornecedoresAtivos: new Set(state.embalagens.map(e => e.fornecedorPrincipalId)).size,
+    categorias: new Set(state.embalagens.map(e => e.categoriaId)).size,
   };
 
   return (
@@ -121,20 +58,74 @@ const Embalagens = () => {
           <div>
             <h1 className="text-3xl font-bold text-foreground">Embalagens</h1>
             <p className="text-muted-foreground mt-2">
-              Gerencie as embalagens e materiais descartáveis
+              Gestão de embalagens e análise de custos para precificação
             </p>
           </div>
-          <Button className="flex items-center gap-2">
+          <Button onClick={handleNewEmbalagem} className="flex items-center gap-2">
             <Plus className="w-4 h-4" />
             Nova Embalagem
           </Button>
         </div>
 
+        {/* Stats Cards */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total de Embalagens</CardTitle>
+              <Archive className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalEmbalagens}</div>
+              <p className="text-xs text-muted-foreground">
+                embalagens cadastradas
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Custo Médio/un</CardTitle>
+              <Package className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatarMoeda(stats.custoMedio)}</div>
+              <p className="text-xs text-muted-foreground">
+                custo médio por unidade
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Fornecedores</CardTitle>
+              <Package className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.fornecedoresAtivos}</div>
+              <p className="text-xs text-muted-foreground">
+                fornecedores ativos
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Categorias</CardTitle>
+              <Archive className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.categorias}</div>
+              <p className="text-xs text-muted-foreground">
+                categorias diferentes
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
         <Tabs defaultValue="lista" className="space-y-4">
           <TabsList>
             <TabsTrigger value="lista">Lista de Embalagens</TabsTrigger>
-            <TabsTrigger value="kits">Kits de Embalagem</TabsTrigger>
-            <TabsTrigger value="fornecedores">Fornecedores</TabsTrigger>
+            <TabsTrigger value="custos">Análise de Custos</TabsTrigger>
           </TabsList>
 
           <TabsContent value="lista" className="space-y-4">
@@ -147,26 +138,35 @@ const Embalagens = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-4 gap-4">
-                  <Input placeholder="Buscar embalagem..." />
-                  <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background">
+                <div className="grid grid-cols-3 gap-4">
+                  <Input 
+                    placeholder="Buscar embalagem..." 
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <select 
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                  >
                     <option value="">Todas as categorias</option>
-                    <option value="potes">Potes</option>
-                    <option value="tampas">Tampas</option>
-                    <option value="utensilios">Utensílios</option>
-                    <option value="sacolas">Sacolas</option>
+                    {state.categorias.map((categoria) => (
+                      <option key={categoria.id} value={categoria.id}>
+                        {categoria.nome}
+                      </option>
+                    ))}
                   </select>
-                  <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background">
-                    <option value="">Todos os materiais</option>
-                    <option value="plastico-pp">Plástico PP</option>
-                    <option value="plastico-ps">Plástico PS</option>
-                    <option value="plastico-pebd">Plástico PEBD</option>
-                  </select>
-                  <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background">
-                    <option value="">Todos os status</option>
-                    <option value="disponivel">Disponível</option>
-                    <option value="baixo">Estoque Baixo</option>
-                    <option value="critico">Estoque Crítico</option>
+                  <select 
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                    value={selectedSupplier}
+                    onChange={(e) => setSelectedSupplier(e.target.value)}
+                  >
+                    <option value="">Todos os fornecedores</option>
+                    {state.fornecedores.map((fornecedor) => (
+                      <option key={fornecedor.id} value={fornecedor.id}>
+                        {fornecedor.nome}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </CardContent>
@@ -174,229 +174,180 @@ const Embalagens = () => {
 
             {/* Lista de Embalagens */}
             <div className="grid gap-4">
-              {embalagens.map((embalagem) => (
-                <Card key={embalagem.id}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="flex items-center gap-2">
-                          <Archive className="w-5 h-5" />
-                          {embalagem.nome}
-                        </CardTitle>
-                        <CardDescription>
-                          {embalagem.categoria} • {embalagem.fornecedor}
-                        </CardDescription>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={getStatusColor(embalagem.status)}>
-                          {getStatusText(embalagem.status)}
-                        </Badge>
-                        <Button variant="ghost" size="sm">
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-                      <div>
-                        <p className="text-sm font-medium">Custo Unitário</p>
-                        <p className="text-lg font-bold text-primary">
-                          R$ {embalagem.custoUnitario.toFixed(2)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Estoque</p>
-                        <p className="text-lg font-bold">
-                          {embalagem.estoqueAtual} un
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Capacidade</p>
-                        <p className="text-sm">{embalagem.capacidade}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Material</p>
-                        <p className="text-sm">{embalagem.material}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Cor</p>
-                        <p className="text-sm">{embalagem.cor}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Valor Total</p>
-                        <p className="text-lg font-bold text-green-600">
-                          R$ {(embalagem.estoqueAtual * embalagem.custoUnitario).toFixed(2)}
-                        </p>
-                      </div>
-                    </div>
+              {filteredEmbalagens.length === 0 ? (
+                <Card>
+                  <CardContent className="flex flex-col items-center justify-center py-8">
+                    <Archive className="h-12 w-12 text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">Nenhuma embalagem encontrada</h3>
+                    <p className="text-muted-foreground text-center mb-4">
+                      {state.embalagens.length === 0 
+                        ? "Comece adicionando suas primeiras embalagens ao sistema."
+                        : "Tente ajustar os filtros para encontrar o que procura."
+                      }
+                    </p>
+                    {state.embalagens.length === 0 && (
+                      <Button onClick={handleNewEmbalagem}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Adicionar Primeira Embalagem
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
-              ))}
+              ) : (
+                filteredEmbalagens.map((embalagem) => (
+                  <Card key={embalagem.id}>
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="flex items-center gap-2">
+                            <Archive className="w-5 h-5" />
+                            {embalagem.nome}
+                          </CardTitle>
+                          <CardDescription>
+                            {embalagem.categoria?.nome} • {embalagem.fornecedorPrincipal?.nome}
+                          </CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={embalagem.ativo ? "default" : "secondary"}>
+                            {embalagem.ativo ? "Ativo" : "Inativo"}
+                          </Badge>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleEditEmbalagem(embalagem)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleDeleteEmbalagem(embalagem)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div>
+                          <p className="text-sm font-medium">Preço Principal</p>
+                          <p className="text-lg font-bold text-primary">
+                            {formatarMoeda(embalagem.precoPrincipal)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">por unidade</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Custo por Unidade</p>
+                          <p className="text-lg font-bold">
+                            {formatarMoeda(embalagem.custoPorUnidade)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">calculado automaticamente</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Fornecedor Alternativo</p>
+                          <p className="text-sm">
+                            {embalagem.fornecedorAlternativo?.nome || "Não definido"}
+                          </p>
+                          {embalagem.precoAlternativo && (
+                            <p className="text-xs text-muted-foreground">
+                              {formatarMoeda(embalagem.precoAlternativo)}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </TabsContent>
 
-          <TabsContent value="kits" className="space-y-4">
+          <TabsContent value="custos" className="space-y-4">
+            {/* Análise por Categoria */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calculator className="w-5 h-5" />
-                  Kits de Embalagem por Produto
-                </CardTitle>
+                <CardTitle>Análise de Custos por Categoria</CardTitle>
                 <CardDescription>
-                  Combinações de embalagens para cada tipo de produto
+                  Distribuição de custos médios por categoria de embalagem
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-6">
-                  <div className="border rounded-lg p-4">
-                    <h3 className="font-semibold mb-3">Kit Açaí 300ml</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium">Componentes:</p>
-                        <ul className="text-sm space-y-1">
-                          <li>• 1x Pote 300ml (R$ 0,85)</li>
-                          <li>• 1x Tampa 300ml (R$ 0,35)</li>
-                          <li>• 1x Colher (R$ 0,08)</li>
-                        </ul>
+                <div className="space-y-4">
+                  {state.categorias.map((categoria) => {
+                    const embalagensCat = state.embalagens.filter(e => e.categoriaId === categoria.id);
+                    const custoMedio = embalagensCat.length > 0 
+                      ? embalagensCat.reduce((acc, e) => acc + e.custoPorUnidade, 0) / embalagensCat.length 
+                      : 0;
+                    
+                    if (embalagensCat.length === 0) return null;
+                    
+                    return (
+                      <div key={categoria.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <h4 className="font-semibold">{categoria.nome}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {embalagensCat.length} embalagens
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold">{formatarMoeda(custoMedio)}</p>
+                          <p className="text-sm text-muted-foreground">custo médio/un</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium">Custo Total do Kit</p>
-                        <p className="text-xl font-bold text-primary">R$ 1,28</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Kits Disponíveis</p>
-                        <p className="text-xl font-bold">480</p>
-                        <p className="text-xs text-muted-foreground">Baseado no item com menor estoque</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="border rounded-lg p-4">
-                    <h3 className="font-semibold mb-3">Kit Açaí 500ml</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium">Componentes:</p>
-                        <ul className="text-sm space-y-1">
-                          <li>• 1x Pote 500ml (R$ 1,20)</li>
-                          <li>• 1x Tampa 500ml (R$ 0,40)</li>
-                          <li>• 1x Colher (R$ 0,08)</li>
-                        </ul>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Custo Total do Kit</p>
-                        <p className="text-xl font-bold text-primary">R$ 1,68</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Kits Disponíveis</p>
-                        <p className="text-xl font-bold">250</p>
-                        <p className="text-xs text-muted-foreground">Baseado no item com menor estoque</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="border rounded-lg p-4">
-                    <h3 className="font-semibold mb-3">Kit Açaí 1L (Para Viagem)</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium">Componentes:</p>
-                        <ul className="text-sm space-y-1">
-                          <li>• 1x Pote 1L (R$ 1,85)</li>
-                          <li>• 1x Tampa 1L (R$ 0,55)</li>
-                          <li>• 2x Colher (R$ 0,16)</li>
-                          <li>• 1x Sacola (R$ 0,15)</li>
-                        </ul>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Custo Total do Kit</p>
-                        <p className="text-xl font-bold text-primary">R$ 2,71</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Kits Disponíveis</p>
-                        <p className="text-xl font-bold text-red-600">45</p>
-                        <p className="text-xs text-muted-foreground">Estoque baixo - reabastecer</p>
-                      </div>
-                    </div>
-                  </div>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
 
-          <TabsContent value="fornecedores" className="space-y-4">
+            {/* Análise por Fornecedor */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Truck className="w-5 h-5" />
-                  Fornecedores de Embalagens
-                </CardTitle>
+                <CardTitle>Análise por Fornecedor</CardTitle>
+                <CardDescription>
+                  Comparativo de custos entre fornecedores
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="border rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <h3 className="font-semibold">Embalagens Express</h3>
-                        <p className="text-sm text-muted-foreground">Potes, tampas e sacolas</p>
+                  {state.fornecedores.map((fornecedor) => {
+                    const embalagensFornecedor = state.embalagens.filter(
+                      e => e.fornecedorPrincipalId === fornecedor.id
+                    );
+                    const custoMedio = embalagensFornecedor.length > 0 
+                      ? embalagensFornecedor.reduce((acc, e) => acc + e.custoPorUnidade, 0) / embalagensFornecedor.length 
+                      : 0;
+                    
+                    if (embalagensFornecedor.length === 0) return null;
+                    
+                    return (
+                      <div key={fornecedor.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <h4 className="font-semibold">{fornecedor.nome}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {embalagensFornecedor.length} embalagens fornecidas
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold">{formatarMoeda(custoMedio)}</p>
+                          <p className="text-sm text-muted-foreground">custo médio/un</p>
+                        </div>
                       </div>
-                      <Badge variant="default">Principal</Badge>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <p className="font-medium">Produtos:</p>
-                        <p>5 itens</p>
-                      </div>
-                      <div>
-                        <p className="font-medium">Valor Médio:</p>
-                        <p>R$ 1,08</p>
-                      </div>
-                      <div>
-                        <p className="font-medium">Prazo Entrega:</p>
-                        <p>3-5 dias</p>
-                      </div>
-                      <div>
-                        <p className="font-medium">Última Compra:</p>
-                        <p>15/01/2024</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="border rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <h3 className="font-semibold">Descartáveis Silva</h3>
-                        <p className="text-sm text-muted-foreground">Utensílios descartáveis</p>
-                      </div>
-                      <Badge variant="outline">Secundário</Badge>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <p className="font-medium">Produtos:</p>
-                        <p>1 item</p>
-                      </div>
-                      <div>
-                        <p className="font-medium">Valor Médio:</p>
-                        <p>R$ 0,08</p>
-                      </div>
-                      <div>
-                        <p className="font-medium">Prazo Entrega:</p>
-                        <p>2-3 dias</p>
-                      </div>
-                      <div>
-                        <p className="font-medium">Última Compra:</p>
-                        <p>20/01/2024</p>
-                      </div>
-                    </div>
-                  </div>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
       </div>
+
+      <EmbalagemModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        embalagem={editingEmbalagem}
+      />
     </Layout>
   );
 };
