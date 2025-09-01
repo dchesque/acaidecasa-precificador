@@ -1,5 +1,6 @@
+"use client"
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useRouter, usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { 
   Settings, 
@@ -25,20 +26,20 @@ const navigationItems = [
 ];
 
 export const Navigation = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const router = useRouter();
+  const pathname = usePathname();
 
   return (
     <nav className="w-64 bg-white border-r border-border p-4">
       <div className="space-y-2">
         {navigationItems.map((item) => {
           const Icon = item.icon;
-          const isActive = location.pathname === item.path;
+          const isActive = pathname === item.path;
           
           return (
             <button
               key={item.id}
-              onClick={() => navigate(item.path)}
+              onClick={() => router.push(item.path)}
               className={cn(
                 "w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                 isActive

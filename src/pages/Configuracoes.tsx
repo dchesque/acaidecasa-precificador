@@ -1,3 +1,4 @@
+"use client"
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -126,7 +127,7 @@ const Configuracoes = () => {
                 <div className="space-y-1">
                   <Label htmlFor="arredondar-precos">Arredondar Preços</Label>
                   <p className="text-sm text-muted-foreground">
-                    Arredonda os preços para valores "redondos" (ex: R$ 12,90)
+                    Arredonda os preços para valores &quot;redondos&quot; (ex: R$ 12,90)
                   </p>
                 </div>
                 <Switch id="arredondar-precos" />
