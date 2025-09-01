@@ -91,8 +91,8 @@ export const CopoBaseModal = ({
       } else {
         // Create new base cup
         const newCopoBase: CopoBase = {
-          id: Date.now().toString(),
           ...data,
+          id: Date.now().toString(),
           categoria,
           insumoBase,
           embalagens,
@@ -103,7 +103,7 @@ export const CopoBaseModal = ({
           margem: 0,
           createdAt: now,
           updatedAt: now,
-        };
+        } as CopoBase;
 
         // Calculate costs
         const { custoBase, custoEmbalagens, custoTotal } = calcularCustoCopoBase(

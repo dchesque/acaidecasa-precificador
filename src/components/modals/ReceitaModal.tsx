@@ -75,15 +75,15 @@ export const ReceitaModal = ({
       } else {
         // Create new recipe
         const newReceita: Receita = {
-          id: Date.now().toString(),
           ...data,
+          id: Date.now().toString(),
           categoria,
           ingredientes,
           custoTotal: 0,
           custoPorGrama: 0,
           createdAt: now,
           updatedAt: now,
-        };
+        } as Receita;
 
         // Calculate costs
         const { custoTotal, custoPorGrama } = calcularCustoReceita(newReceita, state.insumos);

@@ -64,8 +64,8 @@ export const InsumoModal = ({
       } else {
         // Create new input
         const newInsumo: Insumo = {
-          id: Date.now().toString(),
           ...data,
+          id: Date.now().toString(),
           categoria,
           unidadeMedida,
           fornecedorPrincipal,
@@ -74,7 +74,7 @@ export const InsumoModal = ({
           custoPorUnidade: 0,
           createdAt: now,
           updatedAt: now,
-        };
+        } as Insumo;
 
         // Calculate costs
         const custoPorGrama = calcularCustoPorGrama(newInsumo);

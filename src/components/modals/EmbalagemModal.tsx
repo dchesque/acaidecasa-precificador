@@ -54,15 +54,15 @@ export const EmbalagemModal = ({
       } else {
         // Create new packaging
         const newEmbalagem: Embalagem = {
-          id: Date.now().toString(),
           ...data,
+          id: Date.now().toString(),
           categoria,
           fornecedorPrincipal,
           fornecedorAlternativo,
           custoPorUnidade: calcularCustoPorUnidade({ precoPrincipal: data.precoPrincipal }),
           createdAt: now,
           updatedAt: now,
-        };
+        } as Embalagem;
 
         dispatch({ type: 'ADD_EMBALAGEM', payload: newEmbalagem });
         toast({

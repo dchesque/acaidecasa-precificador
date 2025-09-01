@@ -41,11 +41,11 @@ export const FornecedorModal = ({
       } else {
         // Create new supplier
         const newFornecedor: Fornecedor = {
-          id: Date.now().toString(),
           ...data,
+          id: Date.now().toString(),
           createdAt: now,
           updatedAt: now,
-        };
+        } as Fornecedor;
         dispatch({ type: 'ADD_FORNECEDOR', payload: newFornecedor });
         toast({
           title: "Fornecedor criado",
