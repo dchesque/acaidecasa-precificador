@@ -187,7 +187,7 @@ export const InsumoForm = ({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">Nenhum</SelectItem>
+                    <SelectItem value="none">Nenhum</SelectItem>
                     {fornecedores.map((fornecedor) => (
                       <SelectItem key={fornecedor.id} value={fornecedor.id}>
                         {fornecedor.nome}
