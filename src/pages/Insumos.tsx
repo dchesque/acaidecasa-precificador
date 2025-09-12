@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { InsumoModal } from "@/components/modals/InsumoModal";
@@ -21,7 +20,6 @@ import {
   Search,
   TrendingUp,
   Users,
-  Calculator,
   Tags,
   Eye,
   Star
@@ -181,11 +179,19 @@ const Insumos = () => {
 
   const stats = {
     totalInsumos: state.insumos.filter(i => i.ativo).length,
-    custoMedio: state.insumos.length > 0 
-      ? state.insumos.reduce((acc, i) => acc + calcularCustoPorGrama(i, state.insumoFornecedores), 0) / state.insumos.length 
+    insumosInativos: state.insumos.filter(i => !i.ativo).length,
+    categoriasComInsumos: new Set(state.insumos.filter(i => i.ativo).map(i => i.categoriaId)).size,
+    fornecedoresAtivos: new Set(state.insumos.filter(i => i.ativo).map(i => i.fornecedorPrincipalId)).size,
+    insumosSemFornecedor: state.insumos.filter(i => i.ativo && !i.fornecedorPrincipalId).length,
+    custoMaisAlto: state.insumos.length > 0 
+      ? Math.max(...state.insumos.filter(i => i.ativo).map(i => calcularCustoPorGrama(i, state.insumoFornecedores)))
       : 0,
-    fornecedoresAtivos: new Set(state.insumos.map(i => i.fornecedorPrincipalId)).size,
-    categorias: new Set(state.insumos.map(i => i.categoriaId)).size,
+    custoMaisBaixo: state.insumos.length > 0 
+      ? Math.min(...state.insumos.filter(i => i.ativo).map(i => calcularCustoPorGrama(i, state.insumoFornecedores)))
+      : 0,
+    insumosComDesconto: state.insumoFornecedores.filter(inf => 
+      inf.ativo && inf.usarPrecoComDesconto && inf.precoComDesconto && inf.precoComDesconto > 0
+    ).length,
   };
 
   return (
@@ -218,39 +224,13 @@ const Insumos = () => {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total de Insumos</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Insumos Ativos</CardTitle>
+              <Package className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalInsumos}</div>
+              <div className="text-2xl font-bold text-green-600">{stats.totalInsumos}</div>
               <p className="text-xs text-muted-foreground">
-                insumos cadastrados
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Custo Médio/Un</CardTitle>
-              <Calculator className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatarCustoPorUnidade(stats.custoMedio)}</div>
-              <p className="text-xs text-muted-foreground">
-                custo médio por unidade
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Fornecedores</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.fornecedoresAtivos}</div>
-              <p className="text-xs text-muted-foreground">
-                fornecedores ativos
+                {stats.insumosInativos > 0 && `${stats.insumosInativos} inativos`}
               </p>
             </CardContent>
           </Card>
@@ -258,24 +238,45 @@ const Insumos = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Categorias</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <Tags className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.categorias}</div>
+              <div className="text-2xl font-bold text-blue-600">{stats.categoriasComInsumos}</div>
               <p className="text-xs text-muted-foreground">
-                categorias diferentes
+                categorias com insumos
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Com Desconto</CardTitle>
+              <TrendingUp className="h-4 w-4 text-orange-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-orange-600">{stats.insumosComDesconto}</div>
+              <p className="text-xs text-muted-foreground">
+                insumos com desconto
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Sem Fornecedor</CardTitle>
+              <Users className="h-4 w-4 text-red-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">{stats.insumosSemFornecedor}</div>
+              <p className="text-xs text-muted-foreground">
+                {stats.insumosSemFornecedor > 0 ? "precisam de atenção" : "todos configurados"}
               </p>
             </CardContent>
           </Card>
         </div>
 
-        <Tabs defaultValue="lista" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="lista">Lista de Insumos</TabsTrigger>
-            <TabsTrigger value="custos">Análise de Custos</TabsTrigger>
-          </TabsList>
+        <div className="space-y-4">
 
-          <TabsContent value="lista" className="space-y-4">
             {/* Filtros */}
             <Card>
               <CardHeader>
@@ -371,125 +372,64 @@ const Insumos = () => {
                 </Table>
               </Card>
             ) : (
-              // By category view
-              <div className="space-y-6">
-                {insumosByCategory.map((group) => (
-                  <Card key={group.categoria.id}>
-                    <CardHeader className="pb-3">
-                      <CardTitle 
-                        className="flex items-center gap-3 text-lg"
-                        style={{ color: group.categoria.cor }}
-                      >
-                        <div 
-                          className="w-4 h-4 rounded-full" 
-                          style={{ backgroundColor: group.categoria.cor }}
-                        />
-                        {group.categoria.nome}
-                        <Badge variant="secondary" className="ml-auto">
-                          {group.insumos.length} {group.insumos.length === 1 ? 'item' : 'itens'}
-                        </Badge>
-                      </CardTitle>
-                    </CardHeader>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Insumo</TableHead>
-                          <TableHead>Fornecedor</TableHead>
-                          <TableHead>Quantidade</TableHead>
-                          <TableHead>Preço</TableHead>
-                          <TableHead>Custo/Unidade</TableHead>
-                          <TableHead className="text-center">Ações</TableHead>
-                          <TableHead className="w-16">Status</TableHead>
+              // By category view - single unified table
+              <Card>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Insumo</TableHead>
+                      <TableHead>Categoria</TableHead>
+                      <TableHead>Fornecedor</TableHead>
+                      <TableHead>Quantidade</TableHead>
+                      <TableHead>Preço</TableHead>
+                      <TableHead>Custo/Unidade</TableHead>
+                      <TableHead className="text-center">Ações</TableHead>
+                      <TableHead className="w-16">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {insumosByCategory.map((group, groupIndex) => (
+                      <>
+                        {/* Category header row */}
+                        <TableRow key={`category-${group.categoria.id}`} className="bg-muted/50">
+                          <TableCell colSpan={8} className="font-semibold py-4">
+                            <div className="flex items-center gap-3">
+                              <div 
+                                className="w-4 h-4 rounded-full" 
+                                style={{ backgroundColor: group.categoria.cor }}
+                              />
+                              <span style={{ color: group.categoria.cor }}>
+                                {group.categoria.nome}
+                              </span>
+                              <Badge variant="secondary" className="ml-2">
+                                {group.insumos.length} {group.insumos.length === 1 ? 'item' : 'itens'}
+                              </Badge>
+                            </div>
+                          </TableCell>
                         </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {group.insumos.map((insumo) => (
-                          <InsumoTableRow key={insumo.id} insumo={insumo} showCategory={false} />
+                        {/* Category items */}
+                        {group.insumos.map((insumo, insumoIndex) => (
+                          <InsumoTableRow 
+                            key={`${group.categoria.id}-${insumo.id}`} 
+                            insumo={insumo} 
+                            showCategory={true} 
+                          />
                         ))}
-                      </TableBody>
-                    </Table>
-                  </Card>
-                ))}
-              </div>
+                        {/* Spacer row between categories (except for last one) */}
+                        {groupIndex < insumosByCategory.length - 1 && (
+                          <TableRow key={`spacer-${group.categoria.id}`}>
+                            <TableCell colSpan={8} className="p-0">
+                              <div className="h-4"></div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Card>
             )}
-          </TabsContent>
-
-          <TabsContent value="custos" className="space-y-4">
-            {/* Análise por Categoria */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Análise de Custos por Categoria</CardTitle>
-                <CardDescription>
-                  Distribuição de custos médios por categoria de insumos
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {state.categorias.map((categoria) => {
-                    const insumosCat = state.insumos.filter(i => i.categoriaId === categoria.id);
-                    const custoMedio = insumosCat.length > 0 
-                      ? insumosCat.reduce((acc, i) => acc + calcularCustoPorGrama(i, state.insumoFornecedores), 0) / insumosCat.length 
-                      : 0;
-                    
-                    return (
-                      <div key={categoria.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <h4 className="font-semibold">{categoria.nome}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {insumosCat.length} insumos
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold">{formatarCustoPorUnidade(custoMedio)}</p>
-                          <p className="text-sm text-muted-foreground">custo médio/un</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Análise por Fornecedor */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Análise por Fornecedor</CardTitle>
-                <CardDescription>
-                  Comparativo de custos entre fornecedores
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {state.fornecedores.map((fornecedor) => {
-                    const insumosFornecedor = state.insumos.filter(
-                      i => i.fornecedorCalculoId === fornecedor.id
-                    );
-                    const custoMedio = insumosFornecedor.length > 0 
-                      ? insumosFornecedor.reduce((acc, i) => acc + calcularCustoPorGrama(i, state.insumoFornecedores), 0) / insumosFornecedor.length 
-                      : 0;
-                    
-                    if (insumosFornecedor.length === 0) return null;
-                    
-                    return (
-                      <div key={fornecedor.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <h4 className="font-semibold">{fornecedor.nome}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {insumosFornecedor.length} insumos fornecidos
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold">{formatarCustoPorUnidade(custoMedio)}</p>
-                          <p className="text-sm text-muted-foreground">custo médio/un</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        </div>
       </div>
 
       <InsumoModal

@@ -24,16 +24,53 @@ interface CategoriaFormProps {
 }
 
 const cores = [
+  // Roxos e Violetas
   "#8B5CF6", // Purple
-  "#10B981", // Green
-  "#F59E0B", // Yellow
-  "#EF4444", // Red
+  "#A855F7", // Purple-500
+  "#9333EA", // Violet
+  "#7C3AED", // Violet-600
+  "#6366F1", // Indigo
+  "#4F46E5", // Indigo-600
+  
+  // Azuis
   "#3B82F6", // Blue
-  "#F97316", // Orange
-  "#EC4899", // Pink
-  "#84CC16", // Lime
+  "#2563EB", // Blue-600
+  "#1D4ED8", // Blue-700
   "#06B6D4", // Cyan
+  "#0891B2", // Cyan-600
+  "#0E7490", // Cyan-700
+  
+  // Verdes
+  "#10B981", // Green
+  "#059669", // Green-600
+  "#047857", // Green-700
+  "#84CC16", // Lime
+  "#65A30D", // Lime-600
+  "#16A34A", // Green-500
+  
+  // Amarelos e Laranjas
+  "#F59E0B", // Yellow
+  "#D97706", // Yellow-600
+  "#B45309", // Yellow-700
+  "#F97316", // Orange
+  "#EA580C", // Orange-600
+  "#DC2626", // Red-600
+  
+  // Vermelhos e Rosas
+  "#EF4444", // Red
+  "#DC2626", // Red-600
+  "#B91C1C", // Red-700
+  "#EC4899", // Pink
+  "#DB2777", // Pink-600
+  "#BE185D", // Pink-700
+  
+  // Neutros e Especiais
+  "#6B7280", // Gray
+  "#4B5563", // Gray-600
+  "#374151", // Gray-700
   "#8B5A2B", // Brown
+  "#92400E", // Amber-700
+  "#1F2937", // Gray-800
 ];
 
 export const CategoriaForm = ({
@@ -82,18 +119,19 @@ export const CategoriaForm = ({
               <FormItem>
                 <FormLabel>Cor</FormLabel>
                 <FormControl>
-                  <div className="flex gap-2 flex-wrap">
+                  <div className="grid grid-cols-6 gap-2 p-3 border rounded-lg bg-muted/20">
                     {cores.map((cor) => (
                       <button
                         key={cor}
                         type="button"
-                        className={`w-8 h-8 rounded-full border-2 transition-all ${
+                        className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-105 ${
                           field.value === cor
-                            ? "border-foreground scale-110"
+                            ? "border-foreground scale-110 shadow-lg"
                             : "border-muted hover:border-muted-foreground"
                         }`}
                         style={{ backgroundColor: cor }}
                         onClick={() => field.onChange(cor)}
+                        title={cor}
                       />
                     ))}
                   </div>
@@ -158,18 +196,19 @@ export const CategoriaForm = ({
             <FormItem>
               <FormLabel>Cor da Categoria</FormLabel>
               <FormControl>
-                <div className="flex gap-3 flex-wrap">
+                <div className="grid grid-cols-6 gap-3 p-4 border rounded-lg bg-muted/20">
                   {cores.map((cor) => (
                     <button
                       key={cor}
                       type="button"
                       className={`w-10 h-10 rounded-full border-2 transition-all hover:scale-105 ${
                         field.value === cor
-                          ? "border-foreground scale-110"
+                          ? "border-foreground scale-110 shadow-lg"
                           : "border-muted hover:border-muted-foreground"
                       }`}
                       style={{ backgroundColor: cor }}
                       onClick={() => field.onChange(cor)}
+                      title={cor}
                     />
                   ))}
                 </div>
