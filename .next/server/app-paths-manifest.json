@@ -1,6 +1,0 @@
-{
-  "/fornecedores/page": "app/fornecedores/page.js",
-  "/insumos/page": "app/insumos/page.js",
-  "/combinados/page": "app/combinados/page.js",
-  "/copos-base/page": "app/copos-base/page.js"
-}
