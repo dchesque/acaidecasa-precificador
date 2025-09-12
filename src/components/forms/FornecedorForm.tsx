@@ -33,14 +33,11 @@ export const FornecedorForm = ({
     resolver: zodResolver(fornecedorSchema),
     defaultValues: {
       nome: fornecedor?.nome || "",
-      contato: fornecedor?.contato || "",
       telefone: fornecedor?.telefone || "",
       email: fornecedor?.email || "",
-      endereco: fornecedor?.endereco || "",
       cnpj: fornecedor?.cnpj || "",
       prazoEntrega: fornecedor?.prazoEntrega || 0,
       pedidoMinimo: fornecedor?.pedidoMinimo || 0,
-      avaliacao: fornecedor?.avaliacao || 5,
       observacoes: fornecedor?.observacoes || "",
       ativo: fornecedor?.ativo ?? true,
     },
@@ -53,35 +50,19 @@ export const FornecedorForm = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="nome"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nome *</FormLabel>
-                <FormControl>
-                  <Input placeholder="Nome do fornecedor" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="contato"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Contato</FormLabel>
-                <FormControl>
-                  <Input placeholder="Nome do contato" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="nome"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nome *</FormLabel>
+              <FormControl>
+                <Input placeholder="Nome do fornecedor" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <div className="grid grid-cols-2 gap-4">
           <FormField
@@ -113,19 +94,6 @@ export const FornecedorForm = ({
           />
         </div>
 
-        <FormField
-          control={form.control}
-          name="endereco"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Endereço</FormLabel>
-              <FormControl>
-                <Input placeholder="Endereço completo" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
         <FormField
           control={form.control}
@@ -141,7 +109,7 @@ export const FornecedorForm = ({
           )}
         />
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="prazoEntrega"
@@ -172,27 +140,6 @@ export const FornecedorForm = ({
                     type="number"
                     min="0"
                     step="0.01"
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="avaliacao"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Avaliação (1-5) *</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    min="1"
-                    max="5"
-                    step="0.1"
                     {...field}
                     onChange={(e) => field.onChange(Number(e.target.value))}
                   />

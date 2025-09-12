@@ -2,7 +2,6 @@ import { useCallback } from 'react';
 import { useAppContext } from '@/contexts/AppContext';
 import {
   calcularCustoPorGrama,
-  calcularCustoPorUnidade,
   calcularCustoReceita,
   calcularCustoCopoBase,
   calcularCustoCombo,
@@ -11,7 +10,7 @@ import {
   verificarPrejuizo,
   verificarMargemBaixa,
 } from '@/utils/calculations';
-import { Insumo, Embalagem, Receita, CopoBase, Combinado } from '@/types/database';
+import { Insumo, Receita, CopoBase, Combinado } from '@/types/database';
 
 export const useCalculations = () => {
   const { state, dispatch } = useAppContext();
@@ -34,19 +33,6 @@ export const useCalculations = () => {
     return insumoAtualizado;
   }, [dispatch]);
 
-  // Recalculate packaging cost per unit
-  const recalcularEmbalagem = useCallback((embalagem: Embalagem) => {
-    const custoPorUnidade = calcularCustoPorUnidade(embalagem);
-
-    const embalagemAtualizada = {
-      ...embalagem,
-      custoPorUnidade,
-      updatedAt: new Date(),
-    };
-
-    dispatch({ type: 'UPDATE_EMBALAGEM', payload: embalagemAtualizada });
-    return embalagemAtualizada;
-  }, [dispatch]);
 
   // Recalculate recipe costs
   const recalcularReceita = useCallback((receita: Receita) => {
@@ -67,8 +53,7 @@ export const useCalculations = () => {
   const recalcularCopoBase = useCallback((copoBase: CopoBase) => {
     const { custoBase, custoEmbalagens, custoTotal } = calcularCustoCopoBase(
       copoBase,
-      state.insumos,
-      state.embalagens
+      state.insumos
     );
 
     const precoSugerido = state.configuracao 
@@ -89,7 +74,7 @@ export const useCalculations = () => {
 
     dispatch({ type: 'UPDATE_COPO_BASE', payload: copoBaseAtualizado });
     return copoBaseAtualizado;
-  }, [state.insumos, state.embalagens, state.configuracao, dispatch]);
+  }, [state.insumos, state.configuracao, dispatch]);
 
   // Recalculate combo costs
   const recalcularCombinado = useCallback((combinado: Combinado) => {
@@ -127,10 +112,6 @@ export const useCalculations = () => {
       recalcularInsumo(insumo);
     });
 
-    // Recalculate all packaging
-    state.embalagens.forEach(embalagem => {
-      recalcularEmbalagem(embalagem);
-    });
 
     // Recalculate all recipes
     state.receitas.forEach(receita => {
@@ -148,12 +129,10 @@ export const useCalculations = () => {
     });
   }, [
     state.insumos,
-    state.embalagens, 
     state.receitas,
     state.coposBase,
     state.combinados,
     recalcularInsumo,
-    recalcularEmbalagem,
     recalcularReceita,
     recalcularCopoBase,
     recalcularCombinado,
@@ -233,7 +212,6 @@ export const useCalculations = () => {
 
   return {
     recalcularInsumo,
-    recalcularEmbalagem,
     recalcularReceita,
     recalcularCopoBase,
     recalcularCombinado,

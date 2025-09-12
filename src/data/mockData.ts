@@ -5,11 +5,9 @@ import {
   UnidadeMedida, 
   Fornecedor, 
   Insumo, 
-  Embalagem, 
   Receita,
   ReceitaIngrediente,
   CopoBase,
-  CopoBaseEmbalagem,
   Combinado,
   CombinadoComplemento,
   ItemCardapio
@@ -219,45 +217,6 @@ export const mockInsumos: Insumo[] = [
   },
 ];
 
-// Packaging
-export const mockEmbalagens: Embalagem[] = [
-  {
-    id: '1',
-    nome: 'Copo 500ml',
-    descricao: 'Copo descartável 500ml transparente',
-    categoriaId: '4',
-    fornecedorPrincipalId: '3',
-    precoPrincipal: 0.35,
-    custoPorUnidade: 0.35,
-    ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '2',
-    nome: 'Tampa para Copo 500ml',
-    descricao: 'Tampa transparente para copo 500ml',
-    categoriaId: '4',
-    fornecedorPrincipalId: '3',
-    precoPrincipal: 0.15,
-    custoPorUnidade: 0.15,
-    ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '3',
-    nome: 'Colher Descartável',
-    descricao: 'Colher descartável de plástico',
-    categoriaId: '4',
-    fornecedorPrincipalId: '3',
-    precoPrincipal: 0.08,
-    custoPorUnidade: 0.08,
-    ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
 
 // Recipe Ingredients
 export const mockReceitaIngredientes: ReceitaIngrediente[] = [
@@ -324,36 +283,6 @@ export const mockReceitas: Receita[] = [
   },
 ];
 
-// Base Cup Packaging
-export const mockCopoBaseEmbalagens: CopoBaseEmbalagem[] = [
-  {
-    id: '1',
-    copoBaseId: '1',
-    embalagemId: '1', // Copo 500ml
-    quantidade: 1,
-    custo: 0.35,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '2',
-    copoBaseId: '1',
-    embalagemId: '2', // Tampa
-    quantidade: 1,
-    custo: 0.15,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '3',
-    copoBaseId: '1',
-    embalagemId: '3', // Colher
-    quantidade: 1,
-    custo: 0.08,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
 
 // Base Cups
 export const mockCoposBase: CopoBase[] = [
@@ -372,7 +301,6 @@ export const mockCoposBase: CopoBase[] = [
     ativo: true,
     createdAt: new Date(),
     updatedAt: new Date(),
-    embalagens: mockCopoBaseEmbalagens,
   },
 ];
 

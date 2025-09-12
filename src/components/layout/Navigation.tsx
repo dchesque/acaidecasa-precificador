@@ -15,7 +15,6 @@ import {
   Settings, 
   Users, 
   Package, 
-  Archive, 
   ChefHat, 
   Coffee, 
   Layers, 
@@ -114,14 +113,6 @@ export const Navigation = () => {
           label="Insumos"
           isCollapsed={isCollapsed}
           color="text-green-400"
-        />
-        
-        <NavItem
-          href="/embalagens"
-          icon={<Archive className="h-5 w-5" />}
-          label="Embalagens"
-          isCollapsed={isCollapsed}
-          color="text-cyan-400"
         />
         
         <NavItem

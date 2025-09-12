@@ -30,14 +30,11 @@ export const unidadeMedidaSchema = z.object({
 // Supplier Form Schema
 export const fornecedorSchema = z.object({
   nome: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
-  contato: z.string().optional(),
   telefone: z.string().optional(),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
-  endereco: z.string().optional(),
   cnpj: z.string().optional(),
   prazoEntrega: z.number().min(0),
   pedidoMinimo: z.number().min(0),
-  avaliacao: z.number().min(1).max(5),
   observacoes: z.string().optional(),
   ativo: z.boolean().default(true),
 });
@@ -55,17 +52,6 @@ export const insumoSchema = z.object({
   ativo: z.boolean().default(true),
 });
 
-// Packaging Form Schema
-export const embalagemSchema = z.object({
-  nome: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
-  descricao: z.string().optional(),
-  categoriaId: z.string().min(1, "Categoria é obrigatória"),
-  fornecedorPrincipalId: z.string().min(1, "Fornecedor principal é obrigatório"),
-  fornecedorAlternativoId: z.string().optional(),
-  precoPrincipal: z.number().min(0.01, "Preço deve ser maior que zero"),
-  precoAlternativo: z.number().min(0).optional(),
-  ativo: z.boolean().default(true),
-});
 
 // Recipe Form Schema
 export const receitaSchema = z.object({
@@ -90,10 +76,6 @@ export const copoBaseSchema = z.object({
   insumoBaseId: z.string().min(1, "Insumo base é obrigatório"),
   quantidadeBase: z.number().min(0.001, "Quantidade deve ser maior que zero"),
   ativo: z.boolean().default(true),
-  embalagens: z.array(z.object({
-    embalagemId: z.string().min(1),
-    quantidade: z.number().min(1),
-  })).min(1, "Pelo menos uma embalagem é obrigatória"),
 });
 
 // Combo Form Schema
@@ -131,7 +113,6 @@ export type CategoriaFormData = z.infer<typeof categoriaSchema>;
 export type UnidadeMedidaFormData = z.infer<typeof unidadeMedidaSchema>;
 export type FornecedorFormData = z.infer<typeof fornecedorSchema>;
 export type InsumoFormData = z.infer<typeof insumoSchema>;
-export type EmbalagemFormData = z.infer<typeof embalagemSchema>;
 export type ReceitaFormData = z.infer<typeof receitaSchema>;
 export type CopoBaseFormData = z.infer<typeof copoBaseSchema>;
 export type CombinadoFormData = z.infer<typeof combinadoSchema>;

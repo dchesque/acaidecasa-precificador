@@ -5,7 +5,6 @@ import {
   UnidadeMedida, 
   Fornecedor, 
   Insumo, 
-  Embalagem, 
   Receita, 
   CopoBase, 
   Combinado, 
@@ -20,7 +19,6 @@ interface AppState {
   unidadesMedida: UnidadeMedida[];
   fornecedores: Fornecedor[];
   insumos: Insumo[];
-  embalagens: Embalagem[];
   receitas: Receita[];
   coposBase: CopoBase[];
   combinados: Combinado[];
@@ -51,10 +49,6 @@ type AppAction =
   | { type: 'ADD_INSUMO'; payload: Insumo }
   | { type: 'UPDATE_INSUMO'; payload: Insumo }
   | { type: 'DELETE_INSUMO'; payload: string }
-  | { type: 'SET_EMBALAGENS'; payload: Embalagem[] }
-  | { type: 'ADD_EMBALAGEM'; payload: Embalagem }
-  | { type: 'UPDATE_EMBALAGEM'; payload: Embalagem }
-  | { type: 'DELETE_EMBALAGEM'; payload: string }
   | { type: 'SET_RECEITAS'; payload: Receita[] }
   | { type: 'ADD_RECEITA'; payload: Receita }
   | { type: 'UPDATE_RECEITA'; payload: Receita }
@@ -82,7 +76,6 @@ const initialState: AppState = {
   unidadesMedida: [],
   fornecedores: [],
   insumos: [],
-  embalagens: [],
   receitas: [],
   coposBase: [],
   combinados: [],
@@ -182,26 +175,6 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       return {
         ...state,
         insumos: state.insumos.filter(item => item.id !== action.payload),
-      };
-    
-    case 'SET_EMBALAGENS':
-      return { ...state, embalagens: action.payload };
-    
-    case 'ADD_EMBALAGEM':
-      return { ...state, embalagens: [...state.embalagens, action.payload] };
-    
-    case 'UPDATE_EMBALAGEM':
-      return {
-        ...state,
-        embalagens: state.embalagens.map(item =>
-          item.id === action.payload.id ? action.payload : item
-        ),
-      };
-    
-    case 'DELETE_EMBALAGEM':
-      return {
-        ...state,
-        embalagens: state.embalagens.filter(item => item.id !== action.payload),
       };
     
     case 'SET_RECEITAS':

@@ -1,4 +1,4 @@
-import { Insumo, Embalagem, Receita, CopoBase, Combinado, Configuracao } from "@/types/database";
+import { Insumo, Receita, CopoBase, Combinado, Configuracao } from "@/types/database";
 
 // Calculate cost per gram for inputs
 export const calcularCustoPorGrama = (insumo: Partial<Insumo>): number => {
@@ -11,11 +11,6 @@ export const calcularCustoPorGrama = (insumo: Partial<Insumo>): number => {
   return preco / (1000 * fatorConversao);
 };
 
-// Calculate cost per unit for packaging
-export const calcularCustoPorUnidade = (embalagem: Partial<Embalagem>): number => {
-  if (!embalagem.precoPrincipal) return 0;
-  return embalagem.precoPrincipal;
-};
 
 // Calculate total cost for a recipe
 export const calcularCustoReceita = (
@@ -42,11 +37,10 @@ export const calcularCustoReceita = (
 // Calculate total cost for a base cup
 export const calcularCustoCopoBase = (
   copoBase: Partial<CopoBase>,
-  insumos: Insumo[],
-  embalagens: Embalagem[]
+  insumos: Insumo[]
 ): { custoBase: number; custoEmbalagens: number; custoTotal: number } => {
   let custoBase = 0;
-  let custoEmbalagens = 0;
+  let custoEmbalagens = 0.58; // Fixed packaging cost
 
   // Calculate base ingredient cost
   if (copoBase.insumoBaseId && copoBase.quantidadeBase) {
@@ -57,16 +51,7 @@ export const calcularCustoCopoBase = (
     }
   }
 
-  // Calculate packaging costs
-  if (copoBase.embalagens) {
-    custoEmbalagens = copoBase.embalagens.reduce((total, item) => {
-      const embalagem = embalagens.find(e => e.id === item.embalagemId);
-      if (!embalagem) return total;
-      
-      const custoPorUnidade = calcularCustoPorUnidade(embalagem);
-      return total + (custoPorUnidade * item.quantidade);
-    }, 0);
-  }
+  // Fixed packaging costs (simplified)
 
   const custoTotal = custoBase + custoEmbalagens;
 

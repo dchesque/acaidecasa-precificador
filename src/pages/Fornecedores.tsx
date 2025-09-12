@@ -5,11 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FornecedorModal } from "@/components/modals/FornecedorModal";
 import { useAppContext } from "@/contexts/AppContext";
 import { Fornecedor } from "@/types/database";
-import { Plus, Users, Phone, Mail, MapPin, Edit, Trash2, Search, Star, Package } from "lucide-react";
+import { Plus, Users, Phone, Mail, Edit, Trash2, Search, Package } from "lucide-react";
 
 const Fornecedores = () => {
   const { state, dispatch } = useAppContext();
@@ -53,13 +52,7 @@ const Fornecedores = () => {
           </Button>
         </div>
 
-        <Tabs defaultValue="lista" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="lista">Lista de Fornecedores</TabsTrigger>
-            <TabsTrigger value="avaliacoes">Avaliações</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="lista" className="space-y-4">
+        <div className="space-y-4">
             {/* Filtros */}
             <Card>
               <CardHeader>
@@ -110,15 +103,8 @@ const Fornecedores = () => {
                             <Users className="w-5 h-5" />
                             {fornecedor.nome}
                           </CardTitle>
-                          <CardDescription>
-                            {fornecedor.contato}
-                          </CardDescription>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="flex items-center gap-1">
-                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm font-medium">{fornecedor.avaliacao}</span>
-                          </div>
                           <Badge variant={fornecedor.ativo ? "default" : "secondary"}>
                             {fornecedor.ativo ? "Ativo" : "Inativo"}
                           </Badge>
@@ -140,7 +126,7 @@ const Fornecedores = () => {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="flex items-center gap-2">
                           <Phone className="w-4 h-4 text-muted-foreground" />
                           <span className="text-sm">{fornecedor.telefone || "Não informado"}</span>
@@ -148,10 +134,6 @@ const Fornecedores = () => {
                         <div className="flex items-center gap-2">
                           <Mail className="w-4 h-4 text-muted-foreground" />
                           <span className="text-sm">{fornecedor.email || "Não informado"}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-sm">{fornecedor.endereco || "Não informado"}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Package className="w-4 h-4 text-muted-foreground" />
@@ -170,47 +152,7 @@ const Fornecedores = () => {
                 ))
               )}
             </div>
-          </TabsContent>
-
-          <TabsContent value="avaliacoes" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Ranking de Fornecedores</CardTitle>
-                <CardDescription>
-                  Fornecedores ordenados por avaliação
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {filteredFornecedores
-                    .sort((a, b) => b.avaliacao - a.avaliacao)
-                    .map((fornecedor, index) => (
-                      <div key={fornecedor.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center gap-4">
-                          <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold">
-                            {index + 1}
-                          </div>
-                          <div>
-                            <h4 className="font-semibold">{fornecedor.nome}</h4>
-                            <p className="text-sm text-muted-foreground">{fornecedor.contato}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="flex items-center gap-1">
-                            <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                            <span className="text-lg font-bold">{fornecedor.avaliacao}</span>
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            Pedido mín: R$ {fornecedor.pedidoMinimo}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        </div>
       </div>
 
       <FornecedorModal

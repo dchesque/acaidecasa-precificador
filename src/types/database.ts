@@ -35,14 +35,11 @@ export interface UnidadeMedida {
 export interface Fornecedor {
   id: string;
   nome: string;
-  contato?: string;
   telefone?: string;
   email?: string;
-  endereco?: string;
   cnpj?: string;
   prazoEntrega: number;
   pedidoMinimo: number;
-  avaliacao: number;
   observacoes?: string;
   ativo: boolean;
   createdAt: Date;
@@ -71,24 +68,6 @@ export interface Insumo {
   historicoPrecos?: HistoricoPreco[];
 }
 
-export interface Embalagem {
-  id: string;
-  nome: string;
-  descricao?: string;
-  categoriaId: string;
-  categoria?: Categoria;
-  fornecedorPrincipalId: string;
-  fornecedorPrincipal?: Fornecedor;
-  fornecedorAlternativoId?: string;
-  fornecedorAlternativo?: Fornecedor;
-  precoPrincipal: number;
-  precoAlternativo?: number;
-  custoPorUnidade: number;
-  ativo: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  historicoPrecos?: HistoricoPreco[];
-}
 
 export interface Receita {
   id: string;
@@ -136,20 +115,8 @@ export interface CopoBase {
   ativo: boolean;
   createdAt: Date;
   updatedAt: Date;
-  embalagens?: CopoBaseEmbalagem[];
 }
 
-export interface CopoBaseEmbalagem {
-  id: string;
-  copoBaseId: string;
-  copoBase?: CopoBase;
-  embalagemId: string;
-  embalagem?: Embalagem;
-  quantidade: number;
-  custo: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
 
 export interface Combinado {
   id: string;
@@ -210,7 +177,7 @@ export interface ItemCardapio {
 
 export interface HistoricoPreco {
   id: string;
-  tipo: 'INSUMO' | 'EMBALAGEM';
+  tipo: 'INSUMO';
   itemId: string;
   precoAnterior: number;
   precoNovo: number;
