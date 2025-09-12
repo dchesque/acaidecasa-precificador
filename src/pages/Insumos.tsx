@@ -35,7 +35,7 @@ const Insumos = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedSupplier, setSelectedSupplier] = useState("");
-  const [viewMode, setViewMode] = useState<"complete" | "by-category">("complete");
+  const [viewMode, setViewMode] = useState<"complete" | "by-category">("by-category");
 
   const filteredInsumos = state.insumos.filter((insumo) => {
     const matchesSearch = insumo.nome.toLowerCase().includes(searchTerm.toLowerCase());
