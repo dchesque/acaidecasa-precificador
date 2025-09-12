@@ -1,26 +1,21 @@
 "use client"
 
 import { ThemeToggle } from "@/components/ui/theme-toggle"
+import { UserCircle } from "lucide-react"
 
 export const Header = () => {
   return (
     <header className="bg-card border-b border-border px-6 py-4 shadow-sm">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <div className="w-10 h-10 bg-gradient-to-br from-acai-purple via-acai-purple-light to-acai-green rounded-xl flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold text-lg drop-shadow-sm">🫐</span>
-          </div>
-          <div>
-            <h1 className="text-xl font-semibold text-foreground bg-gradient-to-r from-acai-purple to-acai-green bg-clip-text text-transparent">
-              Açaí De Casa
-            </h1>
-            <p className="text-sm text-muted-foreground">Sistema de Precificação</p>
-          </div>
+        <div className="flex items-center gap-2">
+          <span className="text-lg font-medium text-muted-foreground">Bem-vindo,</span>
+          <span className="text-lg font-semibold text-foreground">Admin</span>
         </div>
         <div className="flex items-center space-x-4">
-          <div className="text-right">
-            <div className="text-sm font-medium text-foreground">Versão 1.3</div>
-            <div className="text-xs text-acai-purple">Next.js 15</div>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/50">
+            <UserCircle className="h-5 w-5 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Logado como:</span>
+            <span className="text-sm font-medium text-foreground">admin@acaidecasa.com</span>
           </div>
           <ThemeToggle />
         </div>

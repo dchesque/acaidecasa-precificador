@@ -1,7 +1,16 @@
 "use client"
-import { useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { NavItem } from "./NavItem";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { 
   Settings, 
   Users, 
@@ -10,49 +19,167 @@ import {
   ChefHat, 
   Coffee, 
   Layers, 
-  MenuSquare 
+  LayoutDashboard,
+  UserCircle,
+  Building2,
+  MenuSquare,
+  User,
+  LogOut,
+  ChevronUp
 } from "lucide-react";
 
-const navigationItems = [
-  { id: "dashboard", label: "Dashboard", icon: MenuSquare, path: "/" },
-  { id: "configuracoes", label: "Configurações", icon: Settings, path: "/configuracoes" },
-  { id: "fornecedores", label: "Fornecedores", icon: Users, path: "/fornecedores" },
-  { id: "insumos", label: "Insumos", icon: Package, path: "/insumos" },
-  { id: "embalagens", label: "Embalagens", icon: Archive, path: "/embalagens" },
-  { id: "receitas", label: "Receitas", icon: ChefHat, path: "/receitas" },
-  { id: "copos-base", label: "Copos Base", icon: Coffee, path: "/copos-base" },
-  { id: "combinados", label: "Combinados", icon: Layers, path: "/combinados" },
-  { id: "cardapio", label: "Cardápio", icon: MenuSquare, path: "/cardapio" },
-];
-
 export const Navigation = () => {
-  const router = useRouter();
   const pathname = usePathname();
+  const router = useRouter();
+  const isMobile = useIsMobile();
+  const [isCollapsed, setIsCollapsed] = useState(isMobile);
+
+  useEffect(() => {
+    setIsCollapsed(isMobile);
+  }, [isMobile]);
+
+  const handleLogout = () => {
+    // Implementar lógica de logout aqui
+    console.log("Logout");
+    // router.push("/login");
+  };
 
   return (
-    <nav className="w-64 bg-white border-r border-border p-4">
-      <div className="space-y-2">
-        {navigationItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = pathname === item.path;
-          
-          return (
-            <button
-              key={item.id}
-              onClick={() => router.push(item.path)}
-              className={cn(
-                "w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              )}
-            >
-              <Icon className="w-4 h-4" />
-              <span>{item.label}</span>
-            </button>
-          );
-        })}
+    <div
+      className={cn(
+        "fixed top-0 left-0 h-screen bg-slate-900 transition-all duration-300 ease-in-out flex flex-col z-50",
+        isCollapsed ? "w-16" : "w-64"
+      )}
+    >
+      {/* Header com Logo */}
+      <div className="px-6 py-6 border-b border-slate-800">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-lg shadow-purple-500/30">
+            <span className="text-white font-bold text-lg">AC</span>
+          </div>
+          {!isCollapsed && (
+            <div>
+              <h1 className="text-white font-semibold text-lg">AçaíDeCasa</h1>
+              <p className="text-gray-400 text-xs">Precificador inteligente</p>
+            </div>
+          )}
+        </div>
       </div>
-    </nav>
+
+      {/* Navigation Items */}
+      <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-1">
+        <NavItem
+          href="/"
+          icon={<LayoutDashboard className="h-5 w-5" />}
+          label="Dashboard"
+          isCollapsed={isCollapsed}
+          color="text-blue-400"
+        />
+        
+        <NavItem
+          href="/cardapio"
+          icon={<MenuSquare className="h-5 w-5" />}
+          label="Cardápio"
+          isCollapsed={isCollapsed}
+          color="text-purple-400"
+        />
+        
+        <NavItem
+          href="/receitas"
+          icon={<ChefHat className="h-5 w-5" />}
+          label="Receitas"
+          isCollapsed={isCollapsed}
+          color="text-orange-400"
+        />
+        
+        <NavItem
+          href="/copos-base"
+          icon={<Coffee className="h-5 w-5" />}
+          label="Copos Base"
+          isCollapsed={isCollapsed}
+          color="text-amber-400"
+        />
+        
+        <NavItem
+          href="/combinados"
+          icon={<Layers className="h-5 w-5" />}
+          label="Combinados"
+          isCollapsed={isCollapsed}
+          color="text-pink-400"
+        />
+        
+        <NavItem
+          href="/insumos"
+          icon={<Package className="h-5 w-5" />}
+          label="Insumos"
+          isCollapsed={isCollapsed}
+          color="text-green-400"
+        />
+        
+        <NavItem
+          href="/embalagens"
+          icon={<Archive className="h-5 w-5" />}
+          label="Embalagens"
+          isCollapsed={isCollapsed}
+          color="text-cyan-400"
+        />
+        
+        <NavItem
+          href="/fornecedores"
+          icon={<Building2 className="h-5 w-5" />}
+          label="Fornecedores"
+          isCollapsed={isCollapsed}
+          color="text-indigo-400"
+        />
+      </nav>
+
+      {/* Footer */}
+      <div className="border-t border-slate-800 p-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <div className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-slate-800 cursor-pointer transition-colors group">
+              <UserCircle className="h-8 w-8 text-gray-400" />
+              {!isCollapsed && (
+                <>
+                  <div className="flex-1">
+                    <p className="text-sm text-white font-medium">Admin</p>
+                    <p className="text-xs text-gray-400">admin@acaidecasa.com</p>
+                  </div>
+                  <ChevronUp className="h-4 w-4 text-gray-400 group-hover:text-gray-200 transition-colors" />
+                </>
+              )}
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent 
+            side="top" 
+            align="start" 
+            className="w-56 mb-2 bg-slate-800 border-slate-700"
+          >
+            <DropdownMenuItem 
+              onClick={() => router.push("/configuracoes")}
+              className="flex items-center gap-2 text-gray-200 hover:bg-slate-700 cursor-pointer"
+            >
+              <Settings className="h-4 w-4" />
+              <span>Configurações</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={() => router.push("/minha-conta")}
+              className="flex items-center gap-2 text-gray-200 hover:bg-slate-700 cursor-pointer"
+            >
+              <User className="h-4 w-4" />
+              <span>Minha Conta</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-slate-700" />
+            <DropdownMenuItem 
+              onClick={handleLogout}
+              className="flex items-center gap-2 text-red-400 hover:bg-slate-700 hover:text-red-300 cursor-pointer"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Sair</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </div>
   );
 };
