@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { User, Mail, Phone, MapPin, Building, Calendar, Save, Camera, Lock, Bell, Shield } from "lucide-react"
+import { User, Mail, Phone, MapPin, Building, Calendar, Save, Camera, Lock } from "lucide-react"
 import { toast } from "sonner"
 
 const MinhaConta = () => {
@@ -37,7 +37,7 @@ const MinhaConta = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto py-6 space-y-6">
+      <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -95,7 +95,6 @@ const MinhaConta = () => {
           <TabsList>
             <TabsTrigger value="personal">Informações Pessoais</TabsTrigger>
             <TabsTrigger value="security">Segurança</TabsTrigger>
-            <TabsTrigger value="notifications">Notificações</TabsTrigger>
           </TabsList>
 
           {/* Personal Information Tab */}
@@ -232,63 +231,11 @@ const MinhaConta = () => {
                     </Button>
                   </div>
 
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Shield className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium">Autenticação de Dois Fatores</p>
-                        <p className="text-sm text-muted-foreground">
-                          Adicione uma camada extra de segurança
-                        </p>
-                      </div>
-                    </div>
-                    <Button variant="outline">Configurar</Button>
-                  </div>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Notifications Tab */}
-          <TabsContent value="notifications">
-            <Card>
-              <CardHeader>
-                <CardTitle>Notificações</CardTitle>
-                <CardDescription>
-                  Configure suas preferências de notificação
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Bell className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium">Notificações por Email</p>
-                        <p className="text-sm text-muted-foreground">
-                          Receba atualizações importantes por email
-                        </p>
-                      </div>
-                    </div>
-                    <Button variant="outline">Ativado</Button>
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Bell className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium">Alertas de Sistema</p>
-                        <p className="text-sm text-muted-foreground">
-                          Notificações sobre atualizações do sistema
-                        </p>
-                      </div>
-                    </div>
-                    <Button variant="outline">Ativado</Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
       </div>
     </Layout>
