@@ -1,16 +1,27 @@
-import React, { createContext, useContext, useReducer, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
 import { 
   Configuracao, 
   Categoria, 
   UnidadeMedida, 
   Fornecedor, 
-  Insumo, 
+  Insumo,
+  InsumoFornecedor,
   Receita, 
   CopoBase, 
   Combinado, 
   ItemCardapio,
   Alerta 
 } from '@/types/database';
+import { 
+  mockCategorias, 
+  mockUnidadesMedida, 
+  mockFornecedores,
+  mockInsumoFornecedores,
+  mockInsumos, 
+  mockReceitas, 
+  mockCoposBase, 
+  mockCombinados 
+} from '@/data/mockData';
 
 // App State Interface
 interface AppState {
@@ -18,6 +29,7 @@ interface AppState {
   categorias: Categoria[];
   unidadesMedida: UnidadeMedida[];
   fornecedores: Fornecedor[];
+  insumoFornecedores: InsumoFornecedor[];
   insumos: Insumo[];
   receitas: Receita[];
   coposBase: CopoBase[];
@@ -45,6 +57,10 @@ type AppAction =
   | { type: 'ADD_FORNECEDOR'; payload: Fornecedor }
   | { type: 'UPDATE_FORNECEDOR'; payload: Fornecedor }
   | { type: 'DELETE_FORNECEDOR'; payload: string }
+  | { type: 'SET_INSUMO_FORNECEDORES'; payload: InsumoFornecedor[] }
+  | { type: 'ADD_INSUMO_FORNECEDOR'; payload: InsumoFornecedor }
+  | { type: 'UPDATE_INSUMO_FORNECEDOR'; payload: InsumoFornecedor }
+  | { type: 'DELETE_INSUMO_FORNECEDOR'; payload: string }
   | { type: 'SET_INSUMOS'; payload: Insumo[] }
   | { type: 'ADD_INSUMO'; payload: Insumo }
   | { type: 'UPDATE_INSUMO'; payload: Insumo }
@@ -72,13 +88,14 @@ type AppAction =
 // Initial State
 const initialState: AppState = {
   configuracao: null,
-  categorias: [],
-  unidadesMedida: [],
-  fornecedores: [],
-  insumos: [],
-  receitas: [],
-  coposBase: [],
-  combinados: [],
+  categorias: mockCategorias,
+  unidadesMedida: mockUnidadesMedida,
+  fornecedores: mockFornecedores,
+  insumoFornecedores: mockInsumoFornecedores,
+  insumos: mockInsumos,
+  receitas: mockReceitas,
+  coposBase: mockCoposBase,
+  combinados: mockCombinados,
   cardapio: [],
   alertas: [],
   loading: false,
@@ -155,6 +172,26 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       return {
         ...state,
         fornecedores: state.fornecedores.filter(item => item.id !== action.payload),
+      };
+    
+    case 'SET_INSUMO_FORNECEDORES':
+      return { ...state, insumoFornecedores: action.payload };
+    
+    case 'ADD_INSUMO_FORNECEDOR':
+      return { ...state, insumoFornecedores: [...state.insumoFornecedores, action.payload] };
+    
+    case 'UPDATE_INSUMO_FORNECEDOR':
+      return {
+        ...state,
+        insumoFornecedores: state.insumoFornecedores.map(item =>
+          item.id === action.payload.id ? action.payload : item
+        ),
+      };
+    
+    case 'DELETE_INSUMO_FORNECEDOR':
+      return {
+        ...state,
+        insumoFornecedores: state.insumoFornecedores.filter(item => item.id !== action.payload),
       };
     
     case 'SET_INSUMOS':

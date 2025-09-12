@@ -5,7 +5,7 @@ import { useAppContext } from "@/contexts/AppContext";
 import { CombinadoFormData } from "@/types/forms";
 import { Combinado, CombinadoComplemento } from "@/types/database";
 import { useToast } from "@/hooks/use-toast";
-import { calcularCustoCombo, calcularPrecoSugerido, calcularMargem } from "@/utils/calculations";
+import { calcularCustoCombo, calcularPrecoSugerido, calcularMargem, calcularCustoPorGrama } from "@/utils/calculations";
 
 interface CombinadoModalProps {
   open: boolean;
@@ -80,7 +80,10 @@ export const CombinadoModal = ({
           let custo = 0;
           if (comp.tipo === 'INSUMO' && comp.insumoId) {
             const insumo = state.insumos.find(i => i.id === comp.insumoId);
-            custo = insumo ? (insumo.custoPorGrama || 0) * comp.quantidade : 0;
+            if (insumo) {
+              const custoPorGrama = calcularCustoPorGrama(insumo, state.insumoFornecedores);
+              custo = custoPorGrama * comp.quantidade;
+            }
           } else if (comp.tipo === 'RECEITA' && comp.receitaId) {
             const receita = state.receitas.find(r => r.id === comp.receitaId);
             custo = receita ? receita.custoPorGrama * comp.quantidade : 0;
@@ -135,7 +138,10 @@ export const CombinadoModal = ({
           let custo = 0;
           if (comp.tipo === 'INSUMO' && comp.insumoId) {
             const insumo = state.insumos.find(i => i.id === comp.insumoId);
-            custo = insumo ? (insumo.custoPorGrama || 0) * comp.quantidade : 0;
+            if (insumo) {
+              const custoPorGrama = calcularCustoPorGrama(insumo, state.insumoFornecedores);
+              custo = custoPorGrama * comp.quantidade;
+            }
           } else if (comp.tipo === 'RECEITA' && comp.receitaId) {
             const receita = state.receitas.find(r => r.id === comp.receitaId);
             custo = receita ? receita.custoPorGrama * comp.quantidade : 0;

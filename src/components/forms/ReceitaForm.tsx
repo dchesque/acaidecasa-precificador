@@ -24,7 +24,7 @@ import {
 import { receitaSchema, ReceitaFormData } from "@/types/forms";
 import { Receita } from "@/types/database";
 import { useAppContext } from "@/contexts/AppContext";
-import { formatarMoeda } from "@/utils/calculations";
+import { formatarMoeda, calcularCustoPorGrama } from "@/utils/calculations";
 import { Plus, Trash2 } from "lucide-react";
 
 interface ReceitaFormProps {
@@ -76,8 +76,9 @@ export const ReceitaForm = ({
     return ingredientes.reduce((total, ingrediente) => {
       if (ingrediente.insumoId && ingrediente.quantidade > 0) {
         const insumo = insumos.find(i => i.id === ingrediente.insumoId);
-        if (insumo && insumo.custoPorGrama) {
-          return total + (insumo.custoPorGrama * ingrediente.quantidade);
+        if (insumo) {
+          const custoPorGrama = calcularCustoPorGrama(insumo, state.insumoFornecedores);
+          return total + (custoPorGrama * ingrediente.quantidade);
         }
       }
       return total;
@@ -228,11 +229,14 @@ export const ReceitaForm = ({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {insumos.map((insumo) => (
-                            <SelectItem key={insumo.id} value={insumo.id}>
-                              {insumo.nome} ({formatarMoeda(insumo.custoPorGrama || 0)}/g)
-                            </SelectItem>
-                          ))}
+                          {insumos.map((insumo) => {
+                            const custoPorGrama = calcularCustoPorGrama(insumo, state.insumoFornecedores);
+                            return (
+                              <SelectItem key={insumo.id} value={insumo.id}>
+                                {insumo.nome} ({formatarMoeda(custoPorGrama)}/g)
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                       <FormMessage />

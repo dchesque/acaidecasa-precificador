@@ -23,7 +23,7 @@ import {
 import { combinadoSchema, CombinadoFormData } from "@/types/forms";
 import { Combinado } from "@/types/database";
 import { useAppContext } from "@/contexts/AppContext";
-import { formatarMoeda } from "@/utils/calculations";
+import { formatarMoeda, calcularCustoPorGrama } from "@/utils/calculations";
 import { Plus, Trash2 } from "lucide-react";
 
 interface CombinadoFormProps {
@@ -86,8 +86,9 @@ export const CombinadoForm = ({
     return complementos.reduce((total, comp) => {
       if (comp.tipo === 'INSUMO' && comp.insumoId && comp.quantidade > 0) {
         const insumo = insumos.find(i => i.id === comp.insumoId);
-        if (insumo && insumo.custoPorGrama) {
-          return total + (insumo.custoPorGrama * comp.quantidade);
+        if (insumo) {
+          const custoPorGrama = calcularCustoPorGrama(insumo, state.insumoFornecedores);
+          return total + (custoPorGrama * comp.quantidade);
         }
       } else if (comp.tipo === 'RECEITA' && comp.receitaId && comp.quantidade > 0) {
         const receita = receitas.find(r => r.id === comp.receitaId);
@@ -258,11 +259,14 @@ export const CombinadoForm = ({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {insumos.map((insumo) => (
-                              <SelectItem key={insumo.id} value={insumo.id}>
-                                {insumo.nome} ({formatarMoeda(insumo.custoPorGrama || 0)}/g)
-                              </SelectItem>
-                            ))}
+                            {insumos.map((insumo) => {
+                              const custoPorGrama = calcularCustoPorGrama(insumo, state.insumoFornecedores);
+                              return (
+                                <SelectItem key={insumo.id} value={insumo.id}>
+                                  {insumo.nome} ({formatarMoeda(custoPorGrama)}/g)
+                                </SelectItem>
+                              );
+                            })}
                           </SelectContent>
                         </Select>
                         <FormMessage />

@@ -30,25 +30,25 @@ export const unidadeMedidaSchema = z.object({
 // Supplier Form Schema
 export const fornecedorSchema = z.object({
   nome: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+  contato: z.string().optional(),
   telefone: z.string().optional(),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
+  endereco: z.string().optional(),
   cnpj: z.string().optional(),
   prazoEntrega: z.number().min(0),
   pedidoMinimo: z.number().min(0),
+  avaliacao: z.number().min(0).max(5).optional(),
   observacoes: z.string().optional(),
   ativo: z.boolean().default(true),
 });
 
-// Input Form Schema
+// Input Form Schema (mantendo compatibilidade atual)
 export const insumoSchema = z.object({
   nome: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   descricao: z.string().optional(),
   categoriaId: z.string().min(1, "Categoria é obrigatória"),
   unidadeMedidaId: z.string().min(1, "Unidade de medida é obrigatória"),
-  fornecedorPrincipalId: z.string().min(1, "Fornecedor principal é obrigatório"),
-  fornecedorAlternativoId: z.string().optional(),
-  precoPrincipal: z.number().min(0.01, "Preço deve ser maior que zero"),
-  precoAlternativo: z.number().min(0).optional(),
+  fornecedorCalculoId: z.string().min(1, "Fornecedor para cálculo é obrigatório"),
   ativo: z.boolean().default(true),
 });
 
@@ -112,6 +112,7 @@ export type ConfiguracaoFormData = z.infer<typeof configuracaoSchema>;
 export type CategoriaFormData = z.infer<typeof categoriaSchema>;
 export type UnidadeMedidaFormData = z.infer<typeof unidadeMedidaSchema>;
 export type FornecedorFormData = z.infer<typeof fornecedorSchema>;
+export type InsumoFornecedorFormData = z.infer<typeof insumoFornecedorSchema>;
 export type InsumoFormData = z.infer<typeof insumoSchema>;
 export type ReceitaFormData = z.infer<typeof receitaSchema>;
 export type CopoBaseFormData = z.infer<typeof copoBaseSchema>;

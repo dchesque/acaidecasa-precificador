@@ -6,7 +6,7 @@ import { useCalculations } from "@/hooks/useCalculations";
 import { ReceitaFormData } from "@/types/forms";
 import { Receita, ReceitaIngrediente } from "@/types/database";
 import { useToast } from "@/hooks/use-toast";
-import { calcularCustoReceita } from "@/utils/calculations";
+import { calcularCustoReceita, calcularCustoPorGrama } from "@/utils/calculations";
 
 interface ReceitaModalProps {
   open: boolean;
@@ -61,9 +61,10 @@ export const ReceitaModal = ({
         // Update ingredient costs
         updatedReceita.ingredientes = ingredientes.map(ing => {
           const insumo = state.insumos.find(i => i.id === ing.insumoId);
+          const custo = insumo ? calcularCustoPorGrama(insumo, state.insumoFornecedores) * ing.quantidade : 0;
           return {
             ...ing,
-            custo: insumo ? (insumo.custoPorGrama || 0) * ing.quantidade : 0,
+            custo,
           };
         });
 

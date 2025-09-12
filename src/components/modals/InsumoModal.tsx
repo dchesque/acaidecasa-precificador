@@ -1,10 +1,8 @@
 import { useState } from "react";
 import { BaseModal } from "./BaseModal";
-import { InsumoForm } from "@/components/forms/InsumoForm";
+import { InsumoFormSteps, InsumoSubmitData } from "@/components/forms/InsumoFormSteps";
 import { useAppContext } from "@/contexts/AppContext";
-import { useCalculations } from "@/hooks/useCalculations";
-import { InsumoFormData } from "@/types/forms";
-import { Insumo } from "@/types/database";
+import { Insumo, InsumoFornecedor } from "@/types/database";
 import { useToast } from "@/hooks/use-toast";
 import { calcularCustoPorGrama } from "@/utils/calculations";
 
@@ -20,78 +18,92 @@ export const InsumoModal = ({
   insumo,
 }: InsumoModalProps) => {
   const { state, dispatch } = useAppContext();
-  const { recalcularInsumo } = useCalculations();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (data: InsumoFormData) => {
+  const handleSubmit = async (submitData: InsumoSubmitData) => {
     setIsLoading(true);
     try {
+      const { formData, suppliers } = submitData;
       const now = new Date();
       
       // Find related data
-      const categoria = state.categorias.find(c => c.id === data.categoriaId);
-      const unidadeMedida = state.unidadesMedida.find(u => u.id === data.unidadeMedidaId);
-      const fornecedorPrincipal = state.fornecedores.find(f => f.id === data.fornecedorPrincipalId);
-      const fornecedorAlternativo = data.fornecedorAlternativoId 
-        ? state.fornecedores.find(f => f.id === data.fornecedorAlternativoId)
-        : undefined;
+      const categoria = state.categorias.find(c => c.id === formData.categoriaId);
+      const unidadeMedida = state.unidadesMedida.find(u => u.id === formData.unidadeMedidaId);
 
       if (insumo) {
-        // Update existing input
+        // Update existing insumo
         const updatedInsumo: Insumo = {
           ...insumo,
-          ...data,
+          ...formData,
           categoria,
           unidadeMedida,
-          fornecedorPrincipal,
-          fornecedorAlternativo,
           updatedAt: now,
         };
 
-        // Calculate costs
-        const custoPorGrama = calcularCustoPorGrama(updatedInsumo);
-        updatedInsumo.custoPorGrama = custoPorGrama;
-        updatedInsumo.custoPorUnidade = unidadeMedida?.tipo === 'UNIDADE' 
-          ? data.precoPrincipal 
-          : custoPorGrama;
-
         dispatch({ type: 'UPDATE_INSUMO', payload: updatedInsumo });
+
+        // Update suppliers for this insumo
+        // First, remove old suppliers for this insumo
+        const existingSupplierIds = state.insumoFornecedores
+          .filter(inf => inf.insumoId === insumo.id)
+          .map(inf => inf.id);
+        
+        existingSupplierIds.forEach(id => {
+          dispatch({ type: 'DELETE_INSUMO_FORNECEDOR', payload: id });
+        });
+
+        // Then add the new suppliers
+        suppliers.forEach(supplier => {
+          const supplierToSave: InsumoFornecedor = {
+            ...supplier,
+            insumoId: insumo.id,
+            id: supplier.id || Date.now().toString() + Math.random().toString(),
+            createdAt: supplier.createdAt || now,
+            updatedAt: now,
+          };
+          dispatch({ type: 'ADD_INSUMO_FORNECEDOR', payload: supplierToSave });
+        });
+
         toast({
           title: "Insumo atualizado",
-          description: "Insumo atualizado com sucesso!",
+          description: "Insumo e fornecedores atualizados com sucesso!",
         });
       } else {
-        // Create new input
+        // Create new insumo
+        const newInsumoId = Date.now().toString();
         const newInsumo: Insumo = {
-          ...data,
-          id: Date.now().toString(),
+          ...formData,
+          id: newInsumoId,
           categoria,
           unidadeMedida,
-          fornecedorPrincipal,
-          fornecedorAlternativo,
-          custoPorGrama: 0,
-          custoPorUnidade: 0,
           createdAt: now,
           updatedAt: now,
         } as Insumo;
 
-        // Calculate costs
-        const custoPorGrama = calcularCustoPorGrama(newInsumo);
-        newInsumo.custoPorGrama = custoPorGrama;
-        newInsumo.custoPorUnidade = unidadeMedida?.tipo === 'UNIDADE' 
-          ? data.precoPrincipal 
-          : custoPorGrama;
-
         dispatch({ type: 'ADD_INSUMO', payload: newInsumo });
+
+        // Add suppliers for the new insumo
+        suppliers.forEach((supplier, index) => {
+          const supplierToSave: InsumoFornecedor = {
+            ...supplier,
+            id: (Date.now() + index).toString(),
+            insumoId: newInsumoId,
+            createdAt: now,
+            updatedAt: now,
+          };
+          dispatch({ type: 'ADD_INSUMO_FORNECEDOR', payload: supplierToSave });
+        });
+
         toast({
           title: "Insumo criado",
-          description: "Novo insumo criado com sucesso!",
+          description: "Novo insumo e fornecedores criados com sucesso!",
         });
       }
       
       onOpenChange(false);
     } catch (error) {
+      console.error('Error saving insumo:', error);
       toast({
         title: "Erro",
         description: "Erro ao salvar insumo. Tente novamente.",
@@ -116,9 +128,9 @@ export const InsumoModal = ({
           ? "Edite as informações do insumo" 
           : "Adicione um novo insumo ao sistema"
       }
-      size="lg"
+      size="xl"
     >
-      <InsumoForm
+      <InsumoFormSteps
         insumo={insumo}
         onSubmit={handleSubmit}
         onCancel={handleCancel}

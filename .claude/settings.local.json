@@ -12,7 +12,13 @@
       "Bash(git push:*)",
       "Read(//d/Users/OneDrive/Imagens/Screenshots/**)",
       "Bash(powershell:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(curl:*)",
+      "Bash(pkill:*)",
+      "Read(//c//**)",
+      "Bash(node:*)",
+      "Bash(xxd:*)",
+      "Bash(del nul)"
     ],
     "deny": [],
     "ask": []

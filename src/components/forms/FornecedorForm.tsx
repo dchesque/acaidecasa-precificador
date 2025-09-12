@@ -33,11 +33,14 @@ export const FornecedorForm = ({
     resolver: zodResolver(fornecedorSchema),
     defaultValues: {
       nome: fornecedor?.nome || "",
+      contato: fornecedor?.contato || "",
       telefone: fornecedor?.telefone || "",
       email: fornecedor?.email || "",
+      endereco: fornecedor?.endereco || "",
       cnpj: fornecedor?.cnpj || "",
       prazoEntrega: fornecedor?.prazoEntrega || 0,
       pedidoMinimo: fornecedor?.pedidoMinimo || 0,
+      avaliacao: fornecedor?.avaliacao || 0,
       observacoes: fornecedor?.observacoes || "",
       ativo: fornecedor?.ativo ?? true,
     },
@@ -58,6 +61,20 @@ export const FornecedorForm = ({
               <FormLabel>Nome *</FormLabel>
               <FormControl>
                 <Input placeholder="Nome do fornecedor" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="contato"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Pessoa de Contato</FormLabel>
+              <FormControl>
+                <Input placeholder="Nome da pessoa de contato" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -97,6 +114,20 @@ export const FornecedorForm = ({
 
         <FormField
           control={form.control}
+          name="endereco"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Endereço</FormLabel>
+              <FormControl>
+                <Input placeholder="Endereço completo do fornecedor" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="cnpj"
           render={({ field }) => (
             <FormItem>
@@ -109,7 +140,7 @@ export const FornecedorForm = ({
           )}
         />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <FormField
             control={form.control}
             name="prazoEntrega"
@@ -140,6 +171,28 @@ export const FornecedorForm = ({
                     type="number"
                     min="0"
                     step="0.01"
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="avaliacao"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Avaliação (0-5)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="5"
+                    step="0.1"
+                    placeholder="4.5"
                     {...field}
                     onChange={(e) => field.onChange(Number(e.target.value))}
                   />

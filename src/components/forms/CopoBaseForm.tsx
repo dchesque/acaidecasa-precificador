@@ -23,7 +23,7 @@ import {
 import { copoBaseSchema, CopoBaseFormData } from "@/types/forms";
 import { CopoBase } from "@/types/database";
 import { useAppContext } from "@/contexts/AppContext";
-import { formatarMoeda } from "@/utils/calculations";
+import { formatarMoeda, calcularCustoPorGrama } from "@/utils/calculations";
 import { Plus, Trash2 } from "lucide-react";
 
 interface CopoBaseFormProps {
@@ -76,8 +76,9 @@ export const CopoBaseForm = ({
     
     if (insumoBaseId && quantidadeBase > 0) {
       const insumo = insumos.find(i => i.id === insumoBaseId);
-      if (insumo && insumo.custoPorGrama) {
-        return insumo.custoPorGrama * quantidadeBase;
+      if (insumo) {
+        const custoPorGrama = calcularCustoPorGrama(insumo, state.insumoFornecedores);
+        return custoPorGrama * quantidadeBase;
       }
     }
     return 0;
@@ -182,11 +183,14 @@ export const CopoBaseForm = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {insumos.map((insumo) => (
-                          <SelectItem key={insumo.id} value={insumo.id}>
-                            {insumo.nome} ({formatarMoeda(insumo.custoPorGrama || 0)}/g)
-                          </SelectItem>
-                        ))}
+                        {insumos.map((insumo) => {
+                          const custoPorGrama = calcularCustoPorGrama(insumo, state.insumoFornecedores);
+                          return (
+                            <SelectItem key={insumo.id} value={insumo.id}>
+                              {insumo.nome} ({formatarMoeda(custoPorGrama)}/g)
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
                     <FormMessage />

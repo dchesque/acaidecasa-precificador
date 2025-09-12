@@ -13,7 +13,6 @@ import {
   mockUnidadesMedida,
   mockFornecedores,
   mockInsumos,
-  mockEmbalagens,
   mockReceitas,
   mockCoposBase,
   mockCombinados,
@@ -42,7 +41,6 @@ const Dashboard = () => {
     dispatch({ type: 'SET_UNIDADES_MEDIDA', payload: mockUnidadesMedida });
     dispatch({ type: 'SET_FORNECEDORES', payload: mockFornecedores });
     dispatch({ type: 'SET_INSUMOS', payload: mockInsumos });
-    dispatch({ type: 'SET_EMBALAGENS', payload: mockEmbalagens });
     dispatch({ type: 'SET_RECEITAS', payload: mockReceitas });
     dispatch({ type: 'SET_COPOS_BASE', payload: mockCoposBase });
     dispatch({ type: 'SET_COMBINADOS', payload: mockCombinados });

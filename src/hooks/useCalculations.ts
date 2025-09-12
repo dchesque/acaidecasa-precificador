@@ -17,26 +17,22 @@ export const useCalculations = () => {
 
   // Recalculate input cost per gram
   const recalcularInsumo = useCallback((insumo: Insumo) => {
-    const custoPorGrama = calcularCustoPorGrama(insumo);
-    const custoPorUnidade = insumo.unidadeMedida?.tipo === 'UNIDADE' 
-      ? insumo.precoPrincipal 
-      : custoPorGrama;
+    const custoPorGrama = calcularCustoPorGrama(insumo, state.insumoFornecedores);
 
     const insumoAtualizado = {
       ...insumo,
       custoPorGrama,
-      custoPorUnidade,
       updatedAt: new Date(),
     };
 
     dispatch({ type: 'UPDATE_INSUMO', payload: insumoAtualizado });
     return insumoAtualizado;
-  }, [dispatch]);
+  }, [state.insumoFornecedores, dispatch]);
 
 
   // Recalculate recipe costs
   const recalcularReceita = useCallback((receita: Receita) => {
-    const { custoTotal, custoPorGrama } = calcularCustoReceita(receita, state.insumos);
+    const { custoTotal, custoPorGrama } = calcularCustoReceita(receita, state.insumos, state.insumoFornecedores);
 
     const receitaAtualizada = {
       ...receita,
@@ -47,13 +43,14 @@ export const useCalculations = () => {
 
     dispatch({ type: 'UPDATE_RECEITA', payload: receitaAtualizada });
     return receitaAtualizada;
-  }, [state.insumos, dispatch]);
+  }, [state.insumos, state.insumoFornecedores, dispatch]);
 
   // Recalculate base cup costs
   const recalcularCopoBase = useCallback((copoBase: CopoBase) => {
     const { custoBase, custoEmbalagens, custoTotal } = calcularCustoCopoBase(
       copoBase,
-      state.insumos
+      state.insumos,
+      state.insumoFornecedores
     );
 
     const precoSugerido = state.configuracao 
@@ -74,7 +71,7 @@ export const useCalculations = () => {
 
     dispatch({ type: 'UPDATE_COPO_BASE', payload: copoBaseAtualizado });
     return copoBaseAtualizado;
-  }, [state.insumos, state.configuracao, dispatch]);
+  }, [state.insumos, state.insumoFornecedores, state.configuracao, dispatch]);
 
   // Recalculate combo costs
   const recalcularCombinado = useCallback((combinado: Combinado) => {
@@ -82,7 +79,8 @@ export const useCalculations = () => {
       combinado,
       state.coposBase,
       state.insumos,
-      state.receitas
+      state.receitas,
+      state.insumoFornecedores
     );
 
     const precoSugerido = state.configuracao
@@ -103,7 +101,7 @@ export const useCalculations = () => {
 
     dispatch({ type: 'UPDATE_COMBINADO', payload: combinadoAtualizado });
     return combinadoAtualizado;
-  }, [state.coposBase, state.insumos, state.receitas, state.configuracao, dispatch]);
+  }, [state.coposBase, state.insumos, state.receitas, state.insumoFornecedores, state.configuracao, dispatch]);
 
   // Recalculate all items when configuration changes
   const recalcularTudo = useCallback(() => {

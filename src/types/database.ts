@@ -35,11 +35,33 @@ export interface UnidadeMedida {
 export interface Fornecedor {
   id: string;
   nome: string;
+  contato?: string;
   telefone?: string;
   email?: string;
+  endereco?: string;
   cnpj?: string;
   prazoEntrega: number;
   pedidoMinimo: number;
+  avaliacao?: number;
+  observacoes?: string;
+  ativo: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  // Linked insumos
+  insumos?: InsumoFornecedor[];
+}
+
+export interface InsumoFornecedor {
+  id: string;
+  insumoId: string;
+  insumo?: Insumo;
+  fornecedorId: string;
+  fornecedor?: Fornecedor;
+  precoBruto: number; // Gross price for this supplier
+  precoComDesconto?: number; // Discounted price for this supplier
+  quantidadeComprada: number; // Quantity purchased from this supplier
+  usarPrecoComDesconto: boolean; // Toggle for which price to use for this supplier
+  prazoEntrega?: number; // Specific delivery time for this supplier-insumo combo
   observacoes?: string;
   ativo: boolean;
   createdAt: Date;
@@ -54,14 +76,11 @@ export interface Insumo {
   categoria?: Categoria;
   unidadeMedidaId: string;
   unidadeMedida?: UnidadeMedida;
-  fornecedorPrincipalId: string;
-  fornecedorPrincipal?: Fornecedor;
-  fornecedorAlternativoId?: string;
-  fornecedorAlternativo?: Fornecedor;
-  precoPrincipal: number;
-  precoAlternativo?: number;
-  custoPorGrama?: number;
-  custoPorUnidade?: number;
+  // Multiple suppliers relationship
+  fornecedores?: InsumoFornecedor[];
+  fornecedorCalculoId: string; // ID of the supplier used for cost calculation
+  fornecedorCalculo?: Fornecedor; // The supplier used for cost calculation
+  custoPorUnidade?: number; // Calculated cost per unit (based on selected supplier)
   ativo: boolean;
   createdAt: Date;
   updatedAt: Date;

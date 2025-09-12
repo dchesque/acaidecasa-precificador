@@ -1,21 +1,85 @@
-import { Insumo, Receita, CopoBase, Combinado, Configuracao } from "@/types/database";
+import { Insumo, InsumoFornecedor, Receita, CopoBase, Combinado, Configuracao, Fornecedor } from "@/types/database";
 
-// Calculate cost per gram for inputs
-export const calcularCustoPorGrama = (insumo: Partial<Insumo>): number => {
-  if (!insumo.precoPrincipal || !insumo.unidadeMedida) return 0;
+// Calculate cost per unit for inputs using InsumoFornecedor relationship
+export const calcularCustoPorGrama = (
+  insumo: Partial<Insumo>, 
+  insumoFornecedores?: InsumoFornecedor[]
+): number => {
+  // If we have the new relationship structure, use it
+  if (insumoFornecedores && insumo.fornecedorCalculoId) {
+    const fornecedorRelacao = insumoFornecedores.find(
+      if_ => if_.insumoId === insumo.id && if_.fornecedorId === insumo.fornecedorCalculoId && if_.ativo
+    );
+    
+    if (fornecedorRelacao && fornecedorRelacao.quantidadeComprada > 0) {
+      const preco = fornecedorRelacao.usarPrecoComDesconto && fornecedorRelacao.precoComDesconto
+        ? fornecedorRelacao.precoComDesconto
+        : fornecedorRelacao.precoBruto || 0;
+      
+      if (preco === 0) return 0;
+      return preco / fornecedorRelacao.quantidadeComprada;
+    }
+  }
   
-  const preco = insumo.precoPrincipal;
-  const fatorConversao = insumo.unidadeMedida.fatorConversao || 1;
+  // Fallback to old structure for backward compatibility
+  if (!insumo.quantidadeComprada) return 0;
   
-  // Convert to cost per gram
-  return preco / (1000 * fatorConversao);
+  const preco = insumo.usarPrecoComDesconto && insumo.precoComDesconto 
+    ? insumo.precoComDesconto 
+    : insumo.precoBruto || 0;
+    
+  if (preco === 0) return 0;
+  
+  return preco / insumo.quantidadeComprada;
+};
+
+// Get default supplier data for an insumo
+export const obterDadosFornecedorPadrao = (
+  insumo: Insumo,
+  insumoFornecedores: InsumoFornecedor[],
+  fornecedores: Fornecedor[]
+): {
+  fornecedor: Fornecedor | undefined;
+  insumoFornecedor: InsumoFornecedor | undefined;
+  precoPrincipal: number;
+  quantidade: number;
+  custoUnidade: number;
+} => {
+  const insumoFornecedor = insumoFornecedores.find(
+    inf => inf.insumoId === insumo.id && 
+           inf.fornecedorId === insumo.fornecedorCalculoId && 
+           inf.ativo
+  );
+
+  const fornecedor = fornecedores.find(f => f.id === insumo.fornecedorCalculoId);
+
+  let precoPrincipal = 0;
+  let quantidade = 1;
+  let custoUnidade = 0;
+
+  if (insumoFornecedor) {
+    precoPrincipal = insumoFornecedor.usarPrecoComDesconto && insumoFornecedor.precoComDesconto
+      ? insumoFornecedor.precoComDesconto
+      : insumoFornecedor.precoBruto;
+    quantidade = insumoFornecedor.quantidadeComprada;
+    custoUnidade = quantidade > 0 ? precoPrincipal / quantidade : 0;
+  }
+
+  return {
+    fornecedor,
+    insumoFornecedor,
+    precoPrincipal,
+    quantidade,
+    custoUnidade,
+  };
 };
 
 
 // Calculate total cost for a recipe
 export const calcularCustoReceita = (
   receita: Partial<Receita>,
-  insumos: Insumo[]
+  insumos: Insumo[],
+  insumoFornecedores?: InsumoFornecedor[]
 ): { custoTotal: number; custoPorGrama: number } => {
   if (!receita.ingredientes || !receita.rendimento) {
     return { custoTotal: 0, custoPorGrama: 0 };
@@ -25,7 +89,7 @@ export const calcularCustoReceita = (
     const insumo = insumos.find(i => i.id === ingrediente.insumoId);
     if (!insumo) return total;
     
-    const custoPorGrama = calcularCustoPorGrama(insumo);
+    const custoPorGrama = calcularCustoPorGrama(insumo, insumoFornecedores);
     return total + (custoPorGrama * ingrediente.quantidade);
   }, 0);
 
@@ -37,7 +101,8 @@ export const calcularCustoReceita = (
 // Calculate total cost for a base cup
 export const calcularCustoCopoBase = (
   copoBase: Partial<CopoBase>,
-  insumos: Insumo[]
+  insumos: Insumo[],
+  insumoFornecedores?: InsumoFornecedor[]
 ): { custoBase: number; custoEmbalagens: number; custoTotal: number } => {
   let custoBase = 0;
   let custoEmbalagens = 0.58; // Fixed packaging cost
@@ -46,7 +111,7 @@ export const calcularCustoCopoBase = (
   if (copoBase.insumoBaseId && copoBase.quantidadeBase) {
     const insumoBase = insumos.find(i => i.id === copoBase.insumoBaseId);
     if (insumoBase) {
-      const custoPorGrama = calcularCustoPorGrama(insumoBase);
+      const custoPorGrama = calcularCustoPorGrama(insumoBase, insumoFornecedores);
       custoBase = custoPorGrama * copoBase.quantidadeBase;
     }
   }
@@ -63,7 +128,8 @@ export const calcularCustoCombo = (
   combinado: Partial<Combinado>,
   coposBase: CopoBase[],
   insumos: Insumo[],
-  receitas: Receita[]
+  receitas: Receita[],
+  insumoFornecedores?: InsumoFornecedor[]
 ): { custoCopoBase: number; custoComplementos: number; custoTotal: number } => {
   let custoCopoBase = 0;
   let custoComplementos = 0;
@@ -80,11 +146,11 @@ export const calcularCustoCombo = (
       if (complemento.tipo === 'INSUMO' && complemento.insumoId) {
         const insumo = insumos.find(i => i.id === complemento.insumoId);
         if (insumo) {
-          const custoPorGrama = calcularCustoPorGrama(insumo);
+          const custoPorGrama = calcularCustoPorGrama(insumo, insumoFornecedores);
           return total + (custoPorGrama * complemento.quantidade);
         }
       } else if (complemento.tipo === 'RECEITA' && complemento.receitaId) {
-        const receita = receitas.find(r => r.id === complemento.receitaId);
+        const receita = receitas.find(r => r.id === combinado.receitaId);
         if (receita) {
           return total + (receita.custoPorGrama * complemento.quantidade);
         }
@@ -152,6 +218,16 @@ export const formatarMoeda = (valor: number): string => {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL'
+  }).format(valor);
+};
+
+// Format currency with up to 4 decimal places for cost per unit
+export const formatarCustoPorUnidade = (valor: number): string => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 4
   }).format(valor);
 };
 
