@@ -1,14 +1,15 @@
 // Mock data for development (prepared for Supabase migration)
-import { 
-  Configuracao, 
-  Categoria, 
-  UnidadeMedida, 
-  Fornecedor, 
+import {
+  Configuracao,
+  Categoria,
+  UnidadeMedida,
+  Fornecedor,
   Insumo,
   InsumoFornecedor,
   Receita,
   ReceitaIngrediente,
   CopoBase,
+  CopoBaseInsumo,
   Combinado,
   CombinadoComplemento,
   ItemCardapio
@@ -24,8 +25,8 @@ export const mockConfiguracao: Configuracao = {
   custoEnergia: 800,
   custoMaoObra: 3000,
   taxaCartao: 3.5,
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  createdAt: new Date('2023-01-01'),
+  updatedAt: new Date('2023-01-01'),
 };
 
 // Categories
@@ -36,8 +37,8 @@ export const mockCategorias: Categoria[] = [
     descricao: 'Açaí, cupuaçu e demais polpas de frutas',
     cor: '#8b5cf6',
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '2',
@@ -45,8 +46,8 @@ export const mockCategorias: Categoria[] = [
     descricao: 'Banana, morango, kiwi e frutas frescas',
     cor: '#22c55e',
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '3',
@@ -54,8 +55,8 @@ export const mockCategorias: Categoria[] = [
     descricao: 'Granola, aveia, cereais e fibras',
     cor: '#d97706',
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '4',
@@ -63,8 +64,8 @@ export const mockCategorias: Categoria[] = [
     descricao: 'Castanha-do-pará, amendoim, nozes',
     cor: '#92400e',
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '5',
@@ -72,8 +73,8 @@ export const mockCategorias: Categoria[] = [
     descricao: 'Mel, leite condensado, açúcar, xaropes',
     cor: '#ec4899',
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '6',
@@ -81,8 +82,8 @@ export const mockCategorias: Categoria[] = [
     descricao: 'Leite, leite em pó, iogurte',
     cor: '#3b82f6',
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '7',
@@ -90,8 +91,8 @@ export const mockCategorias: Categoria[] = [
     descricao: 'Copos, tampas, colheres e sacolas',
     cor: '#6b7280',
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '8',
@@ -99,8 +100,8 @@ export const mockCategorias: Categoria[] = [
     descricao: 'Coco ralado, chocolate, biscoitos',
     cor: '#10b981',
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
 ];
 
@@ -112,8 +113,8 @@ export const mockUnidadesMedida: UnidadeMedida[] = [
     sigla: 'g',
     tipo: 'PESO',
     fatorConversao: 1,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '2',
@@ -121,8 +122,8 @@ export const mockUnidadesMedida: UnidadeMedida[] = [
     sigla: 'ml',
     tipo: 'VOLUME',
     fatorConversao: 1,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '3',
@@ -130,8 +131,8 @@ export const mockUnidadesMedida: UnidadeMedida[] = [
     sigla: 'un',
     tipo: 'UNIDADE',
     fatorConversao: 1,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
 ];
 
@@ -150,8 +151,8 @@ export const mockFornecedores: Fornecedor[] = [
     avaliacao: 4.5,
     observacoes: 'Especialista em açaí premium, entrega sempre no prazo',
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '2',
@@ -166,8 +167,8 @@ export const mockFornecedores: Fornecedor[] = [
     avaliacao: 4.2,
     observacoes: 'Ótima variedade de frutas frescas e polpas',
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '3',
@@ -182,8 +183,8 @@ export const mockFornecedores: Fornecedor[] = [
     avaliacao: 4.8,
     observacoes: 'Granolas artesanais e ingredientes premium',
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '4',
@@ -198,8 +199,8 @@ export const mockFornecedores: Fornecedor[] = [
     avaliacao: 4.4,
     observacoes: 'Castanhas selecionadas e oleaginosas de qualidade',
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '5',
@@ -214,8 +215,8 @@ export const mockFornecedores: Fornecedor[] = [
     avaliacao: 4.0,
     observacoes: 'Copos e embalagens eco-friendly',
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '6',
@@ -230,8 +231,8 @@ export const mockFornecedores: Fornecedor[] = [
     avaliacao: 4.6,
     observacoes: 'Mel puro, leite condensado e adoçantes naturais',
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '7',
@@ -246,8 +247,8 @@ export const mockFornecedores: Fornecedor[] = [
     avaliacao: 4.3,
     observacoes: 'Leite fresco e derivados lácteos de fazenda',
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '8',
@@ -262,8 +263,8 @@ export const mockFornecedores: Fornecedor[] = [
     avaliacao: 3.9,
     observacoes: 'Frutas frescas direto do CEASA, preços competitivos',
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
 ];
 
@@ -281,8 +282,8 @@ export const mockInsumoFornecedores: InsumoFornecedor[] = [
     prazoEntrega: 2,
     observacoes: 'Fornecedor principal - qualidade premium',
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '2',
@@ -295,8 +296,8 @@ export const mockInsumoFornecedores: InsumoFornecedor[] = [
     prazoEntrega: 1,
     observacoes: 'Fornecedor alternativo - entrega rápida',
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   
   // Cupuaçu - Um fornecedor
@@ -309,8 +310,8 @@ export const mockInsumoFornecedores: InsumoFornecedor[] = [
     usarPrecoComDesconto: false,
     prazoEntrega: 1,
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   
   // Banana - Múltiplos fornecedores
@@ -325,8 +326,8 @@ export const mockInsumoFornecedores: InsumoFornecedor[] = [
     prazoEntrega: 1,
     observacoes: 'Fornecedor principal - preço competitivo',
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '5',
@@ -339,8 +340,8 @@ export const mockInsumoFornecedores: InsumoFornecedor[] = [
     prazoEntrega: 1,
     observacoes: 'Fornecedor alternativo',
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
 
   // Morango - Um fornecedor
@@ -353,8 +354,8 @@ export const mockInsumoFornecedores: InsumoFornecedor[] = [
     usarPrecoComDesconto: false,
     prazoEntrega: 1,
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
 
   // Kiwi - Um fornecedor
@@ -368,8 +369,8 @@ export const mockInsumoFornecedores: InsumoFornecedor[] = [
     usarPrecoComDesconto: true,
     prazoEntrega: 1,
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   
   // Granola - Um fornecedor
@@ -383,8 +384,8 @@ export const mockInsumoFornecedores: InsumoFornecedor[] = [
     usarPrecoComDesconto: true,
     prazoEntrega: 3,
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
 
   // Aveia - Um fornecedor
@@ -397,8 +398,8 @@ export const mockInsumoFornecedores: InsumoFornecedor[] = [
     usarPrecoComDesconto: false,
     prazoEntrega: 3,
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
 
   // Castanha-do-Pará - Um fornecedor
@@ -412,8 +413,8 @@ export const mockInsumoFornecedores: InsumoFornecedor[] = [
     usarPrecoComDesconto: true,
     prazoEntrega: 4,
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
 
   // Amendoim - Um fornecedor
@@ -426,8 +427,8 @@ export const mockInsumoFornecedores: InsumoFornecedor[] = [
     usarPrecoComDesconto: false,
     prazoEntrega: 4,
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
 
   // Mel - Um fornecedor
@@ -441,8 +442,8 @@ export const mockInsumoFornecedores: InsumoFornecedor[] = [
     usarPrecoComDesconto: true,
     prazoEntrega: 1,
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
 
   // Leite Condensado - Um fornecedor
@@ -456,8 +457,8 @@ export const mockInsumoFornecedores: InsumoFornecedor[] = [
     usarPrecoComDesconto: true,
     prazoEntrega: 1,
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
 
   // Leite Integral - Um fornecedor
@@ -471,8 +472,8 @@ export const mockInsumoFornecedores: InsumoFornecedor[] = [
     usarPrecoComDesconto: true,
     prazoEntrega: 1,
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
 
   // Iogurte - Um fornecedor
@@ -485,8 +486,8 @@ export const mockInsumoFornecedores: InsumoFornecedor[] = [
     usarPrecoComDesconto: false,
     prazoEntrega: 1,
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
 
   // Copo Biodegradável - Um fornecedor
@@ -500,8 +501,8 @@ export const mockInsumoFornecedores: InsumoFornecedor[] = [
     usarPrecoComDesconto: true,
     prazoEntrega: 2,
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
 
   // Colher de Madeira - Um fornecedor
@@ -514,8 +515,8 @@ export const mockInsumoFornecedores: InsumoFornecedor[] = [
     usarPrecoComDesconto: false,
     prazoEntrega: 2,
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
 
   // Coco Ralado - Um fornecedor
@@ -529,8 +530,8 @@ export const mockInsumoFornecedores: InsumoFornecedor[] = [
     usarPrecoComDesconto: true,
     prazoEntrega: 3,
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
 
   // Chocolate Granulado - Um fornecedor
@@ -543,8 +544,8 @@ export const mockInsumoFornecedores: InsumoFornecedor[] = [
     usarPrecoComDesconto: false,
     prazoEntrega: 1,
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
 
   // Biscoito Wafer - Um fornecedor
@@ -558,8 +559,8 @@ export const mockInsumoFornecedores: InsumoFornecedor[] = [
     usarPrecoComDesconto: true,
     prazoEntrega: 1,
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
 ];
 
@@ -574,8 +575,8 @@ export const mockInsumos: Insumo[] = [
     unidadeMedidaId: '1', // g
     fornecedorCalculoId: '1', // Açaí do Norte (fornecedor usado para cálculo)
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '2',
@@ -585,8 +586,8 @@ export const mockInsumos: Insumo[] = [
     unidadeMedidaId: '1', // g
     fornecedorCalculoId: '2', // Distribuidora Frutas & Polpas
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   
   // Frutas Frescas
@@ -598,8 +599,8 @@ export const mockInsumos: Insumo[] = [
     unidadeMedidaId: '1', // g
     fornecedorCalculoId: '8', // CEASA (fornecedor usado para cálculo)
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '4',
@@ -609,8 +610,8 @@ export const mockInsumos: Insumo[] = [
     unidadeMedidaId: '1', // g
     fornecedorCalculoId: '8', // CEASA
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '5',
@@ -620,8 +621,8 @@ export const mockInsumos: Insumo[] = [
     unidadeMedidaId: '1', // g
     fornecedorCalculoId: '2', // Distribuidora Frutas & Polpas
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   
   // Cereais e Granolas
@@ -633,8 +634,8 @@ export const mockInsumos: Insumo[] = [
     unidadeMedidaId: '1', // g
     fornecedorCalculoId: '3', // Casa das Granolas
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '7',
@@ -644,8 +645,8 @@ export const mockInsumos: Insumo[] = [
     unidadeMedidaId: '1', // g
     fornecedorCalculoId: '3', // Casa das Granolas
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   
   // Castanhas e Oleaginosas
@@ -657,8 +658,8 @@ export const mockInsumos: Insumo[] = [
     unidadeMedidaId: '1', // g
     fornecedorCalculoId: '4', // Castanhas do Brasil
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '9',
@@ -668,8 +669,8 @@ export const mockInsumos: Insumo[] = [
     unidadeMedidaId: '1', // g
     fornecedorCalculoId: '4', // Castanhas do Brasil
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   
   // Doces e Adoçantes
@@ -681,8 +682,8 @@ export const mockInsumos: Insumo[] = [
     unidadeMedidaId: '1', // g
     fornecedorCalculoId: '6', // Doces & Mel
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '11',
@@ -692,8 +693,8 @@ export const mockInsumos: Insumo[] = [
     unidadeMedidaId: '3', // un
     fornecedorCalculoId: '6', // Doces & Mel
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   
   // Lácteos
@@ -705,8 +706,8 @@ export const mockInsumos: Insumo[] = [
     unidadeMedidaId: '2', // ml
     fornecedorCalculoId: '7', // Laticínios Vale Verde
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '13',
@@ -716,8 +717,8 @@ export const mockInsumos: Insumo[] = [
     unidadeMedidaId: '3', // un
     fornecedorCalculoId: '7', // Laticínios Vale Verde
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   
   // Embalagens
@@ -729,8 +730,8 @@ export const mockInsumos: Insumo[] = [
     unidadeMedidaId: '3', // un
     fornecedorCalculoId: '5', // Embalagens Sustentáveis
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '15',
@@ -740,8 +741,8 @@ export const mockInsumos: Insumo[] = [
     unidadeMedidaId: '3', // un
     fornecedorCalculoId: '5', // Embalagens Sustentáveis
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   
   // Outros Complementos
@@ -753,8 +754,8 @@ export const mockInsumos: Insumo[] = [
     unidadeMedidaId: '1', // g
     fornecedorCalculoId: '3', // Casa das Granolas
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '17',
@@ -764,8 +765,8 @@ export const mockInsumos: Insumo[] = [
     unidadeMedidaId: '1', // g
     fornecedorCalculoId: '6', // Doces & Mel
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '18',
@@ -775,8 +776,8 @@ export const mockInsumos: Insumo[] = [
     unidadeMedidaId: '1', // g
     fornecedorCalculoId: '2', // Distribuidora Frutas & Polpas
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
 ];
 
@@ -789,8 +790,8 @@ export const mockReceitaIngredientes: ReceitaIngrediente[] = [
     insumoId: '2', // Granola
     quantidade: 50,
     custo: 0.60,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '2',
@@ -798,8 +799,8 @@ export const mockReceitaIngredientes: ReceitaIngrediente[] = [
     insumoId: '3', // Banana
     quantidade: 100,
     custo: 0.45,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '3',
@@ -807,8 +808,8 @@ export const mockReceitaIngredientes: ReceitaIngrediente[] = [
     insumoId: '4', // Morango
     quantidade: 50,
     custo: 0.40,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
 ];
 
@@ -825,8 +826,8 @@ export const mockReceitas: Receita[] = [
     tempoPreparo: 5,
     instrucoes: 'Misturar bem todos os ingredientes',
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
     ingredientes: [mockReceitaIngredientes[0]],
   },
   {
@@ -840,30 +841,114 @@ export const mockReceitas: Receita[] = [
     tempoPreparo: 3,
     instrucoes: 'Cortar frutas em cubos pequenos',
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
     ingredientes: [mockReceitaIngredientes[1], mockReceitaIngredientes[2]],
   },
 ];
 
 
+// Base Cup Insumos
+export const mockCopoBaseInsumos: CopoBaseInsumo[] = [
+  {
+    id: '1',
+    copoBaseId: '1',
+    insumoId: '14', // Copo Biodegradável
+    quantidade: 1,
+    custo: 0.75,
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '2',
+    copoBaseId: '1',
+    insumoId: '15', // Colher de Madeira
+    quantidade: 1,
+    custo: 0.12,
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '3',
+    copoBaseId: '2',
+    insumoId: '14', // Copo Biodegradável
+    quantidade: 1,
+    custo: 0.75,
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '4',
+    copoBaseId: '2',
+    insumoId: '15', // Colher de Madeira
+    quantidade: 1,
+    custo: 0.12,
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '5',
+    copoBaseId: '3',
+    insumoId: '14', // Copo Biodegradável
+    quantidade: 1,
+    custo: 0.75,
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+];
+
 // Base Cups
 export const mockCoposBase: CopoBase[] = [
   {
     id: '1',
-    nome: 'Açaí 500ml',
-    descricao: 'Copo de açaí 500ml base',
-    categoriaId: '2',
-    insumoBaseId: '1', // Polpa de Açaí
-    quantidadeBase: 300,
-    custoBase: 5.55,
-    custoEmbalagens: 0.58,
-    custoTotal: 6.13,
-    precoSugerido: 8.28,
-    margem: 26.0,
+    nome: 'Açaí Premium 500ml',
+    descricao: 'Açaí premium batido com base cremosa',
+    categoriaId: '1', // Açaí e Polpas
+    insumoBaseId: '1', // Polpa de Açaí Premium
+    quantidadeBase: 350,
+    custoBase: 1.40, // R$ 0.004/g * 350g
+    custoInsumos: 0.87, // Copo + Colher
+    custoTotal: 2.27,
+    precoSugerido: 12.50,
+    margem: 450.7,
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    insumos: mockCopoBaseInsumos.filter(i => i.copoBaseId === '1'),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '2',
+    nome: 'Açaí Tradicional 300ml',
+    descricao: 'Açaí tradicional cremoso porção média',
+    categoriaId: '1', // Açaí e Polpas
+    insumoBaseId: '1', // Polpa de Açaí Premium
+    quantidadeBase: 250,
+    custoBase: 1.00, // R$ 0.004/g * 250g
+    custoInsumos: 0.87, // Copo + Colher
+    custoTotal: 1.87,
+    precoSugerido: 9.50,
+    margem: 408.0,
+    ativo: true,
+    insumos: mockCopoBaseInsumos.filter(i => i.copoBaseId === '2'),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '3',
+    nome: 'Cupuaçu Especial 400ml',
+    descricao: 'Cupuaçu cremoso com sabor amazônico',
+    categoriaId: '1', // Açaí e Polpas
+    insumoBaseId: '2', // Polpa de Cupuaçu
+    quantidadeBase: 300,
+    custoBase: 1.68, // R$ 0.0056/g * 300g
+    custoInsumos: 0.75, // Apenas copo
+    custoTotal: 2.43,
+    precoSugerido: 11.00,
+    margem: 352.7,
+    ativo: true,
+    insumos: mockCopoBaseInsumos.filter(i => i.copoBaseId === '3'),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
 ];
 
@@ -872,22 +957,92 @@ export const mockCombinadoComplementos: CombinadoComplemento[] = [
   {
     id: '1',
     combinadoId: '1',
-    tipo: 'RECEITA',
-    receitaId: '1', // Mix Granola
-    quantidade: 50,
-    custo: 0.60,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    tipo: 'INSUMO',
+    insumoId: '6', // Granola Premium
+    quantidade: 40,
+    custo: 0.44, // R$ 0.011/g * 40g
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '2',
     combinadoId: '1',
-    tipo: 'RECEITA',
-    receitaId: '2', // Mix Frutas
-    quantidade: 100,
-    custo: 0.57,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    tipo: 'INSUMO',
+    insumoId: '3', // Banana Prata
+    quantidade: 80,
+    custo: 0.31, // R$ 0.00387/g * 80g
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '3',
+    combinadoId: '1',
+    tipo: 'INSUMO',
+    insumoId: '4', // Morango
+    quantidade: 50,
+    custo: 1.13, // R$ 0.0225/g * 50g
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '4',
+    combinadoId: '2',
+    tipo: 'INSUMO',
+    insumoId: '6', // Granola Premium
+    quantidade: 30,
+    custo: 0.33, // R$ 0.011/g * 30g
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '5',
+    combinadoId: '2',
+    tipo: 'INSUMO',
+    insumoId: '3', // Banana Prata
+    quantidade: 60,
+    custo: 0.23, // R$ 0.00387/g * 60g
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '6',
+    combinadoId: '2',
+    tipo: 'INSUMO',
+    insumoId: '10', // Mel
+    quantidade: 15,
+    custo: 0.35, // R$ 0.0233/g * 15g
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '7',
+    combinadoId: '3',
+    tipo: 'INSUMO',
+    insumoId: '8', // Castanha-do-Pará
+    quantidade: 20,
+    custo: 0.31, // R$ 0.0156/g * 20g
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '8',
+    combinadoId: '3',
+    tipo: 'INSUMO',
+    insumoId: '6', // Granola Premium
+    quantidade: 25,
+    custo: 0.28, // R$ 0.011/g * 25g
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '9',
+    combinadoId: '3',
+    tipo: 'INSUMO',
+    insumoId: '16', // Coco Ralado
+    quantidade: 15,
+    custo: 0.38, // R$ 0.025/g * 15g
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
 ];
 
@@ -895,19 +1050,54 @@ export const mockCombinadoComplementos: CombinadoComplemento[] = [
 export const mockCombinados: Combinado[] = [
   {
     id: '1',
-    nome: 'Açaí Completo 500ml',
-    descricao: 'Açaí com granola e frutas vermelhas',
-    categoriaId: '2',
-    copoBaseId: '1',
-    custoCopoBase: 6.13,
-    custoComplementos: 1.17,
-    custoTotal: 7.30,
-    precoSugerido: 9.85,
-    margem: 25.9,
+    nome: 'Açaí Premium Completo',
+    descricao: 'Açaí premium com granola, banana, morango',
+    categoriaId: '1', // Açaí e Polpas
+    copoBaseId: '1', // Açaí Premium 500ml
+    custoCopoBase: 2.27,
+    custoComplementos: 1.88, // Granola + Banana + Morango
+    custoTotal: 4.15,
+    precoSugerido: 18.90,
+    precoCardapio: 19.90,
+    margem: 355.4,
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    complementos: mockCombinadoComplementos,
+    complementos: mockCombinadoComplementos.filter(c => c.combinadoId === '1'),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '2',
+    nome: 'Açaí Tradicional Saudável',
+    descricao: 'Açaí tradicional com granola, banana e mel',
+    categoriaId: '1', // Açaí e Polpas
+    copoBaseId: '2', // Açaí Tradicional 300ml
+    custoCopoBase: 1.87,
+    custoComplementos: 0.91, // Granola + Banana + Mel
+    custoTotal: 2.78,
+    precoSugerido: 13.50,
+    precoCardapio: 14.90,
+    margem: 435.9,
+    ativo: true,
+    complementos: mockCombinadoComplementos.filter(c => c.combinadoId === '2'),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '3',
+    nome: 'Cupuaçu Premium Gourmet',
+    descricao: 'Cupuaçu especial com castanha, granola e coco',
+    categoriaId: '1', // Açaí e Polpas
+    copoBaseId: '3', // Cupuaçu Especial 400ml
+    custoCopoBase: 2.43,
+    custoComplementos: 0.97, // Castanha + Granola + Coco
+    custoTotal: 3.40,
+    precoSugerido: 16.50,
+    precoCardapio: 17.90,
+    margem: 426.5,
+    ativo: true,
+    complementos: mockCombinadoComplementos.filter(c => c.combinadoId === '3'),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
 ];
 
@@ -915,33 +1105,93 @@ export const mockCombinados: Combinado[] = [
 export const mockCardapio: ItemCardapio[] = [
   {
     id: '1',
-    nome: 'Açaí Simples 500ml',
-    descricao: 'Açaí puro 500ml',
-    categoriaId: '2',
+    nome: 'Açaí Premium Simples 500ml',
+    descricao: 'Açaí premium puro cremoso',
+    categoriaId: '1', // Açaí e Polpas
     tipo: 'COPO_BASE',
     copoBaseId: '1',
-    custoAtual: 6.13,
-    precoAtual: 8.28,
-    margemAtual: 26.0,
-    sku: 'AC-500-SIM',
+    custoAtual: 2.27,
+    precoAtual: 12.50,
+    margemAtual: 450.7,
+    sku: 'AC-PREM-500',
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
   {
     id: '2',
-    nome: 'Açaí Completo 500ml',
-    descricao: 'Açaí com granola e frutas vermelhas',
-    categoriaId: '2',
+    nome: 'Açaí Tradicional Simples 300ml',
+    descricao: 'Açaí tradicional cremoso porção média',
+    categoriaId: '1', // Açaí e Polpas
+    tipo: 'COPO_BASE',
+    copoBaseId: '2',
+    custoAtual: 1.87,
+    precoAtual: 9.50,
+    margemAtual: 408.0,
+    sku: 'AC-TRAD-300',
+    ativo: true,
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '3',
+    nome: 'Cupuaçu Especial 400ml',
+    descricao: 'Cupuaçu cremoso sabor amazônico',
+    categoriaId: '1', // Açaí e Polpas
+    tipo: 'COPO_BASE',
+    copoBaseId: '3',
+    custoAtual: 2.43,
+    precoAtual: 11.00,
+    margemAtual: 352.7,
+    sku: 'CUP-ESP-400',
+    ativo: true,
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '4',
+    nome: 'Açaí Premium Completo',
+    descricao: 'Açaí premium com granola, banana e morango',
+    categoriaId: '1', // Açaí e Polpas
     tipo: 'COMBINADO',
     combinadoId: '1',
-    custoAtual: 7.30,
-    precoAtual: 9.85,
-    margemAtual: 25.9,
-    sku: 'AC-500-COM',
+    custoAtual: 4.15,
+    precoAtual: 19.90,
+    margemAtual: 379.5,
+    sku: 'AC-PREM-COMP',
     ativo: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '5',
+    nome: 'Açaí Tradicional Saudável',
+    descricao: 'Açaí tradicional com granola, banana e mel',
+    categoriaId: '1', // Açaí e Polpas
+    tipo: 'COMBINADO',
+    combinadoId: '2',
+    custoAtual: 2.78,
+    precoAtual: 14.90,
+    margemAtual: 435.9,
+    sku: 'AC-TRAD-SAUD',
+    ativo: true,
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '6',
+    nome: 'Cupuaçu Premium Gourmet',
+    descricao: 'Cupuaçu especial com castanha, granola e coco',
+    categoriaId: '1', // Açaí e Polpas
+    tipo: 'COMBINADO',
+    combinadoId: '3',
+    custoAtual: 3.40,
+    precoAtual: 17.90,
+    margemAtual: 426.5,
+    sku: 'CUP-PREM-GOUR',
+    ativo: true,
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
   },
 ];
 
@@ -949,22 +1199,35 @@ export const mockCardapio: ItemCardapio[] = [
 mockInsumos.forEach(insumo => {
   insumo.categoria = mockCategorias.find(c => c.id === insumo.categoriaId);
   insumo.unidadeMedida = mockUnidadesMedida.find(u => u.id === insumo.unidadeMedidaId);
-  // Remove references to old pricing system properties
 });
-
 
 mockReceitas.forEach(receita => {
   receita.categoria = mockCategorias.find(c => c.id === receita.categoriaId);
 });
 
+mockCopoBaseInsumos.forEach(insumo => {
+  insumo.insumo = mockInsumos.find(i => i.id === insumo.insumoId);
+});
+
 mockCoposBase.forEach(copoBase => {
   copoBase.categoria = mockCategorias.find(c => c.id === copoBase.categoriaId);
   copoBase.insumoBase = mockInsumos.find(i => i.id === copoBase.insumoBaseId);
+  copoBase.insumos = mockCopoBaseInsumos.filter(i => i.copoBaseId === copoBase.id);
+});
+
+mockCombinadoComplementos.forEach(comp => {
+  if (comp.insumoId) {
+    comp.insumo = mockInsumos.find(i => i.id === comp.insumoId);
+  }
+  if (comp.receitaId) {
+    comp.receita = mockReceitas.find(r => r.id === comp.receitaId);
+  }
 });
 
 mockCombinados.forEach(combinado => {
   combinado.categoria = mockCategorias.find(c => c.id === combinado.categoriaId);
   combinado.copoBase = mockCoposBase.find(c => c.id === combinado.copoBaseId);
+  combinado.complementos = mockCombinadoComplementos.filter(c => c.combinadoId === combinado.id);
 });
 
 mockCardapio.forEach(item => {
