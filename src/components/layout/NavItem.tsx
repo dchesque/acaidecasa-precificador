@@ -1,6 +1,5 @@
 "use client"
 import Link from "next/link"
-import { LucideIcon } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { ChevronDown, ChevronUp, Plus } from "lucide-react"
@@ -8,7 +7,7 @@ import { useState } from "react"
 
 interface NavItemProps {
   href?: string
-  icon?: LucideIcon | React.ReactNode
+  icon?: React.ReactNode
   label: string
   isCollapsed?: boolean
   isSection?: boolean

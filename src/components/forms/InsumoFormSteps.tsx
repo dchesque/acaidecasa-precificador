@@ -76,9 +76,9 @@ export const InsumoFormSteps = ({
   const defaultValues = useMemo(() => ({
     nome: insumo?.nome || "",
     descricao: insumo?.descricao || "",
-    categoriaId: insumo?.categoriaId || "",
-    unidadeMedidaId: insumo?.unidadeMedidaId || "",
-    fornecedorCalculoId: insumo?.fornecedorCalculoId || "",
+    categoriaId: insumo?.categoriaId || insumo?.categoria?.id || "",
+    unidadeMedidaId: insumo?.unidadeMedidaId || insumo?.unidadeMedida?.id || "",
+    fornecedorCalculoId: insumo?.fornecedorCalculoId || insumo?.fornecedorCalculo?.id || "",
     ativo: insumo?.ativo ?? true,
   }), [insumo]);
 
@@ -99,9 +99,9 @@ export const InsumoFormSteps = ({
         form.reset({
           nome: insumo.nome || "",
           descricao: insumo.descricao || "",
-          categoriaId: insumo.categoriaId || "",
-          unidadeMedidaId: insumo.unidadeMedidaId || "",
-          fornecedorCalculoId: insumo.fornecedorCalculoId || "",
+          categoriaId: insumo.categoriaId || insumo.categoria?.id || "",
+          unidadeMedidaId: insumo.unidadeMedidaId || insumo.unidadeMedida?.id || "",
+          fornecedorCalculoId: insumo.fornecedorCalculoId || insumo.fornecedorCalculo?.id || "",
           ativo: insumo.ativo ?? true,
         });
       }, 0);
@@ -113,7 +113,7 @@ export const InsumoFormSteps = ({
     } else {
       setInsumoSuppliers([]);
     }
-  }, [insumo?.id, state.insumoFornecedores]);
+  }, [form, insumo, state.insumoFornecedores]);
 
   // Supplier management functions
   const handleAddSupplier = () => {
@@ -676,4 +676,8 @@ export const InsumoFormSteps = ({
     </Form>
   );
 };
+
+
+
+
 

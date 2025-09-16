@@ -1,16 +1,16 @@
 import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
-import { 
-  Configuracao, 
-  Categoria, 
-  UnidadeMedida, 
-  Fornecedor, 
+import {
+  Configuracao,
+  Categoria,
+  UnidadeMedida,
+  Fornecedor,
   Insumo,
   InsumoFornecedor,
-  Receita, 
-  CopoBase, 
-  Combinado, 
+  Receita,
+  CopoBase,
+  Combinado,
   ItemCardapio,
-  Alerta 
+  Alerta
 } from '@/types/database';
 import { 
   mockCategorias, 

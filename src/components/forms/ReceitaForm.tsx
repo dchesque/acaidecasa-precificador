@@ -71,7 +71,7 @@ export const ReceitaForm = ({
   const categorias = state.categorias.filter(c => c.ativo);
   const insumos = state.insumos.filter(i => i.ativo);
 
-  const calcularCustoTotal = () => {
+  const calcularCustoTotalForm = (): number => {
     const ingredientes = form.watch("ingredientes");
     return ingredientes.reduce((total, ingrediente) => {
       if (ingrediente.insumoId && ingrediente.quantidade > 0) {
@@ -85,8 +85,8 @@ export const ReceitaForm = ({
     }, 0);
   };
 
-  const calcularCustoPorGrama = () => {
-    const custoTotal = calcularCustoTotal();
+  const calcularCustoPorGramaForm = (): number => {
+    const custoTotal = calcularCustoTotalForm();
     const rendimento = form.watch("rendimento");
     return rendimento > 0 ? custoTotal / rendimento : 0;
   };
@@ -289,13 +289,13 @@ export const ReceitaForm = ({
               <div>
                 <div className="text-sm text-muted-foreground">Custo Total</div>
                 <div className="text-lg font-semibold">
-                  {formatarMoeda(calcularCustoTotal())}
+                  {formatarMoeda(calcularCustoTotalForm())}
                 </div>
               </div>
               <div>
                 <div className="text-sm text-muted-foreground">Custo por Grama</div>
                 <div className="text-lg font-semibold">
-                  {formatarMoeda(calcularCustoPorGrama())}
+                  {formatarMoeda(calcularCustoPorGramaForm())}
                 </div>
               </div>
             </div>

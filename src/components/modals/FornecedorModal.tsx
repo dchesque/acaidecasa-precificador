@@ -8,66 +8,76 @@ import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Package } from "lucide-react";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
+import { createFornecedor as createFornecedorService, updateFornecedor as updateFornecedorService } from "@/services/fornecedoresService";
 
 interface FornecedorModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   fornecedor?: Fornecedor;
-  onFornecedorCreated?: (fornecedor: Fornecedor) => void;
+  mode?: 'create' | 'edit' | 'view';
 }
 
 export const FornecedorModal = ({
   open,
   onOpenChange,
   fornecedor,
-  onFornecedorCreated,
+  mode = 'create'
 }: FornecedorModalProps) => {
-  const { state, dispatch } = useAppContext();
+  const { fornecedores, addFornecedor, updateFornecedor } = useAppContext();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+
+  const title = mode === 'create' ? 'Novo Fornecedor' :
+                mode === 'edit' ? 'Editar Fornecedor' :
+                'Visualizar Fornecedor';
 
   const handleSubmit = async (data: FornecedorFormData) => {
     setIsLoading(true);
     try {
-      const now = new Date();
-      
-      if (fornecedor) {
-        // Update existing supplier
-        const updatedFornecedor: Fornecedor = {
-          ...fornecedor,
-          ...data,
-          updatedAt: now,
-        };
-        dispatch({ type: 'UPDATE_FORNECEDOR', payload: updatedFornecedor });
-        toast({
-          title: "Fornecedor atualizado",
-          description: "Fornecedor atualizado com sucesso!",
-        });
-      } else {
-        // Create new supplier
-        const newFornecedor: Fornecedor = {
-          ...data,
-          id: Date.now().toString(),
-          createdAt: now,
-          updatedAt: now,
-        } as Fornecedor;
-        dispatch({ type: 'ADD_FORNECEDOR', payload: newFornecedor });
+      if (mode === 'create') {
+        if (isSupabaseConfigured()) {
+          const novoFornecedor = await createFornecedorService(data);
+          addFornecedor(novoFornecedor);
+        } else {
+          const novoFornecedor: Fornecedor = {
+            id: Date.now().toString(),
+            ...data,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
+          addFornecedor(novoFornecedor);
+        }
+
         toast({
           title: "Fornecedor criado",
-          description: "Novo fornecedor criado com sucesso!",
+          description: "O fornecedor foi criado com sucesso.",
         });
-        
-        // Call callback if provided
-        if (onFornecedorCreated) {
-          onFornecedorCreated(newFornecedor);
+      } else if (mode === 'edit' && fornecedor) {
+        if (isSupabaseConfigured()) {
+          const fornecedorAtualizado = await updateFornecedorService(fornecedor.id, data);
+          updateFornecedor(fornecedorAtualizado);
+        } else {
+          const fornecedorAtualizado: Fornecedor = {
+            ...fornecedor,
+            ...data,
+            updatedAt: new Date()
+          };
+          updateFornecedor(fornecedorAtualizado);
         }
+
+        toast({
+          title: "Fornecedor atualizado",
+          description: "O fornecedor foi atualizado com sucesso.",
+        });
       }
-      
+
       onOpenChange(false);
     } catch (error) {
+      console.error('Erro ao processar fornecedor:', error);
       toast({
         title: "Erro",
-        description: "Erro ao salvar fornecedor. Tente novamente.",
+        description: "Ocorreu um erro ao processar o fornecedor.",
         variant: "destructive",
       });
     } finally {
@@ -79,134 +89,144 @@ export const FornecedorModal = ({
     onOpenChange(false);
   };
 
-  // Get linked insumos when editing
-  const linkedInsumos = fornecedor ? state.insumoFornecedores
-    .filter(insumoFornecedor => 
-      insumoFornecedor.fornecedorId === fornecedor.id && insumoFornecedor.ativo
-    )
-    .map(insumoFornecedor => {
-      const insumo = state.insumos.find(i => i.id === insumoFornecedor.insumoId);
-      const categoria = insumo ? state.categorias.find(c => c.id === insumo.categoriaId) : null;
-      const unidadeMedida = insumo ? state.unidadesMedida.find(u => u.id === insumo.unidadeMedidaId) : null;
-      
-      return {
-        ...insumoFornecedor,
-        insumo,
-        categoria,
-        unidadeMedida,
-      };
-    })
-    .filter(item => item.insumo) : [];
+  const renderViewMode = () => {
+    if (!fornecedor) return null;
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
+    const insumosFornecidos = [];
+
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium text-muted-foreground">Nome</label>
+            <p className="text-lg font-semibold">{fornecedor.nome}</p>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-muted-foreground">Status</label>
+            <div className="mt-1">
+              <Badge variant={fornecedor.ativo ? "default" : "secondary"}>
+                {fornecedor.ativo ? "Ativo" : "Inativo"}
+              </Badge>
+            </div>
+          </div>
+        </div>
+
+        {(fornecedor.contato || fornecedor.telefone || fornecedor.email) && (
+          <div className="grid grid-cols-3 gap-4">
+            {fornecedor.contato && (
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Contato</label>
+                <p>{fornecedor.contato}</p>
+              </div>
+            )}
+            {fornecedor.telefone && (
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Telefone</label>
+                <p>{fornecedor.telefone}</p>
+              </div>
+            )}
+            {fornecedor.email && (
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Email</label>
+                <p>{fornecedor.email}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {fornecedor.endereco && (
+          <div>
+            <label className="text-sm font-medium text-muted-foreground">Endereço</label>
+            <p>{fornecedor.endereco}</p>
+          </div>
+        )}
+
+        {fornecedor.cnpj && (
+          <div>
+            <label className="text-sm font-medium text-muted-foreground">CNPJ</label>
+            <p>{fornecedor.cnpj}</p>
+          </div>
+        )}
+
+        {(fornecedor.prazoEntrega || fornecedor.pedidoMinimo) && (
+          <div className="grid grid-cols-2 gap-4">
+            {fornecedor.prazoEntrega && (
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Prazo de Entrega</label>
+                <p>{fornecedor.prazoEntrega} dias</p>
+              </div>
+            )}
+            {fornecedor.pedidoMinimo && (
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Pedido Mínimo</label>
+                <p>R$ {Number(fornecedor.pedidoMinimo).toFixed(2)}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {fornecedor.observacoes && (
+          <div>
+            <label className="text-sm font-medium text-muted-foreground">Observações</label>
+            <p className="text-sm text-muted-foreground mt-1">{fornecedor.observacoes}</p>
+          </div>
+        )}
+
+        {insumosFornecidos.length > 0 && (
+          <div>
+            <h4 className="font-semibold mb-3 flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              Insumos Fornecidos
+            </h4>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Insumo</TableHead>
+                  <TableHead>Preço Unitário</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {insumosFornecidos.map((item: any) => (
+                  <TableRow key={item.id}>
+                    <TableCell>{item.nome}</TableCell>
+                    <TableCell>R$ {item.preco?.toFixed(2) || '0,00'}</TableCell>
+                    <TableCell>
+                      <Badge variant={item.ativo ? "default" : "secondary"}>
+                        {item.ativo ? "Ativo" : "Inativo"}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
     <BaseModal
       open={open}
       onOpenChange={onOpenChange}
-      title={fornecedor ? "Editar Fornecedor" : "Novo Fornecedor"}
-      description={
-        fornecedor 
-          ? "Edite as informações do fornecedor" 
-          : "Adicione um novo fornecedor ao sistema"
+      title={title}
+      description={mode === 'view' ?
+        "Informações detalhadas do fornecedor" :
+        mode === 'edit' ?
+        "Edite as informações do fornecedor" :
+        "Preencha as informações do novo fornecedor"
       }
-      size="xl"
+      size="lg"
     >
-      <div className="space-y-6">
+      {mode === 'view' ? renderViewMode() : (
         <FornecedorForm
           fornecedor={fornecedor}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
           isLoading={isLoading}
         />
-
-        {/* Show linked insumos when editing */}
-        {fornecedor && (
-          <div className="space-y-4 pt-6 border-t">
-            <div className="flex items-center gap-2">
-              <Package className="w-5 h-5 text-muted-foreground" />
-              <h3 className="text-lg font-semibold">Insumos Vinculados</h3>
-              <Badge variant="outline">
-                {linkedInsumos.length} {linkedInsumos.length === 1 ? 'item' : 'itens'}
-              </Badge>
-            </div>
-            
-            {linkedInsumos.length === 0 ? (
-              <div className="text-center py-6">
-                <Package className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-                <p className="text-muted-foreground text-sm">Nenhum insumo vinculado a este fornecedor</p>
-              </div>
-            ) : (
-              <div className="border rounded-md max-h-64 overflow-y-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Insumo</TableHead>
-                      <TableHead>Categoria</TableHead>
-                      <TableHead>Preço Bruto</TableHead>
-                      <TableHead>Preço c/ Desconto</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {linkedInsumos.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium text-sm">{item.insumo?.nome}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {item.unidadeMedida?.nome}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {item.categoria && (
-                            <Badge 
-                              variant="outline"
-                              className="text-xs"
-                              style={{ 
-                                backgroundColor: `${item.categoria.cor}20`,
-                                borderColor: item.categoria.cor,
-                                color: item.categoria.cor
-                              }}
-                            >
-                              {item.categoria.nome}
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="text-xs border-blue-200 bg-blue-50 text-blue-700">
-                            {formatCurrency(item.precoBruto)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {item.precoComDesconto ? (
-                            <Badge variant="outline" className="text-xs border-green-200 bg-green-50 text-green-700">
-                              {formatCurrency(item.precoComDesconto)}
-                            </Badge>
-                          ) : (
-                            <span className="text-muted-foreground text-xs">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={item.ativo ? "default" : "secondary"} className="text-xs">
-                            {item.ativo ? "Ativo" : "Inativo"}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      )}
     </BaseModal>
   );
 };

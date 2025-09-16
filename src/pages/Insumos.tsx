@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { InsumoModal } from "@/components/modals/InsumoModal";
 import { CategoriasManagerModal } from "@/components/modals/CategoriasManagerModal";
 import { useAppContext } from "@/contexts/AppContext";
@@ -36,11 +43,79 @@ const Insumos = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedSupplier, setSelectedSupplier] = useState("");
   const [viewMode, setViewMode] = useState<"complete" | "by-category">("by-category");
+  const [isClient, setIsClient] = useState(false);
 
-  const filteredInsumos = state.insumos.filter((insumo) => {
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Dados mockados temporários para desenvolvimento
+  const insumosMock = [
+    {
+      id: "ins1",
+      nome: "Açaí Congelado Premium",
+      descricao: "Açaí congelado de alta qualidade",
+      categoriaId: "cat1",
+      categoria: { id: "cat1", nome: "Frutas", cor: "#8b5cf6", ativo: true },
+      unidadeMedidaId: "um1",
+      unidadeMedida: { id: "um1", nome: "Gramas", sigla: "g", tipo: "PESO" },
+      fornecedorCalculoId: "forn1",
+      ativo: true,
+      observacoes: "Açaí premium da Amazônia",
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: "ins2",
+      nome: "Copo 500ml",
+      descricao: "Copo plástico transparente 500ml",
+      categoriaId: "cat2",
+      categoria: { id: "cat2", nome: "Embalagens", cor: "#06b6d4", ativo: true },
+      unidadeMedidaId: "um2",
+      unidadeMedida: { id: "um2", nome: "Unidade", sigla: "un", tipo: "UNIDADE" },
+      fornecedorCalculoId: "forn2",
+      ativo: true,
+      observacoes: "Copo descartável",
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: "ins3",
+      nome: "Granola Tradicional",
+      descricao: "Granola crocante tradicional",
+      categoriaId: "cat3",
+      categoria: { id: "cat3", nome: "Complementos", cor: "#f59e0b", ativo: true },
+      unidadeMedidaId: "um1",
+      unidadeMedida: { id: "um1", nome: "Gramas", sigla: "g", tipo: "PESO" },
+      fornecedorCalculoId: "forn1",
+      ativo: true,
+      observacoes: "Granola artesanal",
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: "ins4",
+      nome: "Banana",
+      descricao: "Banana prata fresca",
+      categoriaId: "cat1",
+      categoria: { id: "cat1", nome: "Frutas", cor: "#8b5cf6", ativo: true },
+      unidadeMedidaId: "um1",
+      unidadeMedida: { id: "um1", nome: "Gramas", sigla: "g", tipo: "PESO" },
+      fornecedorCalculoId: "forn3",
+      ativo: true,
+      observacoes: "Banana orgânica",
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+  ];
+
+  // Use mock data for development, fallback to real data if available
+  const insumosData = state.insumos.length > 0 ? state.insumos : insumosMock;
+
+  const filteredInsumos = insumosData.filter((insumo) => {
     const matchesSearch = insumo.nome.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !selectedCategory || insumo.categoriaId === selectedCategory;
-    const matchesSupplier = !selectedSupplier || insumo.fornecedorPrincipalId === selectedSupplier;
+    const matchesCategory = !selectedCategory || selectedCategory === "all" || insumo.categoriaId === selectedCategory;
+    const matchesSupplier = !selectedSupplier || selectedSupplier === "all" || insumo.fornecedorCalculoId === selectedSupplier;
     return matchesSearch && matchesCategory && matchesSupplier;
   });
 
@@ -178,21 +253,25 @@ const Insumos = () => {
 };
 
   const stats = {
-    totalInsumos: state.insumos.filter(i => i.ativo).length,
-    insumosInativos: state.insumos.filter(i => !i.ativo).length,
-    categoriasComInsumos: new Set(state.insumos.filter(i => i.ativo).map(i => i.categoriaId)).size,
-    fornecedoresAtivos: new Set(state.insumos.filter(i => i.ativo).map(i => i.fornecedorPrincipalId)).size,
-    insumosSemFornecedor: state.insumos.filter(i => i.ativo && !i.fornecedorPrincipalId).length,
-    custoMaisAlto: state.insumos.length > 0 
-      ? Math.max(...state.insumos.filter(i => i.ativo).map(i => calcularCustoPorGrama(i, state.insumoFornecedores)))
+    totalInsumos: insumosData.filter(i => i.ativo).length,
+    insumosInativos: insumosData.filter(i => !i.ativo).length,
+    categoriasComInsumos: new Set(insumosData.filter(i => i.ativo).map(i => i.categoriaId)).size,
+    fornecedoresAtivos: new Set(insumosData.filter(i => i.ativo).map(i => i.fornecedorCalculoId)).size,
+    insumosSemFornecedor: insumosData.filter(i => i.ativo && !i.fornecedorCalculoId).length,
+    custoMaisAlto: insumosData.length > 0
+      ? Math.max(...insumosData.filter(i => i.ativo).map(i => calcularCustoPorGrama(i, state.insumoFornecedores)))
       : 0,
-    custoMaisBaixo: state.insumos.length > 0 
-      ? Math.min(...state.insumos.filter(i => i.ativo).map(i => calcularCustoPorGrama(i, state.insumoFornecedores)))
+    custoMaisBaixo: insumosData.length > 0
+      ? Math.min(...insumosData.filter(i => i.ativo).map(i => calcularCustoPorGrama(i, state.insumoFornecedores)))
       : 0,
-    insumosComDesconto: state.insumoFornecedores.filter(inf => 
+    insumosComDesconto: state.insumoFornecedores.filter(inf =>
       inf.ativo && inf.usarPrecoComDesconto && inf.precoComDesconto && inf.precoComDesconto > 0
     ).length,
   };
+
+  if (!isClient) {
+    return null;
+  }
 
   return (
     <Layout>
@@ -292,38 +371,41 @@ const Insumos = () => {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
-                  <select 
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                  >
-                    <option value="">Todas as categorias</option>
-                    {state.categorias.map((categoria) => (
-                      <option key={categoria.id} value={categoria.id}>
-                        {categoria.nome}
-                      </option>
-                    ))}
-                  </select>
-                  <select 
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                    value={selectedSupplier}
-                    onChange={(e) => setSelectedSupplier(e.target.value)}
-                  >
-                    <option value="">Todos os fornecedores</option>
-                    {state.fornecedores.map((fornecedor) => (
-                      <option key={fornecedor.id} value={fornecedor.id}>
-                        {fornecedor.nome}
-                      </option>
-                    ))}
-                  </select>
-                  <select 
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                    value={viewMode}
-                    onChange={(e) => setViewMode(e.target.value as "complete" | "by-category")}
-                  >
-                    <option value="complete">🔍 Visualização Completa</option>
-                    <option value="by-category">📁 Por Categoria</option>
-                  </select>
+                  <Select value={selectedCategory || undefined} onValueChange={setSelectedCategory}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todas as categorias" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas as categorias</SelectItem>
+                      {state.categorias.map((categoria) => (
+                        <SelectItem key={categoria.id} value={categoria.id}>
+                          {categoria.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedSupplier || undefined} onValueChange={setSelectedSupplier}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos os fornecedores" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os fornecedores</SelectItem>
+                      {state.fornecedores.map((fornecedor) => (
+                        <SelectItem key={fornecedor.id} value={fornecedor.id}>
+                          {fornecedor.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={viewMode} onValueChange={(value) => setViewMode(value as "complete" | "by-category")}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Modo de visualização" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="complete">🔍 Visualização Completa</SelectItem>
+                      <SelectItem value="by-category">📁 Por Categoria</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardContent>
             </Card>
@@ -335,12 +417,12 @@ const Insumos = () => {
                   <Package className="h-12 w-12 text-muted-foreground mb-4" />
                   <h3 className="text-lg font-semibold mb-2">Nenhum insumo encontrado</h3>
                   <p className="text-muted-foreground text-center mb-4">
-                    {state.insumos.length === 0 
+                    {insumosData.length === 0 
                       ? "Comece adicionando seus primeiros insumos ao sistema."
                       : "Tente ajustar os filtros para encontrar o que procura."
                     }
                   </p>
-                  {state.insumos.length === 0 && (
+                  {insumosData.length === 0 && (
                     <Button onClick={handleNewInsumo}>
                       <Plus className="w-4 h-4 mr-2" />
                       Adicionar Primeiro Insumo

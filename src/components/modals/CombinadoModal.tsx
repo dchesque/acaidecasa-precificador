@@ -5,7 +5,7 @@ import { useAppContext } from "@/contexts/AppContext";
 import { CombinadoFormData } from "@/types/forms";
 import { Combinado, CombinadoComplemento } from "@/types/database";
 import { useToast } from "@/hooks/use-toast";
-import { calcularCustoCombo, calcularPrecoSugerido, calcularMargem, calcularCustoPorGrama } from "@/utils/calculations";
+import { calcularCustoCombo, calcularCustoPorGrama } from "@/utils/calculations";
 
 interface CombinadoModalProps {
   open: boolean;
@@ -60,20 +60,13 @@ export const CombinadoModal = ({
           updatedCombinado,
           state.coposBase,
           state.insumos,
-          state.receitas
+          state.receitas,
+          state.insumoFornecedores
         );
-        
-        const precoSugerido = state.configuracao 
-          ? calcularPrecoSugerido(custoTotal, state.configuracao)
-          : custoTotal * 1.3;
-        
-        const margem = calcularMargem(precoSugerido, custoTotal);
 
         updatedCombinado.custoCopoBase = custoCopoBase;
         updatedCombinado.custoComplementos = custoComplementos;
         updatedCombinado.custoTotal = custoTotal;
-        updatedCombinado.precoSugerido = precoSugerido;
-        updatedCombinado.margem = margem;
 
         // Update complement costs
         updatedCombinado.complementos = complementos.map(comp => {
@@ -107,8 +100,6 @@ export const CombinadoModal = ({
           custoCopoBase: 0,
           custoComplementos: 0,
           custoTotal: 0,
-          precoSugerido: 0,
-          margem: 0,
           createdAt: now,
           updatedAt: now,
         } as Combinado;
@@ -118,20 +109,13 @@ export const CombinadoModal = ({
           newCombinado,
           state.coposBase,
           state.insumos,
-          state.receitas
+          state.receitas,
+          state.insumoFornecedores
         );
-        
-        const precoSugerido = state.configuracao 
-          ? calcularPrecoSugerido(custoTotal, state.configuracao)
-          : custoTotal * 1.3;
-        
-        const margem = calcularMargem(precoSugerido, custoTotal);
 
         newCombinado.custoCopoBase = custoCopoBase;
         newCombinado.custoComplementos = custoComplementos;
         newCombinado.custoTotal = custoTotal;
-        newCombinado.precoSugerido = precoSugerido;
-        newCombinado.margem = margem;
 
         // Update complement costs
         newCombinado.complementos = complementos.map(comp => {

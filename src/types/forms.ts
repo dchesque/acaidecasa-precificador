@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { optionalStringField, optionalEmailField, optionalPhoneField, optionalCnpjField, optionalCurrencyField, optionalIntegerField } from "@/utils/validation";
 
 // Configuration Form Schema
 export const configuracaoSchema = z.object({
@@ -30,14 +31,26 @@ export const unidadeMedidaSchema = z.object({
 // Supplier Form Schema
 export const fornecedorSchema = z.object({
   nome: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
-  contato: z.string().optional(),
-  telefone: z.string().optional(),
-  email: z.string().email("Email inválido").optional().or(z.literal("")),
-  endereco: z.string().optional(),
-  cnpj: z.string().optional(),
-  prazoEntrega: z.number().min(0),
-  pedidoMinimo: z.number().min(0),
-  avaliacao: z.number().min(0).max(5).optional(),
+  contato: optionalStringField(),
+  telefone: optionalPhoneField(),
+  email: optionalEmailField(),
+  endereco: optionalStringField(),
+  cnpj: optionalCnpjField(),
+  prazoEntrega: optionalIntegerField("Prazo invalido"),
+  pedidoMinimo: optionalCurrencyField("Pedido minimo invalido"),
+  observacoes: optionalStringField(),
+  ativo: z.boolean().default(true),
+});
+
+// Input-Supplier Form Schema
+export const insumoFornecedorSchema = z.object({
+  insumoId: z.string().min(1, "Insumo é obrigatório"),
+  fornecedorId: z.string().min(1, "Fornecedor é obrigatório"),
+  precoBruto: z.number().min(0.001, "Preço bruto deve ser maior que zero"),
+  precoComDesconto: z.number().min(0).optional(),
+  quantidadeComprada: z.number().min(0.001, "Quantidade deve ser maior que zero"),
+  usarPrecoComDesconto: z.boolean().default(false),
+  prazoEntrega: z.number().min(0).optional(),
   observacoes: z.string().optional(),
   ativo: z.boolean().default(true),
 });
@@ -76,6 +89,10 @@ export const copoBaseSchema = z.object({
   insumoBaseId: z.string().min(1, "Insumo base é obrigatório"),
   quantidadeBase: z.number().min(0.001, "Quantidade deve ser maior que zero"),
   ativo: z.boolean().default(true),
+  insumos: z.array(z.object({
+    insumoId: z.string().min(1, "Insumo é obrigatório"),
+    quantidade: z.number().min(0.001),
+  })).optional().default([]),
 });
 
 // Combo Form Schema

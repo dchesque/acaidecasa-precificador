@@ -18,7 +18,14 @@
       "Read(//c//**)",
       "Bash(node:*)",
       "Bash(xxd:*)",
-      "Bash(del nul)"
+      "Bash(del nul)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run:*)",
+      "Bash(npx tsc:*)",
+      "Bash(taskkill:*)",
+      "Bash(move srcpagesCombinados.tsx srcpagesCombinados.backup.tsx)",
+      "Bash(move srcpagesCombinadosFixed.tsx srcpagesCombinados.tsx)",
+      "Bash(netstat:*)"
     ],
     "deny": [],
     "ask": []

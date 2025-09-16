@@ -2,35 +2,37 @@ import { Insumo, InsumoFornecedor, Receita, CopoBase, Combinado, Configuracao, F
 
 // Calculate cost per unit for inputs using InsumoFornecedor relationship
 export const calcularCustoPorGrama = (
-  insumo: Partial<Insumo>, 
+  insumo: Partial<Insumo>,
   insumoFornecedores?: InsumoFornecedor[]
 ): number => {
-  // If we have the new relationship structure, use it
-  if (insumoFornecedores && insumo.fornecedorCalculoId) {
-    const fornecedorRelacao = insumoFornecedores.find(
-      if_ => if_.insumoId === insumo.id && if_.fornecedorId === insumo.fornecedorCalculoId && if_.ativo
+  const hasRelations = Boolean(insumoFornecedores && insumo?.id && insumo.fornecedorCalculoId);
+
+  if (hasRelations) {
+    const fornecedorRelacao = insumoFornecedores!.find(
+      (relacao) =>
+        relacao.insumoId === insumo!.id &&
+        relacao.fornecedorId === insumo!.fornecedorCalculoId &&
+        relacao.ativo
     );
-    
+
     if (fornecedorRelacao && fornecedorRelacao.quantidadeComprada > 0) {
       const preco = fornecedorRelacao.usarPrecoComDesconto && fornecedorRelacao.precoComDesconto
         ? fornecedorRelacao.precoComDesconto
-        : fornecedorRelacao.precoBruto || 0;
-      
-      if (preco === 0) return 0;
+        : fornecedorRelacao.precoBruto;
+
+      if (!preco) {
+        return 0;
+      }
+
       return preco / fornecedorRelacao.quantidadeComprada;
     }
   }
-  
-  // Fallback to old structure for backward compatibility
-  if (!insumo.quantidadeComprada) return 0;
-  
-  const preco = insumo.usarPrecoComDesconto && insumo.precoComDesconto 
-    ? insumo.precoComDesconto 
-    : insumo.precoBruto || 0;
-    
-  if (preco === 0) return 0;
-  
-  return preco / insumo.quantidadeComprada;
+
+  if (typeof insumo?.custoPorUnidade === "number" && insumo.custoPorUnidade > 0) {
+    return insumo.custoPorUnidade;
+  }
+
+  return 0;
 };
 
 // Get default supplier data for an insumo
@@ -63,6 +65,9 @@ export const obterDadosFornecedorPadrao = (
       : insumoFornecedor.precoBruto;
     quantidade = insumoFornecedor.quantidadeComprada;
     custoUnidade = quantidade > 0 ? precoPrincipal / quantidade : 0;
+  } else if (typeof insumo.custoPorUnidade === "number" && insumo.custoPorUnidade > 0) {
+    precoPrincipal = insumo.custoPorUnidade;
+    custoUnidade = insumo.custoPorUnidade;
   }
 
   return {
@@ -150,7 +155,7 @@ export const calcularCustoCombo = (
           return total + (custoPorGrama * complemento.quantidade);
         }
       } else if (complemento.tipo === 'RECEITA' && complemento.receitaId) {
-        const receita = receitas.find(r => r.id === combinado.receitaId);
+        const receita = receitas.find(r => r.id === complemento.receitaId);
         if (receita) {
           return total + (receita.custoPorGrama * complemento.quantidade);
         }
@@ -239,3 +244,4 @@ export const formatarPorcentagem = (valor: number): string => {
     maximumFractionDigits: 1
   }).format(valor / 100);
 };
+

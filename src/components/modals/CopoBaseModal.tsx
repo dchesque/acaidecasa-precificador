@@ -2,11 +2,10 @@ import { useState } from "react";
 import { BaseModal } from "./BaseModal";
 import { CopoBaseForm } from "@/components/forms/CopoBaseForm";
 import { useAppContext } from "@/contexts/AppContext";
-import { useCalculations } from "@/hooks/useCalculations";
 import { CopoBaseFormData } from "@/types/forms";
-import { CopoBase, CopoBaseEmbalagem } from "@/types/database";
+import { CopoBase, CopoBaseInsumo } from "@/types/database";
 import { useToast } from "@/hooks/use-toast";
-import { calcularCustoCopoBase, calcularPrecoSugerido, calcularMargem } from "@/utils/calculations";
+import { calcularCustoPorGrama } from "@/utils/calculations";
 
 interface CopoBaseModalProps {
   open: boolean;
@@ -20,7 +19,6 @@ export const CopoBaseModal = ({
   copoBase,
 }: CopoBaseModalProps) => {
   const { state, dispatch } = useAppContext();
-  const { recalcularCopoBase } = useCalculations();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -28,17 +26,17 @@ export const CopoBaseModal = ({
     setIsLoading(true);
     try {
       const now = new Date();
-      
+
       // Find related data
       const categoria = state.categorias.find(c => c.id === data.categoriaId);
       const insumoBase = state.insumos.find(i => i.id === data.insumoBaseId);
 
-      // Create packaging items
-      const embalagens: CopoBaseEmbalagem[] = data.embalagens.map((emb, index) => ({
+      // Create additional ingredients
+      const insumos: CopoBaseInsumo[] = (data.insumos || []).map((ins, index) => ({
         id: `${Date.now()}-${index}`,
         copoBaseId: copoBase?.id || Date.now().toString(),
-        embalagemId: emb.embalagemId,
-        quantidade: emb.quantidade,
+        insumoId: ins.insumoId,
+        quantidade: ins.quantidade,
         custo: 0, // Will be calculated
         createdAt: now,
         updatedAt: now,
@@ -51,35 +49,34 @@ export const CopoBaseModal = ({
           ...data,
           categoria,
           insumoBase,
-          embalagens,
+          insumos,
           updatedAt: now,
         };
 
         // Calculate costs
-        const { custoBase, custoEmbalagens, custoTotal } = calcularCustoCopoBase(
-          updatedCopoBase, 
-          state.insumos, 
-          state.embalagens
-        );
-        
-        const precoSugerido = state.configuracao 
-          ? calcularPrecoSugerido(custoTotal, state.configuracao)
-          : custoTotal * 1.3;
-        
-        const margem = calcularMargem(precoSugerido, custoTotal);
+        const custoBase = insumoBase ? calcularCustoPorGrama(insumoBase, state.insumoFornecedores) * data.quantidadeBase : 0;
+
+        const custoInsumos = insumos.reduce((total, ins) => {
+          const insumo = state.insumos.find(i => i.id === ins.insumoId);
+          if (insumo) {
+            const custoPorGrama = calcularCustoPorGrama(insumo, state.insumoFornecedores);
+            return total + (custoPorGrama * ins.quantidade);
+          }
+          return total;
+        }, 0);
+
+        const custoTotal = custoBase + custoInsumos;
 
         updatedCopoBase.custoBase = custoBase;
-        updatedCopoBase.custoEmbalagens = custoEmbalagens;
+        updatedCopoBase.custoInsumos = custoInsumos;
         updatedCopoBase.custoTotal = custoTotal;
-        updatedCopoBase.precoSugerido = precoSugerido;
-        updatedCopoBase.margem = margem;
 
-        // Update packaging costs
-        updatedCopoBase.embalagens = embalagens.map(emb => {
-          const embalagem = state.embalagens.find(e => e.id === emb.embalagemId);
+        // Update ingredient costs
+        updatedCopoBase.insumos = insumos.map(ins => {
+          const insumo = state.insumos.find(i => i.id === ins.insumoId);
           return {
-            ...emb,
-            custo: embalagem ? embalagem.custoPorUnidade * emb.quantidade : 0,
+            ...ins,
+            custo: insumo ? calcularCustoPorGrama(insumo, state.insumoFornecedores) * ins.quantidade : 0,
           };
         });
 
@@ -95,42 +92,39 @@ export const CopoBaseModal = ({
           id: Date.now().toString(),
           categoria,
           insumoBase,
-          embalagens,
+          insumos,
           custoBase: 0,
-          custoEmbalagens: 0,
+          custoInsumos: 0,
           custoTotal: 0,
-          precoSugerido: 0,
-          margem: 0,
           createdAt: now,
           updatedAt: now,
         } as CopoBase;
 
         // Calculate costs
-        const { custoBase, custoEmbalagens, custoTotal } = calcularCustoCopoBase(
-          newCopoBase, 
-          state.insumos, 
-          state.embalagens
-        );
-        
-        const precoSugerido = state.configuracao 
-          ? calcularPrecoSugerido(custoTotal, state.configuracao)
-          : custoTotal * 1.3;
-        
-        const margem = calcularMargem(precoSugerido, custoTotal);
+        const custoBase = insumoBase ? calcularCustoPorGrama(insumoBase, state.insumoFornecedores) * data.quantidadeBase : 0;
+
+        const custoInsumos = insumos.reduce((total, ins) => {
+          const insumo = state.insumos.find(i => i.id === ins.insumoId);
+          if (insumo) {
+            const custoPorGrama = calcularCustoPorGrama(insumo, state.insumoFornecedores);
+            return total + (custoPorGrama * ins.quantidade);
+          }
+          return total;
+        }, 0);
+
+        const custoTotal = custoBase + custoInsumos;
 
         newCopoBase.custoBase = custoBase;
-        newCopoBase.custoEmbalagens = custoEmbalagens;
+        newCopoBase.custoInsumos = custoInsumos;
         newCopoBase.custoTotal = custoTotal;
-        newCopoBase.precoSugerido = precoSugerido;
-        newCopoBase.margem = margem;
 
-        // Update packaging costs
-        newCopoBase.embalagens = embalagens.map(emb => {
-          const embalagem = state.embalagens.find(e => e.id === emb.embalagemId);
+        // Update ingredient costs
+        newCopoBase.insumos = insumos.map(ins => {
+          const insumo = state.insumos.find(i => i.id === ins.insumoId);
           return {
-            ...emb,
+            ...ins,
             copoBaseId: newCopoBase.id,
-            custo: embalagem ? embalagem.custoPorUnidade * emb.quantidade : 0,
+            custo: insumo ? calcularCustoPorGrama(insumo, state.insumoFornecedores) * ins.quantidade : 0,
           };
         });
 
@@ -140,7 +134,7 @@ export const CopoBaseModal = ({
           description: "Novo copo base criado com sucesso!",
         });
       }
-      
+
       onOpenChange(false);
     } catch (error) {
       toast({

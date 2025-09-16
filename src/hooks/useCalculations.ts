@@ -10,7 +10,7 @@ import {
   verificarPrejuizo,
   verificarMargemBaixa,
 } from '@/utils/calculations';
-import { Insumo, Receita, CopoBase, Combinado } from '@/types/database';
+import { Insumo, Receita, CopoBase, Combinado, Alerta } from '@/types/database';
 
 export const useCalculations = () => {
   const { state, dispatch } = useAppContext();
@@ -138,7 +138,7 @@ export const useCalculations = () => {
 
   // Check for alerts (loss or low margin)
   const verificarAlertas = useCallback(() => {
-    const novosAlertas = [];
+    const novosAlertas: Alerta[] = [];
 
     // Check base cups
     state.coposBase.forEach(copoBase => {
@@ -202,11 +202,23 @@ export const useCalculations = () => {
       }
     });
 
-    // Add new alerts
-    novosAlertas.forEach(alerta => {
-      dispatch({ type: 'ADD_ALERTA', payload: alerta });
+    const alertasPersistentes = state.alertas.filter(
+      (alerta) => alerta.tipo !== 'PREJUIZO' && alerta.tipo !== 'MARGEM_BAIXA'
+    );
+
+    const alertasAtualizados = novosAlertas.map((alerta) => {
+      const existente = state.alertas.find((item) => item.id === alerta.id);
+      if (existente) {
+        return { ...alerta, lido: existente.lido };
+      }
+      return alerta;
     });
-  }, [state.coposBase, state.combinados, dispatch]);
+
+    dispatch({
+      type: 'SET_ALERTAS',
+      payload: [...alertasPersistentes, ...alertasAtualizados],
+    });
+  }, [state.alertas, state.coposBase, state.combinados, dispatch]);
 
   return {
     recalcularInsumo,

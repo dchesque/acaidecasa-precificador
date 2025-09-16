@@ -39,7 +39,10 @@ export const FornecedorViewModal = ({
     })
     .filter(item => item.insumo);
 
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value?: number) => {
+    if (typeof value !== "number") {
+      return "-";
+    }
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
@@ -127,7 +130,7 @@ export const FornecedorViewModal = ({
               <span className="text-sm font-medium text-muted-foreground">Prazo de Entrega:</span>
               <p className="text-sm flex items-center gap-1 mt-1">
                 <Clock className="w-4 h-4" />
-                {fornecedor.prazoEntrega} dias
+                {typeof fornecedor.prazoEntrega === "number" ? `${fornecedor.prazoEntrega} dias` : "-"}
               </p>
             </div>
             

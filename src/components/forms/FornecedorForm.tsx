@@ -2,7 +2,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -38,9 +37,8 @@ export const FornecedorForm = ({
       email: fornecedor?.email || "",
       endereco: fornecedor?.endereco || "",
       cnpj: fornecedor?.cnpj || "",
-      prazoEntrega: fornecedor?.prazoEntrega || 0,
-      pedidoMinimo: fornecedor?.pedidoMinimo || 0,
-      avaliacao: fornecedor?.avaliacao || 0,
+      prazoEntrega: fornecedor?.prazoEntrega,
+      pedidoMinimo: fornecedor?.pedidoMinimo,
       observacoes: fornecedor?.observacoes || "",
       ativo: fornecedor?.ativo ?? true,
     },
@@ -89,7 +87,7 @@ export const FornecedorForm = ({
               <FormItem>
                 <FormLabel>Telefone</FormLabel>
                 <FormControl>
-                  <Input placeholder="(11) 99999-9999" {...field} />
+                  <Input placeholder="(11) 99999-9999" inputMode="tel" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -133,7 +131,7 @@ export const FornecedorForm = ({
             <FormItem>
               <FormLabel>CNPJ</FormLabel>
               <FormControl>
-                <Input placeholder="00.000.000/0000-00" {...field} />
+                <Input placeholder="00.000.000/0000-00" inputMode="numeric" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -146,13 +144,13 @@ export const FornecedorForm = ({
             name="prazoEntrega"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Prazo Entrega (dias) *</FormLabel>
+                <FormLabel>Prazo de Entrega (dias)</FormLabel>
                 <FormControl>
                   <Input
-                    type="number"
-                    min="0"
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
+                    inputMode="numeric"
+                    placeholder="Ex.: 3"
+                    value={field.value ?? ""}
+                    onChange={(e) => field.onChange(e.target.value)}
                   />
                 </FormControl>
                 <FormMessage />
@@ -165,36 +163,13 @@ export const FornecedorForm = ({
             name="pedidoMinimo"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Pedido Mínimo (R$) *</FormLabel>
+                <FormLabel>Pedido Mínimo (R$)</FormLabel>
                 <FormControl>
                   <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="avaliacao"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Avaliação (0-5)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    min="0"
-                    max="5"
-                    step="0.1"
-                    placeholder="4.5"
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
+                    inputMode="decimal"
+                    placeholder="Ex.: R$ 150,00"
+                    value={field.value ?? ""}
+                    onChange={(e) => field.onChange(e.target.value)}
                   />
                 </FormControl>
                 <FormMessage />

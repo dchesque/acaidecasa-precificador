@@ -40,9 +40,8 @@ export interface Fornecedor {
   email?: string;
   endereco?: string;
   cnpj?: string;
-  prazoEntrega: number;
-  pedidoMinimo: number;
-  avaliacao?: number;
+  prazoEntrega?: number;
+  pedidoMinimo?: number;
   observacoes?: string;
   ativo: boolean;
   createdAt: Date;
@@ -81,6 +80,7 @@ export interface Insumo {
   fornecedorCalculoId: string; // ID of the supplier used for cost calculation
   fornecedorCalculo?: Fornecedor; // The supplier used for cost calculation
   custoPorUnidade?: number; // Calculated cost per unit (based on selected supplier)
+  custoPorGrama?: number; // Derived cost per gram for calculations
   ativo: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -117,6 +117,17 @@ export interface ReceitaIngrediente {
   updatedAt: Date;
 }
 
+export interface CopoBaseInsumo {
+  id: string;
+  copoBaseId: string;
+  insumoId: string;
+  insumo?: Insumo;
+  quantidade: number;
+  custo: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface CopoBase {
   id: string;
   nome: string;
@@ -127,13 +138,12 @@ export interface CopoBase {
   insumoBase?: Insumo;
   quantidadeBase: number;
   custoBase: number;
-  custoEmbalagens: number;
+  custoInsumos: number;
   custoTotal: number;
-  precoSugerido: number;
-  margem: number;
   ativo: boolean;
   createdAt: Date;
   updatedAt: Date;
+  insumos?: CopoBaseInsumo[];
 }
 
 
@@ -149,6 +159,7 @@ export interface Combinado {
   custoComplementos: number;
   custoTotal: number;
   precoSugerido: number;
+  precoCardapio?: number;
   margem: number;
   ativo: boolean;
   createdAt: Date;
