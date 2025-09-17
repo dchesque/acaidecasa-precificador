@@ -2919,18 +2919,6 @@ const Cardapio = () => {
                                 </div>
                               </div>
 
-                              {/* Barra de Progresso da Margem */}
-                              <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div
-                                  className={`h-2 rounded-full transition-all ${
-                                    margem < 0 ? 'bg-red-500' :
-                                    margem < 50 ? 'bg-orange-500' :
-                                    margem < 100 ? 'bg-yellow-500' :
-                                    'bg-green-500'
-                                  }`}
-                                  style={{width: `${Math.min(Math.max(margem, 0), 200)}%`}}
-                                ></div>
-                              </div>
 
                               {/* Recomendações */}
                               <div className="mt-3 text-xs">
