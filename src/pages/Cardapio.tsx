@@ -58,7 +58,8 @@ import {
   Calculator,
   Users,
   Tag,
-  BarChart3
+  BarChart3,
+  Info
 } from "lucide-react";
 
 const Cardapio = () => {
@@ -273,15 +274,33 @@ const Cardapio = () => {
 
   const handleEditItem = (item: any) => {
     setSelectedItem(item);
-    setEditItemId(item.id || "");
-    setEditItemName(item.nome || "");
-    setEditItemPrice(item.preco?.toString() || "");
-    setEditItemNotes("");
-    setEditItemCategory("");
-    setEditItemType("");
-    setEditItemQuantity(item.quantidade?.toString() || "");
-    setEditItemUnit(item.unidade || "");
-    setEditSelectedItem(null);
+
+    // Preencher campos automaticamente com dados do item
+    setItemId(item.id || "");
+    setItemName(item.nome || "");
+    setItemPrice(item.preco?.toString() || "");
+    setItemNotes("");
+
+    // Definir categoria atual
+    const categoriaAtual = managedCategorias.find(cat => cat.nome === item.categoria);
+    setSelectedItemCategory(categoriaAtual?.nome || "");
+
+    // Definir tipo baseado no item existente
+    setSelectedItemType(item.tipo || "receita");
+
+    // Se tiver referência a um item base, buscar e preencher
+    if (item.itemReferencia) {
+      const itemTipo = item.tipo || "receita";
+      const itemBase = mockData[itemTipo as keyof typeof mockData]?.find(i => i.id === item.itemReferencia);
+      if (itemBase) {
+        setSelectedSearchItem(itemBase);
+        setItemQuantity(item.quantidade?.toString() || "");
+      }
+    } else {
+      setSelectedSearchItem(null);
+      setItemQuantity("");
+    }
+
     setEditModalOpen(true);
   };
 
@@ -1924,53 +1943,200 @@ const Cardapio = () => {
             <div className="grid grid-cols-12 gap-6">
               {/* Seção Principal - Formulário */}
               <div className="col-span-12 lg:col-span-7 space-y-6">
-                {/* Step 1: Informações Atuais */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-medium">1</div>
-                    <h3 className="font-semibold">Informações Atuais</h3>
-                  </div>
-
-                  {selectedItem && (
-                    <div className="p-4 bg-gray-50 rounded-lg border">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Item Original</label>
-                          <p className="font-semibold">{selectedItem.nome}</p>
+                {/* Card com Valores Atuais */}
+                {selectedItem && (
+                  <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg flex items-center gap-2 text-blue-800">
+                        <Info className="w-5 h-5" />
+                        Valores Atuais
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="text-center p-3 bg-white rounded-lg border shadow-sm">
+                          <p className="text-xs text-gray-600 font-medium">ITEM</p>
+                          <p className="text-sm font-bold text-gray-900 truncate">{selectedItem.nome}</p>
                         </div>
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Categoria Atual</label>
-                          <p className="font-semibold">{selectedItem.categoria}</p>
+                        <div className="text-center p-3 bg-white rounded-lg border shadow-sm">
+                          <p className="text-xs text-gray-600 font-medium">PREÇO</p>
+                          <p className="text-sm font-bold text-green-600">R$ {selectedItem.preco?.toFixed(2)}</p>
                         </div>
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Preço Atual</label>
-                          <p className="font-semibold text-green-600">R$ {selectedItem.preco?.toFixed(2)}</p>
+                        <div className="text-center p-3 bg-white rounded-lg border shadow-sm">
+                          <p className="text-xs text-gray-600 font-medium">CUSTO</p>
+                          <p className="text-sm font-bold text-red-600">R$ {selectedItem.custo?.toFixed(2)}</p>
                         </div>
-                        <div>
-                          <label className="text-sm font-medium text-muted-foreground">Status</label>
+                        <div className="text-center p-3 bg-white rounded-lg border shadow-sm">
+                          <p className="text-xs text-gray-600 font-medium">MARGEM</p>
+                          <p className="text-sm font-bold text-blue-600">{selectedItem.margem?.toFixed(1)}%</p>
+                        </div>
+                        {selectedItem.quantidade && (
+                          <div className="text-center p-3 bg-white rounded-lg border shadow-sm">
+                            <p className="text-xs text-gray-600 font-medium">QUANTIDADE</p>
+                            <p className="text-sm font-bold text-purple-600">{selectedItem.quantidade}{selectedItem.unidade}</p>
+                          </div>
+                        )}
+                        {selectedItem.fornecedor && (
+                          <div className="text-center p-3 bg-white rounded-lg border shadow-sm">
+                            <p className="text-xs text-gray-600 font-medium">FORNECEDOR</p>
+                            <p className="text-sm font-bold text-gray-900 truncate">{selectedItem.fornecedor}</p>
+                          </div>
+                        )}
+                        <div className="text-center p-3 bg-white rounded-lg border shadow-sm">
+                          <p className="text-xs text-gray-600 font-medium">CATEGORIA</p>
+                          <p className="text-sm font-bold text-gray-900 truncate">{selectedItem.categoria}</p>
+                        </div>
+                        <div className="text-center p-3 bg-white rounded-lg border shadow-sm">
+                          <p className="text-xs text-gray-600 font-medium">STATUS</p>
                           <Badge variant={selectedItem.disponivel ? "default" : "secondary"} className="text-xs">
                             {selectedItem.disponivel ? "Disponível" : "Indisponível"}
                           </Badge>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Step 1: Categoria e Tipo */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-medium">1</div>
+                    <h3 className="font-semibold">Categoria e Tipo</h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="category-select" className="text-sm font-medium">Categoria *</Label>
+                      <div className="flex gap-2">
+                        <Select value={selectedItemCategory} onValueChange={setSelectedItemCategory}>
+                          <SelectTrigger className="flex-1 h-11">
+                            <SelectValue placeholder="Selecione uma categoria" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {managedCategorias.map((categoria) => {
+                              const Icon = categoria.icon;
+                              return (
+                                <SelectItem key={categoria.id} value={categoria.id}>
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      className="w-4 h-4 rounded-sm flex items-center justify-center"
+                                      style={{ backgroundColor: categoria.corBg }}
+                                    >
+                                      <Icon className="w-2.5 h-2.5" style={{ color: categoria.cor }} />
+                                    </div>
+                                    {categoria.nome}
+                                  </div>
+                                </SelectItem>
+                              );
+                            })}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCategoriesModalOpen(true)}
+                          className="h-11 px-3 text-xs"
+                          title="Gerenciar categorias"
+                        >
+                          <Settings className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="item-type" className="text-sm font-medium">Tipo do Item *</Label>
+                      <Select value={selectedItemType} onValueChange={setSelectedItemType}>
+                        <SelectTrigger className="h-11">
+                          <SelectValue placeholder="Selecione o tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {itemTypes.map((type) => (
+                            <SelectItem key={type.value} value={type.value}>
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-primary"></div>
+                                {type.label}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Pesquisa do Item */}
+                  {selectedItemType && (
+                    <div className="space-y-2">
+                      <Label htmlFor="item-search" className="text-sm font-medium">Buscar Item Existente</Label>
+                      <Select
+                        value={selectedSearchItem?.id || ""}
+                        onValueChange={(value) => {
+                          const item = mockData[selectedItemType as keyof typeof mockData]?.find(i => i.id === value);
+                          setSelectedSearchItem(item);
+                          if (item) {
+                            setItemName(item.nome);
+                            setItemQuantity("");
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="h-11">
+                          <SelectValue placeholder="Buscar item existente (opcional)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {mockData[selectedItemType as keyof typeof mockData]?.map((item) => (
+                            <SelectItem key={item.id} value={item.id}>
+                              <div className="flex items-center justify-between w-full">
+                                <span>{item.nome}</span>
+                                <span className="text-xs text-muted-foreground ml-2">{item.id}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        Selecione um item existente para aproveitar as informações de custo
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Campo Quantidade */}
+                  {selectedSearchItem && (
+                    <div className="space-y-2">
+                      <Label htmlFor="item-quantity" className="text-sm font-medium">
+                        Quantidade *
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          id="item-quantity"
+                          type="number"
+                          value={itemQuantity}
+                          onChange={(e) => setItemQuantity(e.target.value)}
+                          placeholder="1"
+                          step={selectedItemType === "insumo" ? "0.001" : "1"}
+                          min="0.001"
+                          className="h-11 flex-1"
+                        />
+                        <div className="text-sm text-muted-foreground bg-gray-50 px-3 py-2 rounded border min-w-[60px] text-center">
+                          {selectedSearchItem.unidade || (selectedItemType === "insumo" ? "g" : "un")}
                         </div>
                       </div>
                     </div>
                   )}
                 </div>
 
-                {/* Step 2: Novos Dados */}
+                {/* Step 2: Detalhes do Item */}
                 <div className="space-y-4 pt-6 border-t">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-medium">2</div>
-                    <h3 className="font-semibold">Editar Informações</h3>
+                    <h3 className="font-semibold">Detalhes do Item</h3>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="edit-item-id" className="text-sm font-medium">ID do Item no Cardápio</Label>
+                      <Label htmlFor="item-id" className="text-sm font-medium">ID do Item no Cardápio</Label>
                       <Input
-                        id="edit-item-id"
-                        value={editItemId}
-                        onChange={(e) => setEditItemId(e.target.value)}
+                        id="item-id"
+                        value={itemId}
+                        onChange={(e) => setItemId(e.target.value)}
                         placeholder="Ex: CARD001, AC300, COMBO01..."
                         className="h-11"
                       />
@@ -1979,14 +2145,14 @@ const Cardapio = () => {
                       </p>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="edit-item-price" className="text-sm font-medium">Preço de Venda *</Label>
+                      <Label htmlFor="item-price" className="text-sm font-medium">Preço de Venda *</Label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
                         <Input
-                          id="edit-item-price"
+                          id="item-price"
                           type="number"
-                          value={editItemPrice}
-                          onChange={(e) => setEditItemPrice(e.target.value)}
+                          value={itemPrice}
+                          onChange={(e) => setItemPrice(e.target.value)}
                           placeholder="0,00"
                           step="0.01"
                           className="h-11 pl-10"
@@ -1995,378 +2161,144 @@ const Cardapio = () => {
                     </div>
                   </div>
 
-                  {/* Campos de Quantidade */}
-                  {selectedItem && (selectedItem.quantidade || editItemQuantity) && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="edit-item-quantity" className="text-sm font-medium">Quantidade</Label>
-                        <Input
-                          id="edit-item-quantity"
-                          type="number"
-                          value={editItemQuantity}
-                          onChange={(e) => setEditItemQuantity(e.target.value)}
-                          placeholder="1"
-                          step="0.001"
-                          className="h-11"
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          Quantidade baseada no item original
-                        </p>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="edit-item-unit" className="text-sm font-medium">Unidade</Label>
-                        <Input
-                          id="edit-item-unit"
-                          value={editItemUnit}
-                          onChange={(e) => setEditItemUnit(e.target.value)}
-                          placeholder="g, ml, un"
-                          className="h-11"
-                          readOnly
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          Unidade do item original
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
                   <div className="space-y-2">
-                    <Label htmlFor="edit-item-name" className="text-sm font-medium">Nome no Cardápio *</Label>
+                    <Label htmlFor="item-name" className="text-sm font-medium">Nome no Cardápio *</Label>
                     <Input
-                      id="edit-item-name"
-                      value={editItemName}
-                      onChange={(e) => setEditItemName(e.target.value)}
+                      id="item-name"
+                      value={itemName}
+                      onChange={(e) => setItemName(e.target.value)}
                       placeholder="Nome que aparecerá no cardápio"
                       className="h-11"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="edit-item-notes" className="text-sm font-medium">Observações</Label>
+                    <Label htmlFor="item-notes" className="text-sm font-medium">Observações</Label>
                     <Textarea
-                      id="edit-item-notes"
-                      value={editItemNotes}
-                      onChange={(e) => setEditItemNotes(e.target.value)}
+                      id="item-notes"
+                      value={itemNotes}
+                      onChange={(e) => setItemNotes(e.target.value)}
                       placeholder="Observações adicionais sobre o item (alergias, ingredientes especiais, etc.)"
                       rows={3}
                       className="resize-none"
                     />
                   </div>
-
-                  {/* Mudança de Categoria */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Alterar Categoria (Opcional)</Label>
-                    <div className="flex gap-2">
-                      <Select value={editItemCategory} onValueChange={setEditItemCategory}>
-                        <SelectTrigger className="flex-1 h-11">
-                          <SelectValue placeholder="Manter categoria atual" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {managedCategorias.map((categoria) => {
-                            const Icon = categoria.icon;
-                            return (
-                              <SelectItem key={categoria.id} value={categoria.id}>
-                                <div className="flex items-center gap-2">
-                                  <div
-                                    className="w-4 h-4 rounded-sm flex items-center justify-center"
-                                    style={{ backgroundColor: categoria.corBg }}
-                                  >
-                                    <Icon className="w-2.5 h-2.5" style={{ color: categoria.cor }} />
-                                  </div>
-                                  {categoria.nome}
-                                </div>
-                              </SelectItem>
-                            );
-                          })}
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCategoriesModalOpen(true)}
-                        className="h-11 px-3 text-xs"
-                        title="Gerenciar categorias"
-                      >
-                        <Settings className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Deixe em branco para manter a categoria atual ({selectedItem?.categoria})
-                    </p>
-                  </div>
                 </div>
               </div>
 
-              {/* Seção Lateral - Preview e Comparação */}
+              {/* Seção Lateral - Preview */}
               <div className="col-span-12 lg:col-span-5 space-y-4">
-                {/* Comparação Antes/Depois */}
-                {editItemName && editItemPrice && (
-                  <Card className="bg-gradient-to-br from-orange-50 to-red-50 border-orange-200">
+                {/* Preview do Item */}
+                {itemName && itemPrice && selectedItemCategory && (
+                  <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
                     <CardHeader className="pb-3">
-                      <CardTitle className="text-lg flex items-center gap-2 text-orange-800">
-                        <TrendingUp className="w-5 h-5" />
-                        Comparação
+                      <CardTitle className="text-lg flex items-center gap-2 text-green-800">
+                        <Eye className="w-5 h-5" />
+                        Preview do Cardápio
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-4">
-                        {/* Antes */}
-                        <div className="p-3 bg-gray-100 rounded-lg">
-                          <h5 className="text-sm font-medium text-gray-700 mb-2">Antes</h5>
+                      <div className="space-y-3">
+                        <div className="p-4 bg-white rounded-lg border shadow-sm">
                           <div className="flex justify-between items-start">
-                            <div>
-                              <p className="font-medium text-gray-900">{selectedItem?.nome}</p>
-                              <p className="text-xs text-gray-600">{selectedItem?.categoria}</p>
-                            </div>
-                            <p className="font-bold text-gray-700">R$ {selectedItem?.preco?.toFixed(2)}</p>
-                          </div>
-                        </div>
-
-                        {/* Depois */}
-                        <div className="p-3 bg-white rounded-lg border border-orange-200">
-                          <h5 className="text-sm font-medium text-orange-700 mb-2">Depois</h5>
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="font-medium text-gray-900">{editItemName}</p>
-                              <p className="text-xs text-gray-600">
-                                {editItemCategory ?
-                                  managedCategorias.find(c => c.id === editItemCategory)?.nome :
-                                  selectedItem?.categoria}
-                              </p>
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-900">{itemName}</h4>
+                              <div className="flex items-center gap-2 mt-1">
+                                {selectedItemCategory && (() => {
+                                  const categoria = managedCategorias.find(c => c.id === selectedItemCategory);
+                                  if (categoria) {
+                                    const Icon = categoria.icon;
+                                    return (
+                                      <div className="flex items-center gap-1">
+                                        <div
+                                          className="w-4 h-4 rounded-sm flex items-center justify-center"
+                                          style={{ backgroundColor: categoria.corBg }}
+                                        >
+                                          <Icon className="w-2.5 h-2.5" style={{ color: categoria.cor }} />
+                                        </div>
+                                        <span className="text-xs text-gray-600">{categoria.nome}</span>
+                                      </div>
+                                    );
+                                  }
+                                  return null;
+                                })()}
+                              </div>
+                              {itemNotes && (
+                                <p className="text-xs text-gray-500 mt-1 italic">{itemNotes}</p>
+                              )}
                             </div>
                             <div className="text-right">
-                              <p className="font-bold text-orange-600">R$ {parseFloat(editItemPrice).toFixed(2)}</p>
-                              {selectedItem?.custo && (
-                                <p className="text-xs text-orange-500">
-                                  Margem: {(((parseFloat(editItemPrice) - selectedItem.custo) / selectedItem.custo) * 100).toFixed(1)}%
-                                </p>
+                              <p className="text-lg font-bold text-green-600">R$ {parseFloat(itemPrice).toFixed(2)}</p>
+                              {selectedSearchItem && itemQuantity && (
+                                <>
+                                  <p className="text-xs text-gray-500">
+                                    Qtd: {parseFloat(itemQuantity)}{selectedSearchItem.unidade}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    Margem: {(((parseFloat(itemPrice) - (selectedSearchItem.custo * parseFloat(itemQuantity))) / (selectedSearchItem.custo * parseFloat(itemQuantity))) * 100).toFixed(1)}%
+                                  </p>
+                                </>
                               )}
                             </div>
                           </div>
                         </div>
-
-                        {/* Análise da Mudança */}
-                        {selectedItem?.preco && (
-                          <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                            <h5 className="text-sm font-medium text-blue-700 mb-2">Análise da Mudança</h5>
-                            <div className="space-y-2">
-                              <div className="flex justify-between text-sm">
-                                <span className="text-blue-600">Diferença de preço:</span>
-                                <span className={`font-medium ${
-                                  parseFloat(editItemPrice) > selectedItem.preco ? 'text-green-600' : 'text-red-600'
-                                }`}>
-                                  {parseFloat(editItemPrice) > selectedItem.preco ? '+' : ''}
-                                  R$ {(parseFloat(editItemPrice) - selectedItem.preco).toFixed(2)}
-                                </span>
-                              </div>
-                              <div className="flex justify-between text-sm">
-                                <span className="text-blue-600">Variação:</span>
-                                <span className={`font-medium ${
-                                  parseFloat(editItemPrice) > selectedItem.preco ? 'text-green-600' : 'text-red-600'
-                                }`}>
-                                  {((parseFloat(editItemPrice) - selectedItem.preco) / selectedItem.preco * 100).toFixed(1)}%
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        )}
                       </div>
                     </CardContent>
                   </Card>
                 )}
 
-                {/* Informações do Item Original */}
-                {selectedItem && (
+                {/* Informações de Custo */}
+                {selectedSearchItem && (
                   <Card>
                     <CardHeader className="pb-3">
                       <CardTitle className="text-lg flex items-center gap-2">
                         <DollarSign className="w-5 h-5" />
-                        Informações do Item Original
+                        Informações Financeiras
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
                         <div className="grid grid-cols-2 gap-4">
                           <div className="p-3 bg-red-50 rounded-lg border border-red-100">
-                            <p className="text-xs text-red-600 font-medium">CUSTO</p>
-                            <p className="text-lg font-bold text-red-700">R$ {selectedItem.custo?.toFixed(2)}</p>
+                            <p className="text-xs text-red-600 font-medium">CUSTO TOTAL</p>
+                            <p className="text-lg font-bold text-red-700">
+                              R$ {itemQuantity ?
+                                (selectedSearchItem.custo * parseFloat(itemQuantity)).toFixed(4) :
+                                selectedSearchItem.custo?.toFixed(4) || '0.0000'
+                              }
+                            </p>
+                            {itemQuantity && (
+                              <p className="text-xs text-red-500">
+                                {parseFloat(itemQuantity)}{selectedSearchItem.unidade} × R$ {selectedSearchItem.custo?.toFixed(4)}/{selectedSearchItem.unidade}
+                              </p>
+                            )}
                           </div>
-                          <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
-                            <p className="text-xs text-blue-600 font-medium">MARGEM ATUAL</p>
-                            <p className="text-lg font-bold text-blue-700">{selectedItem.margem?.toFixed(1)}%</p>
-                          </div>
-                        </div>
+                          {itemPrice && (
+                            <div className="p-3 bg-green-50 rounded-lg border border-green-100">
+                              <p className="text-xs text-green-600 font-medium">MARGEM</p>
+                              {(() => {
+                                const custoCalculado = calcularCustoComQuantidade(selectedSearchItem, parseFloat(itemQuantity) || 1, selectedItemType);
+                                const margem = calcularMargem(parseFloat(itemPrice), custoCalculado);
+                                const classificacao = getMargemClassificacao(margem);
 
-                        <div className="pt-2 border-t">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground">Status:</span>
-                            <Badge variant={selectedItem.disponivel ? "default" : "secondary"} className="text-xs">
-                              {selectedItem.disponivel ? "Disponível" : "Indisponível"}
-                            </Badge>
-                          </div>
+                                return (
+                                  <>
+                                    <p className={`text-lg font-bold ${getMargemColor(margem)}`}>
+                                      {margem.toFixed(1)}%
+                                    </p>
+                                    <p className={`text-xs font-medium ${getMargemColor(margem)}`}>
+                                      {classificacao}
+                                    </p>
+                                  </>
+                                );
+                              })()}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </CardContent>
                   </Card>
                 )}
-
-                {/* Seção de Composição e Análise para itens complexos */}
-                {selectedItem && (selectedItem.tipo === "copo-base" || selectedItem.tipo === "combinado") && selectedItem.composicao && (
-                  <>
-                    {/* Composição do Item */}
-                    <Card className="bg-gradient-to-r from-purple-50 to-violet-50 border-purple-200">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <Package className="w-5 h-5 text-purple-600" />
-                          Composição do {selectedItem.tipo === "copo-base" ? "Copo Base" : "Combinado"}
-                        </CardTitle>
-                        <div className="text-sm text-muted-foreground">
-                          Insumos que compõem este produto
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
-                          {selectedItem.composicao.map((comp: any, index: number) => (
-                            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
-                              <div className="flex items-center gap-3 flex-1">
-                                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
-                                  {index + 1}
-                                </div>
-                                <div className="flex-1">
-                                  <div className="flex items-center justify-between">
-                                    <div>
-                                      <p className="font-medium text-sm text-gray-900">{comp.insumo.nome}</p>
-                                      <p className="text-xs text-blue-600">
-                                        <span className="font-medium">{comp.insumo.fornecedorPadrao}</span>
-                                      </p>
-                                    </div>
-                                    <div className="text-right ml-2">
-                                      <p className="text-xs text-gray-600">
-                                        {comp.quantidade}{comp.insumo.unidade}
-                                      </p>
-                                      <p className="text-sm font-bold text-red-600">
-                                        R$ {comp.custo.toFixed(2)}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                          {/* Totalizador Compacto */}
-                          <div className="border-t pt-3 mt-3">
-                            <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-200">
-                              <div className="flex items-center gap-2">
-                                <div className="w-6 h-6 bg-red-500 rounded-lg flex items-center justify-center">
-                                  <Calculator className="w-3 h-3 text-white" />
-                                </div>
-                                <div>
-                                  <div className="font-bold text-sm text-gray-900">Custo Total do Produto</div>
-                                  <div className="text-xs text-gray-600">
-                                    {selectedItem.composicao.length} insumo{selectedItem.composicao.length > 1 ? 's' : ''}
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <div className="text-2xl font-bold text-red-600">
-                                  R$ {selectedItem.custoTotal?.toFixed(2) || "0.00"}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Análise de Rentabilidade com Preço Editado */}
-                    {editItemPrice && (
-                      <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-lg flex items-center gap-2">
-                            <TrendingUp className="w-5 h-5 text-green-600" />
-                            Análise de Rentabilidade (Preço Editado)
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          {(() => {
-                            const custoCalculado = selectedItem.custoTotal || 0;
-                            const precoVenda = parseFloat(editItemPrice) || selectedItem.preco || 0;
-                            const margem = custoCalculado > 0 ? ((precoVenda - custoCalculado) / custoCalculado) * 100 : 0;
-                            const lucroTotal = precoVenda - custoCalculado;
-                            return (
-                              <div className="space-y-4">
-                                {/* Resumo Financeiro */}
-                                <div className="grid grid-cols-3 gap-3">
-                                  <div className="text-center p-2 bg-white rounded-lg border shadow-sm">
-                                    <p className="text-xs text-gray-600 font-medium">CUSTO</p>
-                                    <p className="text-sm font-bold text-red-600">
-                                      R$ {custoCalculado.toFixed(2)}
-                                    </p>
-                                  </div>
-                                  <div className="text-center p-2 bg-white rounded-lg border shadow-sm">
-                                    <p className="text-xs text-gray-600 font-medium">VENDA</p>
-                                    <p className="text-sm font-bold text-blue-600">
-                                      R$ {precoVenda.toFixed(2)}
-                                    </p>
-                                  </div>
-                                  <div className="text-center p-2 bg-white rounded-lg border shadow-sm">
-                                    <p className="text-xs text-gray-600 font-medium">LUCRO</p>
-                                    <p className="text-sm font-bold text-green-600">
-                                      R$ {lucroTotal.toFixed(2)}
-                                    </p>
-                                  </div>
-                                </div>
-
-                                {/* Margem de Lucro */}
-                                <div className="p-3 bg-green-100 rounded-lg border border-green-200">
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-sm font-medium text-green-800">Margem de Lucro</span>
-                                    <span className="text-lg font-bold text-green-700">
-                                      {margem.toFixed(2)}%
-                                    </span>
-                                  </div>
-                                  <div className="w-full bg-green-200 rounded-full h-2 mt-2">
-                                    <div
-                                      className="bg-green-600 h-2 rounded-full transition-all duration-300"
-                                      style={{ width: `${Math.min(margem, 300)}%` }}
-                                    ></div>
-                                  </div>
-                                  <div className="flex items-center gap-1 mt-2">
-                                    <span className="text-green-600">•</span>
-                                    <span className="text-xs text-green-700 font-medium">
-                                      {margem >= 100 ? "Excelente margem! Este item tem boa rentabilidade." :
-                                       margem >= 50 ? "Margem aceitável, mas há espaço para melhorar." :
-                                       "Margem baixa. Considere aumentar o preço ou reduzir custos."}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })()}
-                        </CardContent>
-                      </Card>
-                    )}
-                  </>
-                )}
-
-                {/* Dicas */}
-                <Card className="bg-yellow-50 border-yellow-200">
-                  <CardContent className="pt-4">
-                    <div className="flex items-start gap-2">
-                      <div className="w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span className="text-white text-xs">💡</span>
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-yellow-900 text-sm">Dicas de Edição</h4>
-                        <ul className="text-xs text-yellow-700 mt-1 space-y-1">
-                          <li>• Mantenha nomes claros e atrativos</li>
-                          <li>• Considere o impacto nas margens</li>
-                          <li>• Atualize preços conforme mercado</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
               </div>
             </div>
           </div>
@@ -2381,37 +2313,59 @@ const Cardapio = () => {
                 variant="outline"
                 onClick={() => {
                   setEditModalOpen(false);
-                  resetEditForm();
+                  resetNewItemForm();
                 }}
                 className="px-6"
               >
                 Cancelar
               </Button>
               <Button
-                disabled={!editItemName || !editItemPrice}
+                disabled={!selectedItemCategory || !itemName || !itemPrice || (selectedSearchItem && !itemQuantity)}
                 onClick={() => {
-                  const novoPreco = parseFloat(editItemPrice);
-                  if (selectedItem && novoPreco && novoPreco > 0) {
-                    setManagedCategorias(prev =>
-                      prev.map(categoria => ({
-                        ...categoria,
-                        itens: categoria.itens.map(item =>
-                          item.id === selectedItem.id
-                            ? {
-                                ...item,
-                                nome: editItemName,
-                                preco: novoPreco,
-                                margem: ((novoPreco - item.custo) / item.custo) * 100,
-                                quantidade: editItemQuantity ? parseFloat(editItemQuantity) : item.quantidade,
-                                unidade: editItemUnit || item.unidade
-                              }
-                            : item
-                        )
-                      }))
-                    );
+                  const preco = parseFloat(itemPrice);
+                  const quantidade = parseFloat(itemQuantity) || 1;
+
+                  // Calcular custo baseado na quantidade se item foi selecionado
+                  let custoCalculado = preco * 0.4; // Fallback: estima custo como 40% do preço
+
+                  if (selectedSearchItem) {
+                    custoCalculado = calcularCustoComQuantidade(selectedSearchItem, quantidade, selectedItemType);
                   }
-                  setEditModalOpen(false);
-                  resetEditForm();
+
+                  if (selectedItem && selectedItemCategory && itemName && preco && preco > 0) {
+                    // Atualizar o item existente
+                    setManagedCategorias(prev =>
+                      prev.map(categoria => {
+                        // Remove o item da categoria atual
+                        const itensLimpos = categoria.itens.filter(item => item.id !== selectedItem.id);
+
+                        // Se esta é a nova categoria, adiciona o item atualizado
+                        if (categoria.nome === selectedItemCategory) {
+                          const itemAtualizado = {
+                            ...selectedItem,
+                            id: itemId || selectedItem.id,
+                            nome: itemName,
+                            preco: preco,
+                            custo: custoCalculado,
+                            margem: ((preco - custoCalculado) / custoCalculado) * 100,
+                            categoria: categoria.nome,
+                            tipo: selectedItemType || selectedItem.tipo,
+                            fornecedor: selectedSearchItem?.fornecedorPadrao || selectedItem.fornecedor,
+                            quantidade: selectedSearchItem ? quantidade : selectedItem.quantidade,
+                            unidade: selectedSearchItem?.unidade || selectedItem.unidade,
+                            itemReferencia: selectedSearchItem?.id || selectedItem.itemReferencia
+                          };
+                          return { ...categoria, itens: [...itensLimpos, itemAtualizado] };
+                        }
+
+                        // Para outras categorias, apenas remove o item se necessário
+                        return { ...categoria, itens: itensLimpos };
+                      })
+                    );
+
+                    setEditModalOpen(false);
+                    resetNewItemForm();
+                  }
                 }}
                 className="px-6 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
               >
