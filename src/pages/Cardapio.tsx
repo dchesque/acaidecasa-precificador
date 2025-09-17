@@ -76,7 +76,7 @@ const Cardapio = () => {
   const [mostrarPrecos, setMostrarPrecos] = useState(true);
   const [mostrarCustos, setMostrarCustos] = useState(false);
   const [mostrarMargens, setMostrarMargens] = useState(false);
-  const [apenasDisponiveis, setApenasDisponiveis] = useState(true);
+  const [apenasDisponiveis, setApenasDisponiveis] = useState(false);
   const [viewMode, setViewMode] = useState<"complete" | "by-category">("by-category");
   const [simulacaoPrecos, setSimulacaoPrecos] = useState<{[key: string]: string}>({});
   const [editingPrice, setEditingPrice] = useState<string | null>(null);
@@ -217,7 +217,9 @@ const Cardapio = () => {
       itens: [
         { id: "017", nome: "Smoothie de Açaí 400ml", preco: 14.90, custo: 6.80, margem: 119.1, disponivel: true, tipo: "receita", fornecedor: null },
         { id: "018", nome: "Suco de Açaí 300ml", preco: 9.90, custo: 4.20, margem: 135.7, disponivel: true, tipo: "receita", fornecedor: null },
-        { id: "019", nome: "Água Saborizada Açaí", preco: 4.50, custo: 1.80, margem: 150.0, disponivel: true, tipo: "receita", fornecedor: "AquaSabor" }
+        { id: "019", nome: "Água Saborizada Açaí", preco: 4.50, custo: 1.80, margem: 150.0, disponivel: true, tipo: "receita", fornecedor: "AquaSabor" },
+        { id: "020", nome: "Vitamina de Açaí 500ml", preco: 12.90, custo: 5.50, margem: 134.5, disponivel: true, tipo: "receita", fornecedor: null },
+        { id: "021", nome: "Frappé de Açaí 350ml", preco: 16.90, custo: 7.80, margem: 116.7, disponivel: false, tipo: "receita", fornecedor: null }
       ]
     }
   ];
@@ -733,10 +735,6 @@ const Cardapio = () => {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" className="flex items-center gap-2">
-              <Upload className="w-4 h-4" />
-              Importar
-            </Button>
             <Button
               variant="outline"
               className="flex items-center gap-2"
