@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import {
   MenuSquare,
   Eye,
@@ -451,6 +453,72 @@ const Cardapio = () => {
     );
   };
 
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+
+    // Título do documento
+    doc.setFontSize(18);
+    doc.text('Cardápio - Açaí de Casa', 14, 22);
+
+    // Data da exportação
+    doc.setFontSize(10);
+    doc.text(`Exportado em: ${new Date().toLocaleDateString('pt-BR')}`, 14, 30);
+
+    let currentY = 40;
+
+    managedCategorias.forEach((categoria, categoriaIndex) => {
+      // Filtrar itens da categoria
+      const itensCategoria = categoria.itens.filter(item => !apenasDisponiveis || item.disponivel);
+
+      if (itensCategoria.length === 0) return;
+
+      // Verificar se precisa de nova página
+      if (currentY > 250) {
+        doc.addPage();
+        currentY = 20;
+      }
+
+      // Título da categoria
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text(categoria.nome, 14, currentY);
+      currentY += 10;
+
+      // Preparar dados da categoria
+      const tableData = itensCategoria.map(item => [
+        (item as any).codigo || item.id || '-',
+        item.nome,
+        `R$ ${item.preco.toFixed(2)}`
+      ]);
+
+      // Criar tabela para esta categoria
+      autoTable(doc, {
+        head: [['Código', 'Item', 'Preço de Venda']],
+        body: tableData,
+        startY: currentY,
+        styles: {
+          fontSize: 10,
+          cellPadding: 3
+        },
+        headStyles: {
+          fillColor: [139, 92, 246],
+          textColor: 255,
+          fontStyle: 'bold'
+        },
+        alternateRowStyles: {
+          fillColor: [245, 245, 245]
+        },
+        margin: { top: 10, bottom: 10 }
+      });
+
+      // Atualizar posição Y para próxima categoria
+      currentY = (doc as any).lastAutoTable.finalY + 15;
+    });
+
+    // Salvar o PDF
+    doc.save('cardapio-acai-de-casa.pdf');
+  };
+
   const visibleIcons = availableIcons.slice(iconScrollIndex, iconScrollIndex + iconsPerView);
   const visibleColors = availableColors.slice(colorScrollIndex, colorScrollIndex + colorsPerView);
 
@@ -669,7 +737,11 @@ const Cardapio = () => {
               <Upload className="w-4 h-4" />
               Importar
             </Button>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              className="flex items-center gap-2"
+              onClick={handleExportPDF}
+            >
               <Download className="w-4 h-4" />
               Exportar Cardápio
             </Button>
