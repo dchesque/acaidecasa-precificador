@@ -56,7 +56,9 @@ import {
   AlertTriangle,
   TrendingDown,
   Calculator,
-  Users
+  Users,
+  Tag,
+  BarChart3
 } from "lucide-react";
 
 const Cardapio = () => {
@@ -72,6 +74,8 @@ const Cardapio = () => {
   const [editItemNotes, setEditItemNotes] = useState("");
   const [editItemCategory, setEditItemCategory] = useState("");
   const [editItemType, setEditItemType] = useState("");
+  const [editItemQuantity, setEditItemQuantity] = useState("");
+  const [editItemUnit, setEditItemUnit] = useState("");
   const [editSelectedItem, setEditSelectedItem] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -275,6 +279,8 @@ const Cardapio = () => {
     setEditItemNotes("");
     setEditItemCategory("");
     setEditItemType("");
+    setEditItemQuantity(item.quantidade?.toString() || "");
+    setEditItemUnit(item.unidade || "");
     setEditSelectedItem(null);
     setEditModalOpen(true);
   };
@@ -291,6 +297,8 @@ const Cardapio = () => {
     setEditItemNotes("");
     setEditItemCategory("");
     setEditItemType("");
+    setEditItemQuantity("");
+    setEditItemUnit("");
     setEditSelectedItem(null);
   };
 
@@ -1471,248 +1479,414 @@ const Cardapio = () => {
 
       {/* Modal de Visualização */}
       <Dialog open={viewModalOpen} onOpenChange={setViewModalOpen}>
-        <DialogContent className="max-w-5xl max-h-[95vh] overflow-hidden">
+        <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden">
           <DialogHeader className="pb-6 border-b">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center">
                 <Eye className="w-5 h-5 text-white" />
               </div>
               <div>
-                <DialogTitle className="text-xl font-semibold">Detalhes do Item</DialogTitle>
+                <DialogTitle className="text-xl font-semibold">Visualizar Item do Cardápio</DialogTitle>
                 <DialogDescription className="text-sm text-muted-foreground mt-1">
-                  Informações completas sobre o item do cardápio
+                  Detalhes completos e análise do item selecionado
                 </DialogDescription>
               </div>
             </div>
           </DialogHeader>
 
-          {selectedItem && (
-            <div className="flex-1 overflow-y-auto py-6">
-              <div className="grid grid-cols-12 gap-6">
-                {/* Seção Principal - Informações */}
-                <div className="col-span-12 lg:col-span-8 space-y-6">
-                  {/* Informações Básicas */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Package className="w-5 h-5" />
-                        Informações Básicas
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-4">
-                          <div>
-                            <label className="text-sm font-medium text-muted-foreground">Nome do Item</label>
-                            <p className="text-lg font-semibold mt-1">{selectedItem.nome}</p>
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium text-muted-foreground">Categoria</label>
-                            <div className="flex items-center gap-2 mt-1">
-                              <Badge variant="outline" className="text-sm">
-                                {selectedItem.categoria}
-                              </Badge>
+          <div className="flex-1 overflow-y-auto py-6 px-6">
+            <div className="grid grid-cols-12 gap-6">
+              {/* Seção Principal - Informações */}
+              <div className="col-span-12 lg:col-span-7 space-y-6">
+                {selectedItem && (
+                  <>
+                    {/* Step 1: Informações do Item */}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-medium">1</div>
+                        <h3 className="font-semibold">Informações do Item</h3>
+                      </div>
+
+                      <Card>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            <Package className="w-5 h-5" />
+                            Dados Gerais
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-3">
+                              <div>
+                                <Label className="text-sm font-medium text-muted-foreground">Nome do Item</Label>
+                                <div className="mt-1 p-3 bg-gray-50 rounded-lg border">
+                                  <p className="font-semibold text-gray-900">{selectedItem.nome}</p>
+                                </div>
+                              </div>
+
+                              <div>
+                                <Label className="text-sm font-medium text-muted-foreground">ID do Item</Label>
+                                <div className="mt-1 p-3 bg-gray-50 rounded-lg border">
+                                  <p className="font-mono text-gray-700">{selectedItem.id || "Não definido"}</p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="space-y-3">
+                              <div>
+                                <Label className="text-sm font-medium text-muted-foreground">Categoria</Label>
+                                <div className="mt-1 p-3 bg-gray-50 rounded-lg border">
+                                  <Badge variant="outline" className="text-sm">
+                                    {selectedItem.categoria}
+                                  </Badge>
+                                </div>
+                              </div>
+
+                              <div>
+                                <Label className="text-sm font-medium text-muted-foreground">Preço de Venda</Label>
+                                <div className="mt-1 p-3 bg-green-50 rounded-lg border border-green-200">
+                                  <p className="text-lg font-bold text-green-600">
+                                    R$ {selectedItem.preco?.toFixed(2) || "0,00"}
+                                  </p>
+                                </div>
+                              </div>
+
+                              {selectedItem.quantidade && (
+                                <div>
+                                  <Label className="text-sm font-medium text-muted-foreground">Quantidade</Label>
+                                  <div className="mt-1 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                    <p className="text-lg font-bold text-blue-600">
+                                      {selectedItem.quantidade}{selectedItem.unidade || ""}
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
-                          <div>
-                            <label className="text-sm font-medium text-muted-foreground">Status</label>
-                            <div className="mt-1">
-                              <Badge
-                                className={`${
-                                  selectedItem.disponivel
-                                    ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-100'
-                                    : 'bg-red-100 text-red-800 border-red-200 hover:bg-red-100'
-                                }`}
-                                variant="outline"
-                              >
-                                {selectedItem.disponivel ? "Disponível" : "Indisponível"}
-                              </Badge>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Step 2: Tipo e Origem */}
+                    {(selectedItem.tipo && selectedItem.tipo !== "item-cardapio") && (
+                      <div className="space-y-4 pt-6 border-t">
+                        <div className="flex items-center gap-2 mb-4">
+                          <div className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-medium">2</div>
+                          <h3 className="font-semibold">Tipo e Origem do Item</h3>
+                        </div>
+
+                        <Card>
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-lg flex items-center gap-2">
+                              <Tag className="w-5 h-5" />
+                              Item Baseado em {
+                                selectedItem.tipo === "insumo" ? "Insumo" :
+                                selectedItem.tipo === "copo-base" ? "Copo Base" :
+                                selectedItem.tipo === "combinado" ? "Combinado" :
+                                selectedItem.tipo === "receita" ? "Receita" : "Produto"
+                              }
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="font-medium text-blue-900">{selectedItem.nome}</p>
+                                  <p className="text-sm text-blue-700 mt-1">
+                                    Tipo: {selectedItem.tipo === "copo-base" ? "Copo Base" : selectedItem.tipo?.charAt(0).toUpperCase() + selectedItem.tipo?.slice(1)}
+                                  </p>
+                                  {selectedItem.descricao && (
+                                    <p className="text-xs text-blue-600 mt-1">{selectedItem.descricao}</p>
+                                  )}
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-lg font-bold text-blue-600">
+                                    R$ {selectedItem.preco?.toFixed(2)}
+                                  </p>
+                                  {selectedItem.unidade && (
+                                    <p className="text-xs text-blue-500">por {selectedItem.unidade}</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    )}
+
+                    {/* Step 3: Composição (para itens complexos) */}
+                    {selectedItem && (selectedItem.tipo === "copo-base" || selectedItem.tipo === "combinado") && selectedItem.composicao && (
+                      <div className="space-y-4 pt-6 border-t">
+                        <div className="flex items-center gap-2 mb-4">
+                          <div className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-medium">3</div>
+                          <h3 className="font-semibold">Composição do {selectedItem.tipo === "copo-base" ? "Copo Base" : "Combinado"}</h3>
+                        </div>
+
+                        <Card className="bg-gradient-to-r from-purple-50 to-violet-50 border-purple-200">
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-lg flex items-center gap-2">
+                              <Package className="w-5 h-5 text-purple-600" />
+                              Composição do {selectedItem.tipo === "copo-base" ? "Copo Base" : "Combinado"}
+                            </CardTitle>
+                            <div className="text-sm text-muted-foreground">
+                              Insumos que compõem este produto
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-3">
+                              {selectedItem.composicao.map((comp: any, index: number) => (
+                                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                                  <div className="flex items-center gap-3 flex-1">
+                                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                                      {index + 1}
+                                    </div>
+                                    <div className="flex-1">
+                                      <div className="flex items-center justify-between">
+                                        <div>
+                                          <p className="font-medium text-sm text-gray-900">{comp.insumo.nome}</p>
+                                          <p className="text-xs text-blue-600">
+                                            <span className="font-medium">{comp.insumo.fornecedorPadrao}</span>
+                                          </p>
+                                        </div>
+                                        <div className="text-right ml-2">
+                                          <p className="text-xs text-gray-600">
+                                            {comp.quantidade}{comp.insumo.unidade}
+                                          </p>
+                                          <p className="text-sm font-bold text-red-600">
+                                            R$ {comp.custo.toFixed(2)}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                              {/* Totalizador Compacto */}
+                              <div className="border-t pt-3 mt-3">
+                                <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-200">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-6 h-6 bg-red-500 rounded-lg flex items-center justify-center">
+                                      <Calculator className="w-3 h-3 text-white" />
+                                    </div>
+                                    <div>
+                                      <div className="font-bold text-sm text-gray-900">Custo Total do Produto</div>
+                                      <div className="text-xs text-gray-600">
+                                        {selectedItem.composicao.length} insumo{selectedItem.composicao.length > 1 ? 's' : ''}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="text-right">
+                                    <div className="text-2xl font-bold text-red-600">
+                                      R$ {selectedItem.custoTotal?.toFixed(2) || "0.00"}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    )}
+
+                    {/* Step 4: Análise de Rentabilidade */}
+                    <div className="space-y-4 pt-6 border-t">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-medium">
+                          {selectedItem.composicao ? "4" : "3"}
+                        </div>
+                        <h3 className="font-semibold">Análise de Rentabilidade</h3>
+                      </div>
+
+                      <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            <TrendingUp className="w-5 h-5 text-green-600" />
+                            Análise de Rentabilidade
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          {(() => {
+                            const custoCalculado = selectedItem.custoTotal || selectedItem.custo || 0;
+                            const precoVenda = selectedItem.preco || 0;
+                            const margem = custoCalculado > 0 ? ((precoVenda - custoCalculado) / custoCalculado) * 100 : 0;
+                            const lucroTotal = precoVenda - custoCalculado;
+                            return (
+                              <div className="space-y-4">
+                                {/* Resumo Financeiro */}
+                                <div className="grid grid-cols-3 gap-3">
+                                  <div className="text-center p-2 bg-white rounded-lg border shadow-sm">
+                                    <p className="text-xs text-gray-600 font-medium">CUSTO</p>
+                                    <p className="text-sm font-bold text-red-600">
+                                      R$ {custoCalculado.toFixed(2)}
+                                    </p>
+                                  </div>
+                                  <div className="text-center p-2 bg-white rounded-lg border shadow-sm">
+                                    <p className="text-xs text-gray-600 font-medium">VENDA</p>
+                                    <p className="text-sm font-bold text-blue-600">
+                                      R$ {precoVenda.toFixed(2)}
+                                    </p>
+                                  </div>
+                                  <div className="text-center p-2 bg-white rounded-lg border shadow-sm">
+                                    <p className="text-xs text-gray-600 font-medium">LUCRO</p>
+                                    <p className="text-sm font-bold text-green-600">
+                                      R$ {lucroTotal.toFixed(2)}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {/* Margem de Lucro */}
+                                <div className="p-3 bg-green-100 rounded-lg border border-green-200">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium text-green-800">Margem de Lucro</span>
+                                    <span className="text-lg font-bold text-green-700">
+                                      {margem.toFixed(2)}%
+                                    </span>
+                                  </div>
+                                  <div className="w-full bg-green-200 rounded-full h-2 mt-2">
+                                    <div
+                                      className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                                      style={{ width: `${Math.min(margem, 300)}%` }}
+                                    ></div>
+                                  </div>
+                                  <div className="flex items-center gap-1 mt-2">
+                                    <span className="text-green-600">•</span>
+                                    <span className="text-xs text-green-700 font-medium">
+                                      {margem >= 100 ? "Excelente margem! Este item tem boa rentabilidade." :
+                                       margem >= 50 ? "Margem aceitável, mas há espaço para melhorar." :
+                                       "Margem baixa. Considere aumentar o preço ou reduzir custos."}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Seção Lateral - Preview e Ações */}
+              <div className="col-span-12 lg:col-span-5 space-y-4">
+                {selectedItem && (
+                  <>
+                    {/* Preview do Item */}
+                    <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg flex items-center gap-2 text-blue-800">
+                          <MenuSquare className="w-5 h-5" />
+                          Preview no Cardápio
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="p-4 bg-white rounded-lg border shadow-sm">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-900">{selectedItem.nome}</h4>
+                              <p className="text-xs text-gray-600 mt-1">{selectedItem.categoria}</p>
+                              <div className="flex items-center gap-1 mt-2">
+                                <Badge
+                                  className={`text-xs ${
+                                    selectedItem.disponivel !== false
+                                      ? 'bg-green-100 text-green-700'
+                                      : 'bg-red-100 text-red-700'
+                                  }`}
+                                  variant="outline"
+                                >
+                                  {selectedItem.disponivel !== false ? "Disponível" : "Indisponível"}
+                                </Badge>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-lg font-bold text-green-600">
+                                R$ {selectedItem.preco?.toFixed(2) || "0,00"}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                Margem: {selectedItem.margem?.toFixed(1) || "0"}%
+                              </p>
                             </div>
                           </div>
                         </div>
-                        <div className="space-y-4">
-                          <div>
-                            <label className="text-sm font-medium text-muted-foreground">ID do Item</label>
-                            <p className="text-lg font-mono bg-gray-100 px-3 py-2 rounded mt-1">
-                              {selectedItem.id || "Não definido"}
-                            </p>
-                          </div>
-                          <div>
-                            <label className="text-sm font-medium text-muted-foreground">Tipo</label>
-                            <p className="text-lg mt-1 capitalize">
-                              {selectedItem.tipo || "Item de cardápio"}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
 
-                  {/* Análise Financeira */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <DollarSign className="w-5 h-5" />
-                        Análise Financeira
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="p-4 bg-red-50 rounded-lg border border-red-100">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                            <label className="text-sm font-medium text-red-700">CUSTO</label>
-                          </div>
-                          <p className="text-2xl font-bold text-red-700">
-                            R$ {selectedItem.custo?.toFixed(2) || "0,00"}
-                          </p>
-                        </div>
-                        <div className="p-4 bg-green-50 rounded-lg border border-green-100">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                            <label className="text-sm font-medium text-green-700">PREÇO</label>
-                          </div>
-                          <p className="text-2xl font-bold text-green-700">
-                            R$ {selectedItem.preco?.toFixed(2) || "0,00"}
-                          </p>
-                        </div>
-                        <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                            <label className="text-sm font-medium text-blue-700">MARGEM</label>
-                          </div>
-                          <p className="text-2xl font-bold text-blue-700">
-                            {selectedItem.margem?.toFixed(1) || "0"}%
-                          </p>
-                        </div>
-                      </div>
+                    {/* Ações Rápidas */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <Settings className="w-5 h-5" />
+                          Ações Rápidas
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <Button
+                          className="w-full justify-start"
+                          variant="outline"
+                          onClick={() => {
+                            setViewModalOpen(false);
+                            handleEditItem(selectedItem);
+                          }}
+                        >
+                          <Edit className="w-4 h-4 mr-2" />
+                          Editar Item
+                        </Button>
+                        <Button
+                          className="w-full justify-start"
+                          variant="outline"
+                          onClick={() => {
+                            setViewModalOpen(false);
+                            handleDeleteItem(selectedItem);
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Excluir Item
+                        </Button>
+                      </CardContent>
+                    </Card>
 
-                      <div className="mt-6 pt-6 border-t">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="p-4 bg-gray-50 rounded-lg">
-                            <label className="text-sm font-medium text-muted-foreground">Lucro por Unidade</label>
-                            <p className="text-xl font-semibold text-green-600 mt-1">
-                              R$ {((selectedItem.preco || 0) - (selectedItem.custo || 0)).toFixed(2)}
-                            </p>
+                    {/* Estatísticas do Item */}
+                    <Card className="bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <BarChart3 className="w-5 h-5" />
+                          Estatísticas
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Lucro por unidade</span>
+                            <span className="font-semibold text-green-600">
+                              R$ {((selectedItem.preco || 0) - (selectedItem.custoTotal || selectedItem.custo || 0)).toFixed(2)}
+                            </span>
                           </div>
-                          <div className="p-4 bg-gray-50 rounded-lg">
-                            <label className="text-sm font-medium text-muted-foreground">Classificação de Margem</label>
-                            <p className="text-xl font-semibold mt-1">
-                              <span className={`${
-                                selectedItem.margem > 150 ? 'text-green-600' :
-                                selectedItem.margem > 120 ? 'text-blue-600' :
-                                selectedItem.margem > 100 ? 'text-yellow-600' : 'text-red-600'
-                              }`}>
-                                {selectedItem.margem > 150 ? 'Excelente' :
-                                 selectedItem.margem > 120 ? 'Boa' :
-                                 selectedItem.margem > 100 ? 'Regular' : 'Baixa'}
-                              </span>
-                            </p>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Classificação</span>
+                            <span className={`font-semibold ${
+                              (selectedItem.margem || 0) > 150 ? 'text-green-600' :
+                              (selectedItem.margem || 0) > 120 ? 'text-blue-600' :
+                              (selectedItem.margem || 0) > 100 ? 'text-yellow-600' : 'text-red-600'
+                            }`}>
+                              {(selectedItem.margem || 0) > 150 ? 'Excelente' :
+                               (selectedItem.margem || 0) > 120 ? 'Boa' :
+                               (selectedItem.margem || 0) > 100 ? 'Regular' : 'Baixa'}
+                            </span>
                           </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Seção Lateral - Preview e Ações */}
-                <div className="col-span-12 lg:col-span-4 space-y-4">
-                  {/* Preview do Item */}
-                  <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-lg flex items-center gap-2 text-blue-800">
-                        <MenuSquare className="w-5 h-5" />
-                        Preview no Cardápio
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="p-4 bg-white rounded-lg border shadow-sm">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900">{selectedItem.nome}</h4>
-                            <p className="text-xs text-gray-600 mt-1">{selectedItem.categoria}</p>
-                            <div className="flex items-center gap-1 mt-2">
-                              <Badge
-                                className={`text-xs ${
-                                  selectedItem.disponivel
-                                    ? 'bg-green-100 text-green-700'
-                                    : 'bg-red-100 text-red-700'
-                                }`}
-                                variant="outline"
-                              >
-                                {selectedItem.disponivel ? "Disponível" : "Indisponível"}
-                              </Badge>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-lg font-bold text-green-600">
-                              R$ {selectedItem.preco?.toFixed(2) || "0,00"}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              Margem: {selectedItem.margem?.toFixed(1) || "0"}%
-                            </p>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Status</span>
+                            <Badge variant={selectedItem.disponivel !== false ? "default" : "secondary"} className="text-xs">
+                              {selectedItem.disponivel !== false ? "Disponível" : "Indisponível"}
+                            </Badge>
                           </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Ações Rápidas */}
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Settings className="w-5 h-5" />
-                        Ações Rápidas
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <Button
-                        className="w-full justify-start"
-                        variant="outline"
-                        onClick={() => {
-                          setViewModalOpen(false);
-                          handleEditItem(selectedItem);
-                        }}
-                      >
-                        <Edit className="w-4 h-4 mr-2" />
-                        Editar Item
-                      </Button>
-                      <Button
-                        className="w-full justify-start"
-                        variant="outline"
-                        onClick={() => {
-                          setViewModalOpen(false);
-                          handleDeleteItem(selectedItem);
-                        }}
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Excluir Item
-                      </Button>
-                    </CardContent>
-                  </Card>
-
-                  {/* Informações Adicionais */}
-                  <Card className="bg-yellow-50 border-yellow-200">
-                    <CardContent className="pt-4">
-                      <div className="flex items-start gap-2">
-                        <div className="w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <span className="text-white text-xs">💡</span>
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-yellow-900 text-sm">Dicas de Otimização</h4>
-                          <ul className="text-xs text-yellow-700 mt-1 space-y-1">
-                            <li>• Margens ideais: 100-200%</li>
-                            <li>• Monitore custos regularmente</li>
-                            <li>• Ajuste preços conforme demanda</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
               </div>
             </div>
-          )}
+          </div>
 
           <div className="flex justify-end gap-3 pt-6 border-t">
             <Button variant="outline" onClick={() => setViewModalOpen(false)}>
@@ -1746,7 +1920,7 @@ const Cardapio = () => {
             </div>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto py-6">
+          <div className="flex-1 overflow-y-auto py-6 px-6">
             <div className="grid grid-cols-12 gap-6">
               {/* Seção Principal - Formulário */}
               <div className="col-span-12 lg:col-span-7 space-y-6">
@@ -1820,6 +1994,41 @@ const Cardapio = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* Campos de Quantidade */}
+                  {selectedItem && (selectedItem.quantidade || editItemQuantity) && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-item-quantity" className="text-sm font-medium">Quantidade</Label>
+                        <Input
+                          id="edit-item-quantity"
+                          type="number"
+                          value={editItemQuantity}
+                          onChange={(e) => setEditItemQuantity(e.target.value)}
+                          placeholder="1"
+                          step="0.001"
+                          className="h-11"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Quantidade baseada no item original
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-item-unit" className="text-sm font-medium">Unidade</Label>
+                        <Input
+                          id="edit-item-unit"
+                          value={editItemUnit}
+                          onChange={(e) => setEditItemUnit(e.target.value)}
+                          placeholder="g, ml, un"
+                          className="h-11"
+                          readOnly
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Unidade do item original
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="space-y-2">
                     <Label htmlFor="edit-item-name" className="text-sm font-medium">Nome no Cardápio *</Label>
@@ -2001,6 +2210,145 @@ const Cardapio = () => {
                   </Card>
                 )}
 
+                {/* Seção de Composição e Análise para itens complexos */}
+                {selectedItem && (selectedItem.tipo === "copo-base" || selectedItem.tipo === "combinado") && selectedItem.composicao && (
+                  <>
+                    {/* Composição do Item */}
+                    <Card className="bg-gradient-to-r from-purple-50 to-violet-50 border-purple-200">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <Package className="w-5 h-5 text-purple-600" />
+                          Composição do {selectedItem.tipo === "copo-base" ? "Copo Base" : "Combinado"}
+                        </CardTitle>
+                        <div className="text-sm text-muted-foreground">
+                          Insumos que compõem este produto
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          {selectedItem.composicao.map((comp: any, index: number) => (
+                            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                              <div className="flex items-center gap-3 flex-1">
+                                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                                  {index + 1}
+                                </div>
+                                <div className="flex-1">
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <p className="font-medium text-sm text-gray-900">{comp.insumo.nome}</p>
+                                      <p className="text-xs text-blue-600">
+                                        <span className="font-medium">{comp.insumo.fornecedorPadrao}</span>
+                                      </p>
+                                    </div>
+                                    <div className="text-right ml-2">
+                                      <p className="text-xs text-gray-600">
+                                        {comp.quantidade}{comp.insumo.unidade}
+                                      </p>
+                                      <p className="text-sm font-bold text-red-600">
+                                        R$ {comp.custo.toFixed(2)}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          {/* Totalizador Compacto */}
+                          <div className="border-t pt-3 mt-3">
+                            <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-200">
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 bg-red-500 rounded-lg flex items-center justify-center">
+                                  <Calculator className="w-3 h-3 text-white" />
+                                </div>
+                                <div>
+                                  <div className="font-bold text-sm text-gray-900">Custo Total do Produto</div>
+                                  <div className="text-xs text-gray-600">
+                                    {selectedItem.composicao.length} insumo{selectedItem.composicao.length > 1 ? 's' : ''}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-2xl font-bold text-red-600">
+                                  R$ {selectedItem.custoTotal?.toFixed(2) || "0.00"}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Análise de Rentabilidade com Preço Editado */}
+                    {editItemPrice && (
+                      <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            <TrendingUp className="w-5 h-5 text-green-600" />
+                            Análise de Rentabilidade (Preço Editado)
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          {(() => {
+                            const custoCalculado = selectedItem.custoTotal || 0;
+                            const precoVenda = parseFloat(editItemPrice) || selectedItem.preco || 0;
+                            const margem = custoCalculado > 0 ? ((precoVenda - custoCalculado) / custoCalculado) * 100 : 0;
+                            const lucroTotal = precoVenda - custoCalculado;
+                            return (
+                              <div className="space-y-4">
+                                {/* Resumo Financeiro */}
+                                <div className="grid grid-cols-3 gap-3">
+                                  <div className="text-center p-2 bg-white rounded-lg border shadow-sm">
+                                    <p className="text-xs text-gray-600 font-medium">CUSTO</p>
+                                    <p className="text-sm font-bold text-red-600">
+                                      R$ {custoCalculado.toFixed(2)}
+                                    </p>
+                                  </div>
+                                  <div className="text-center p-2 bg-white rounded-lg border shadow-sm">
+                                    <p className="text-xs text-gray-600 font-medium">VENDA</p>
+                                    <p className="text-sm font-bold text-blue-600">
+                                      R$ {precoVenda.toFixed(2)}
+                                    </p>
+                                  </div>
+                                  <div className="text-center p-2 bg-white rounded-lg border shadow-sm">
+                                    <p className="text-xs text-gray-600 font-medium">LUCRO</p>
+                                    <p className="text-sm font-bold text-green-600">
+                                      R$ {lucroTotal.toFixed(2)}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {/* Margem de Lucro */}
+                                <div className="p-3 bg-green-100 rounded-lg border border-green-200">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium text-green-800">Margem de Lucro</span>
+                                    <span className="text-lg font-bold text-green-700">
+                                      {margem.toFixed(2)}%
+                                    </span>
+                                  </div>
+                                  <div className="w-full bg-green-200 rounded-full h-2 mt-2">
+                                    <div
+                                      className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                                      style={{ width: `${Math.min(margem, 300)}%` }}
+                                    ></div>
+                                  </div>
+                                  <div className="flex items-center gap-1 mt-2">
+                                    <span className="text-green-600">•</span>
+                                    <span className="text-xs text-green-700 font-medium">
+                                      {margem >= 100 ? "Excelente margem! Este item tem boa rentabilidade." :
+                                       margem >= 50 ? "Margem aceitável, mas há espaço para melhorar." :
+                                       "Margem baixa. Considere aumentar o preço ou reduzir custos."}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </CardContent>
+                      </Card>
+                    )}
+                  </>
+                )}
+
                 {/* Dicas */}
                 <Card className="bg-yellow-50 border-yellow-200">
                   <CardContent className="pt-4">
@@ -2053,7 +2401,9 @@ const Cardapio = () => {
                                 ...item,
                                 nome: editItemName,
                                 preco: novoPreco,
-                                margem: ((novoPreco - item.custo) / item.custo) * 100
+                                margem: ((novoPreco - item.custo) / item.custo) * 100,
+                                quantidade: editItemQuantity ? parseFloat(editItemQuantity) : item.quantidade,
+                                unidade: editItemUnit || item.unidade
                               }
                             : item
                         )

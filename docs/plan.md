@@ -1,8 +1,8 @@
 # **Documento de Requisitos de Produto (PRD): Açaí De Casa Precificador**
 
-# Versão: 1.3
+# Versão: 1.4
 
-Data: 22/08/2025
+Data: 17/09/2025
 
 Autor: Driano Chesque
 
@@ -58,6 +58,8 @@ A aplicação será composta pelos seguintes módulos (páginas), com funcionali
 
 Página para gerenciar as configurações globais da aplicação.
 
+- **Status Atual (Protótipo frontend - set/2025):** Interface e layout concluídos com cards e formulários estáticos; integração com o AppContext e persistência real ainda pendentes.
+
 - **Markup Padrão:** Campo para definir o percentual de markup padrão a ser sugerido no cardápio (ex: 100%, 150%).
 - **Unidades de Medida:** Definir formatos e unidades padrão (padrão: grama (g), moeda (R$)).
 - **Categorias por Módulo:** Sistema de categorias independentes para cada módulo:
@@ -73,6 +75,8 @@ Página para gerenciar as configurações globais da aplicação.
 
 Página para cadastrar e gerenciar todos os fornecedores de insumos e embalagens.
 
+- **Status Atual (Protótipo frontend - set/2025):** Listagem, métricas, filtros e CRUD via modais implementados; integração com mock data e serviço Supabase opcional, aguardando backend definitivo.
+
 - **Funcionalidades:**
     - CRUD (Criar, Ler, Atualizar, Deletar) de Fornecedores via modal.
     - Campos:
@@ -82,11 +86,14 @@ Página para cadastrar e gerenciar todos os fornecedores de insumos e embalagens
         - **Prazo de Entrega** (em dias)
         - **Pedido Mínimo** (valor em R$)
     - **Visualização:** Tabela compacta com colunas: Nome, Contato, Categoria, Prazo Entrega, Pedido Mínimo, Ações (ícones).
+    - **Implementado no protótipo:** Busca com destaque, filtros por categoria, cartões de métricas e modal de visualização com insumos vinculados; suporte à integração com Supabase via serviço dedicado.
 - **Histórico de Preços:** Ao visualizar um fornecedor, deve haver uma seção que lista todos os insumos vinculados a ele e um histórico de alterações de preço para cada insumo (data da alteração, preço bruto antigo, preço bruto novo, preço com desconto antigo, preço com desconto novo).
 
 ### **4.3. Módulo: Embalagens**
 
 Página para cadastrar todas as embalagens utilizadas.
+
+- **Status Atual (Protótipo frontend - set/2025):** Não implementado no código atual; funcionalidades abaixo permanecem planejadas para etapas posteriores.
 
 - **Funcionalidades:**
     - CRUD de Embalagens via modal.
@@ -105,6 +112,8 @@ Página para cadastrar todas as embalagens utilizadas.
 
 Página para cadastrar todos os ingredientes e produtos comprados.
 
+- **Status Atual (Protótipo frontend - set/2025):** Interface concluída com filtros por categoria/fornecedor, agrupamento por categoria e modais de cadastro/visualização integrados ao AppContext e utilitários de cálculo.
+
 - **Funcionalidades:**
     - CRUD de Insumos via modal.
     - Campos: Nome do Insumo (ex: "Leite em Pó Ninho"), Categoria.
@@ -122,10 +131,13 @@ Página para cadastrar todos os ingredientes e produtos comprados.
         - Se medido por peso: Sistema calcula e exibe o **custo por grama (R$/g)** baseado no preço bruto do fornecedor principal.
         - Se medido por quantidade: Sistema calcula e exibe o **custo por unidade (R$/un)** baseado no preço bruto do fornecedor principal.
     - **Visualização:** Tabela com colunas: Nome, Categoria, Fornecedor Principal, Forn. Alt., Tipo Medida, Preço Bruto, Preço c/ Desc, Quantidade, Custo/g ou Custo/un, Ações.
+    - **Implementado no protótipo:** Alternância entre visão completa e agrupada por categoria, modal de detalhes com análise de custos por fornecedor e painel lateral com dados consolidados.
 
 ### **4.5. Módulo: Copos Base**
 
 Página para criar os copos "base" que o cliente montará.
+
+- **Status Atual (Protótipo frontend - set/2025):** Fluxo de cadastro, métricas, filtros e visualização detalhada implementados; cálculos de custo utilizam os utilitários compartilhados; persistência real ainda pendente.
 
 - **Funcionalidades:**
     - CRUD de Copos Base via modal.
@@ -135,10 +147,13 @@ Página para criar os copos "base" que o cliente montará.
         - As **embalagens** associadas (ex: 1x Copo Isopor 500ml, 1x Tampa Bolha 500ml, 1x Colher).
     - **Cálculo de Custo:** O sistema deve calcular e exibir o **custo total do copo base** somando o custo dos insumos (baseado no preço bruto) e das embalagens (baseado no preço bruto).
     - **Visualização:** Tabela com colunas: Nome, Categoria, Custo Total, Margem Estimada, Ações.
+    - **Implementado no protótipo:** Cartões de métricas, filtros por categoria, visão agrupada e modal de detalhes exibindo embalagens e custos individualizados.
 
 ### **4.6. Módulo: Receitas**
 
 Página para cadastrar produções internas, como cremes e mousses.
+
+- **Status Atual (Protótipo frontend - set/2025):** Cadastro e exibição concluídos com agrupamento por categoria, modal detalhado, cálculo automático de custo total e por grama via utilitários compartilhados.
 
 - **Funcionalidades:**
     - CRUD de Receitas via modal.
@@ -152,10 +167,13 @@ Página para cadastrar produções internas, como cremes e mousses.
     - **Rendimento:** O usuário deve informar o **rendimento total da receita em gramas**.
     - **Cálculo de Custo:** O sistema deve somar o custo de todos os ingredientes (baseado no preço bruto), dividir pelo rendimento e exibir o **custo final por grama (R$/g)** da receita pronta.
     - **Visualização:** Tabela com colunas: Nome, Categoria, Tempo Preparo, Validade, Rendimento (g), Custo/g, Custo Total Receita, Ações.
+    - **Implementado no protótipo:** Abas para visão completa ou agrupada por categoria, modal de visualização detalhada com resumo de ingredientes e custos, além de indicadores de rendimento.
 
 ### **4.7. Módulo: Combinados**
 
 Página para cadastrar copos pré-montados com complementos.
+
+- **Status Atual (Protótipo frontend - set/2025):** Fluxo completo implementado com seleção de copo base, complementos dinâmicos, cálculo de custos e métricas; integração ao AppContext e cálculos centralizados.
 
 - **Funcionalidades:**
     - CRUD de Combinados via modal.
@@ -166,10 +184,13 @@ Página para cadastrar copos pré-montados com complementos.
     - **Cálculo de Custo:** O sistema deve somar o custo do Copo Base com o custo de todos os complementos adicionados (baseado no preço bruto) para exibir o **custo total do combinado**.
     - **Preço de Venda do Cardápio:** Se já existir um cardápio configurado, o sistema deve mostrar também o preço de venda atual do combinado baseado nos preços do cardápio vigente.
     - **Visualização:** Tabela com colunas: Nome, Categoria, Custo Total, Preço Venda Atual (se houver), Margem, Ações.
+    - **Implementado no protótipo:** Tabela dinâmica com filtros, visão agrupada, cards de métricas e modal de detalhes; cálculos automáticos de custo total e margens, com alertas integrados.
 
 ### **4.8. Módulo: Cardápio**
 
 A página principal onde o empresário montará o cardápio final para venda.
+
+- **Status Atual (Protótipo frontend - set/2025):** Interface avançada concluída com categorias customizáveis, filtros, simulação de preços e exportação; atualmente utiliza dados mockados locais e ainda não está conectada aos cadastros do AppContext.
 
 - **Funcionalidades:**
     - Permitir a criação de categorias de cardápio (ex: "Monte seu Açaí", "Complementos", "Nossos Combinados", "Bebidas").
@@ -179,6 +200,9 @@ A página principal onde o empresário montará o cardápio final para venda.
         - **Receitas:** Como complementos (ex: Creme de Ninho).
         - **Combinados:** Produtos prontos.
 - **Para cada item adicionado ao cardápio, o sistema exibirá:**
+    - **Exportação:** Possibilidade de exportar o cardápio consolidado em PDF diretamente da interface.
+    - **Toggles de visualização:** Controles para exibir/ocultar preços, custos e margens, além de alternar entre visão completa e agrupada.
+    - **Simulação de preços:** Edição inline com cálculo instantâneo de margens para preços atual e novo.
     - **Código do Produto (SKU/ERP):** Campo opcional para o usuário inserir o código usado em seu sistema ERP/PDV existente, facilitando integração e controle.
     - **Nome do Item**.
     - **Custo Calculado** (baseado no preço bruto, por unidade ou por grama).
@@ -191,6 +215,28 @@ A página principal onde o empresário montará o cardápio final para venda.
     - **Alerta de Margem Baixa:** Se o preço praticado estiver abaixo do que seria o custo calculado com o preço COM DESCONTO dos insumos, mostrar um alerta visual (ícone de aviso em amarelo/laranja) indicando: "⚠️ Atenção: Preço abaixo do custo com desconto negociado".
     - **Alerta de Prejuízo:** Se o preço praticado estiver abaixo do custo bruto, mostrar alerta em vermelho: "🚫 Prejuízo: Preço abaixo do custo bruto".
 - **Visualização:** Tabela organizada por categoria com colunas: Código (SKU), Item, Custo (Bruto), Preço Sugerido, Preço Atual, Novo Preço, Margem Atual (%), Margem Nova (%), Alertas, Ações.
+
+
+### **4.9. Módulo: Dashboard**
+
+Tela inicial com visão executiva do sistema.
+
+- **Status Atual (Protótipo frontend - set/2025):** Concluído. Responsável por carregar os dados mockados no AppContext e exibir indicadores chave de desempenho.
+- **Funcionalidades Implementadas:**
+    - Carga inicial das configurações, categorias, fornecedores, insumos, receitas, copos base, combinados e itens de cardápio mockados.
+    - Cards com métricas de total de itens ativos, margem média, custo médio e preço médio.
+    - Widget de alertas integrado ao `AlertBadge`, com suporte a marcação como lido.
+    - Resumo de contagens por módulo e lista de itens recentes do cardápio.
+
+### **4.10. Módulo: Minha Conta**
+
+Área para gerenciamento do perfil do usuário administrador.
+
+- **Status Atual (Protótipo frontend - set/2025):** Interface concluída com formulários de edição e feedback via toasts; integrações com backend e autenticação ainda pendentes.
+- **Funcionalidades Implementadas:**
+    - Edição inline de dados pessoais, contato e endereço com bloqueio/desbloqueio controlado.
+    - Abas de informações pessoais e segurança, com ações simuladas (alteração de senha).
+    - Avatar com ação de upload (placeholder) e histórico de data de cadastro.
 
 ## **5. Recursos Adicionais de Interface**
 
@@ -218,10 +264,40 @@ A página principal onde o empresário montará o cardápio final para venda.
 - Botões de ação no rodapé (Cancelar à esquerda, Salvar à direita).
 - Fechamento por ESC ou clique fora do modal.
 
+### **5.4. Exportação e Relatórios**
+
+- Exportação do cardápio completo para PDF com uso de `jsPDF` e `autoTable` diretamente da tela.
+- Estrutura preparada para futuras exportações (CSV/Excel) mantendo separação de responsabilidades.
+
+### **5.5. Layout e Navegação**
+
+- Navegação lateral fixa e colapsável com atalhos para todos os módulos e menu do usuário.
+- Layout padrão (`Layout.tsx`) com cabeçalho, espaço de conteúdo e suporte responsivo.
+- Ícones padronizados via `lucide-react` para reforço visual.
+
+### **5.6. Gerenciamento de Estado e Mock Data**
+
+- `AppContext` com reducer centralizado para todos os módulos, utilizando dados mockados carregados no dashboard.
+- Utilização de utilitários de cálculo compartilhados (`utils/calculations`) e schemas tipados em `types/`.
+- Estrutura preparada para troca de mock data por integrações reais.
+
+### **5.7. Integração com Supabase (Parcial)**
+
+- Cliente Supabase configurado em `lib/supabase/client.ts`, ativado apenas quando variáveis de ambiente estão presentes.
+- Serviço de fornecedores (`services/fornecedoresService.ts`) com operações CRUD prontas para Supabase.
+- Tratamento de fallback para mock data quando Supabase não está configurado.
+
+### **5.8. Sistema de Alertas**
+
+- Hooks de cálculo (`useCalculations`) responsáveis por recalcular custos e gerar alertas de prejuízo ou margem baixa.
+- Componente `AlertBadge` para destacar alertas no dashboard e permitir marcação como lido.
+- Estrutura pronta para estender alertas a outros módulos (estoque, validade, etc.).
+
 ## **6. Pilha Tecnológica (Stack)**
 
 - **Framework:** Next.js 15.
 - **Banco de Dados:** Supabase.
+- **Estado Atual:** Protótipo opera com dados mockados via contexto; sincronização real com Supabase e backend será habilitada na integração futura.
 - **Autenticação:** Supabase Auth (autenticação simples, via email e senha).
 - **Gestão de Usuários:** Não haverá sistema de múltiplos usuários ou papéis (Admin/Usuário). A aplicação será acessada por um único usuário global.
 - **Segurança:** As regras de segurança do banco de dados serão simplificadas, focadas em proteger os dados do único usuário da aplicação.
@@ -234,6 +310,15 @@ A página principal onde o empresário montará o cardápio final para venda.
 - O usuário consegue visualizar claramente a margem de lucro de cada produto vendido.
 - O sistema de alertas ajuda a prevenir vendas com prejuízo ou margem muito baixa.
 - A interface simples e direta permite uso sem treinamento prévio.
+
+
+## **8. Pendências Prioritárias do Protótipo**
+
+- Implementar o módulo de Embalagens (UI + cálculos + integração com fornecedores).
+- Conectar o Cardápio ao AppContext, consumindo dados reais de copos base, receitas, combinados e insumos.
+- Persistir configurações, cardápio e cadastros via Supabase ou API dedicada, substituindo dados mockados.
+- Implementar autenticação real e fluxo de logout integrado ao backend.
+- Adicionar testes e validações adicionais nos formulários (validação assíncrona, estados de erro e loading gerais).
 
 
 # Schema Prisma
