@@ -26,7 +26,8 @@
       "Bash(move srcpagesCombinados.tsx srcpagesCombinados.backup.tsx)",
       "Bash(move srcpagesCombinadosFixed.tsx srcpagesCombinados.tsx)",
       "Bash(netstat:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []

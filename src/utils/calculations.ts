@@ -1,6 +1,7 @@
 import { Insumo, InsumoFornecedor, Receita, CopoBase, Combinado, Configuracao, Fornecedor } from "@/types/database";
 
 // Calculate cost per unit for inputs using InsumoFornecedor relationship
+// Note: Despite the name, this returns cost per unit (g, ml, or un) based on the insumo's unit
 export const calcularCustoPorGrama = (
   insumo: Partial<Insumo>,
   insumoFornecedores?: InsumoFornecedor[]

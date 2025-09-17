@@ -94,10 +94,11 @@ export const ReceitaModal = ({
         // Update ingredient costs
         newReceita.ingredientes = ingredientes.map(ing => {
           const insumo = state.insumos.find(i => i.id === ing.insumoId);
+          const custo = insumo ? calcularCustoPorGrama(insumo, state.insumoFornecedores) * ing.quantidade : 0;
           return {
             ...ing,
             receitaId: newReceita.id,
-            custo: insumo ? (insumo.custoPorGrama || 0) * ing.quantidade : 0,
+            custo,
           };
         });
 

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -24,8 +25,8 @@ import {
 import { receitaSchema, ReceitaFormData } from "@/types/forms";
 import { Receita } from "@/types/database";
 import { useAppContext } from "@/contexts/AppContext";
-import { formatarMoeda, calcularCustoPorGrama } from "@/utils/calculations";
-import { Plus, Trash2 } from "lucide-react";
+import { formatarMoeda, formatarCustoPorUnidade, calcularCustoPorGrama } from "@/utils/calculations";
+import { Plus, Trash2, Search } from "lucide-react";
 
 interface ReceitaFormProps {
   receita?: Receita;
@@ -41,6 +42,7 @@ export const ReceitaForm = ({
   isLoading = false,
 }: ReceitaFormProps) => {
   const { state } = useAppContext();
+  const [searchTerm, setSearchTerm] = useState("");
   
   const form = useForm<ReceitaFormData>({
     resolver: zodResolver(receitaSchema),
@@ -90,6 +92,11 @@ export const ReceitaForm = ({
     const rendimento = form.watch("rendimento");
     return rendimento > 0 ? custoTotal / rendimento : 0;
   };
+
+  // Filter insumos by search term
+  const filteredInsumos = insumos.filter(insumo =>
+    insumo.nome.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <Form {...form}>
@@ -229,14 +236,31 @@ export const ReceitaForm = ({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {insumos.map((insumo) => {
-                            const custoPorGrama = calcularCustoPorGrama(insumo, state.insumoFornecedores);
-                            return (
-                              <SelectItem key={insumo.id} value={insumo.id}>
-                                {insumo.nome} ({formatarMoeda(custoPorGrama)}/g)
-                              </SelectItem>
-                            );
-                          })}
+                          <div className="flex items-center px-3 py-2 border-b">
+                            <Search className="w-4 h-4 mr-2 text-gray-500" />
+                            <Input
+                              placeholder="Buscar insumo..."
+                              value={searchTerm}
+                              onChange={(e) => setSearchTerm(e.target.value)}
+                              className="h-8 border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
+                          {filteredInsumos.length > 0 ? (
+                            filteredInsumos.map((insumo) => {
+                              const custoPorUnidade = calcularCustoPorGrama(insumo, state.insumoFornecedores);
+                              const unidade = insumo.unidadeMedida?.sigla || 'un';
+                              return (
+                                <SelectItem key={insumo.id} value={insumo.id}>
+                                  {insumo.nome} ({formatarCustoPorUnidade(custoPorUnidade)}/{unidade})
+                                </SelectItem>
+                              );
+                            })
+                          ) : (
+                            <div className="px-3 py-2 text-sm text-gray-500">
+                              Nenhum insumo encontrado
+                            </div>
+                          )}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -247,22 +271,29 @@ export const ReceitaForm = ({
                 <FormField
                   control={form.control}
                   name={`ingredientes.${index}.quantidade`}
-                  render={({ field }) => (
-                    <FormItem className="w-32">
-                      {index === 0 && <FormLabel>Quantidade (g)</FormLabel>}
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.1"
-                          placeholder="0"
-                          {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    // Get selected insumo to determine step value
+                    const selectedInsumoId = form.watch(`ingredientes.${index}.insumoId`);
+                    const selectedInsumo = insumos.find(i => i.id === selectedInsumoId);
+                    const unidade = selectedInsumo?.unidadeMedida?.sigla || 'g';
+
+                    return (
+                      <FormItem className="w-32">
+                        {index === 0 && <FormLabel>Quantidade</FormLabel>}
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0"
+                            step={unidade === 'un' ? "1" : "0.1"}
+                            placeholder="0"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
 
                 <Button
@@ -295,7 +326,7 @@ export const ReceitaForm = ({
               <div>
                 <div className="text-sm text-muted-foreground">Custo por Grama</div>
                 <div className="text-lg font-semibold">
-                  {formatarMoeda(calcularCustoPorGramaForm())}
+                  {formatarCustoPorUnidade(calcularCustoPorGramaForm())}
                 </div>
               </div>
             </div>

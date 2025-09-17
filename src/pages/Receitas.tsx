@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -17,32 +18,34 @@ import {
 import { ReceitaModal } from "@/components/modals/ReceitaModal";
 import { useAppContext } from "@/contexts/AppContext";
 import { Receita } from "@/types/database";
-import { formatarMoeda } from "@/utils/calculations";
+import { formatarMoeda, formatarCustoPorUnidade } from "@/utils/calculations";
 import { Plus, ChefHat, Clock, Calculator, Edit, Trash2, Search, Users, Eye } from "lucide-react";
 
 const Receitas = () => {
   const { state, dispatch } = useAppContext();
   const [modalOpen, setModalOpen] = useState(false);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
   const [editingReceita, setEditingReceita] = useState<Receita | undefined>();
+  const [viewingReceita, setViewingReceita] = useState<Receita | undefined>();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [viewMode, setViewMode] = useState<"complete" | "by-category">("by-category");
 
-  // Dados mockados temporários para desenvolvimento
+  // Dados mockados temporários para desenvolvimento - Alinhados com interface Receita
   const receitasMock = [
+    // MOLHOS E CREMES
     {
       id: "rec1",
       nome: "Molho de Morango",
       descricao: "Molho doce de morango para cobertura",
       categoriaId: "cat3",
-      categoria: { id: "cat3", nome: "Molhos", cor: "#f59e0b", ativo: true },
-      tempoPreparo: 15,
-      porcoes: 10,
-      custoTotal: 12.50,
+      categoria: { id: "cat3", nome: "Molhos", cor: "#f59e0b", ativo: true, createdAt: new Date(), updatedAt: new Date() },
+      rendimento: 500,
       custoPorGrama: 0.025,
-      custoPorPorcao: 1.25,
+      custoTotal: 12.50,
+      tempoPreparo: 15,
+      instrucoes: "1. Lave e pique os morangos\n2. Misture com açúcar\n3. Cozinhe em fogo baixo por 10 minutos\n4. Mexa até engrossar",
       ativo: true,
-      observacoes: "Molho artesanal",
       createdAt: new Date(),
       updatedAt: new Date(),
       ingredientes: [
@@ -50,33 +53,36 @@ const Receitas = () => {
           id: "ing1",
           receitaId: "rec1",
           insumoId: "ins6",
-          quantidade: 200,
-          custo: 4.00,
-          insumo: { id: "ins6", nome: "Morango", unidadeMedida: { sigla: "g" } }
+          quantidade: 300,
+          custo: 9.00,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "ins6", nome: "Morango Fresco", unidadeMedida: { sigla: "g" } }
         },
         {
           id: "ing2",
           receitaId: "rec1",
           insumoId: "ins7",
-          quantidade: 100,
-          custo: 2.50,
-          insumo: { id: "ins7", nome: "Açúcar", unidadeMedida: { sigla: "g" } }
+          quantidade: 80,
+          custo: 3.50,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "ins7", nome: "Açúcar Cristal", unidadeMedida: { sigla: "g" } }
         }
       ]
     },
     {
       id: "rec2",
-      nome: "Caldinha de Chocolate",
-      descricao: "Calda cremosa de chocolate",
+      nome: "Calda de Chocolate Premium",
+      descricao: "Calda cremosa de chocolate belga 70% cacau",
       categoriaId: "cat3",
-      categoria: { id: "cat3", nome: "Molhos", cor: "#f59e0b", ativo: true },
-      tempoPreparo: 20,
-      porcoes: 8,
-      custoTotal: 18.00,
+      categoria: { id: "cat3", nome: "Molhos", cor: "#f59e0b", ativo: true, createdAt: new Date(), updatedAt: new Date() },
+      rendimento: 400,
       custoPorGrama: 0.045,
-      custoPorPorcao: 2.25,
+      custoTotal: 18.00,
+      tempoPreparo: 20,
+      instrucoes: "1. Derreta o chocolate em banho-maria\n2. Aqueça o leite condensado\n3. Misture gradualmente\n4. Adicione a manteiga\n5. Mexa até obter consistência cremosa",
       ativo: true,
-      observacoes: "Chocolate belga",
       createdAt: new Date(),
       updatedAt: new Date(),
       ingredientes: [
@@ -84,51 +90,402 @@ const Receitas = () => {
           id: "ing3",
           receitaId: "rec2",
           insumoId: "ins8",
-          quantidade: 150,
-          custo: 12.00,
-          insumo: { id: "ins8", nome: "Chocolate", unidadeMedida: { sigla: "g" } }
+          quantidade: 200,
+          custo: 14.00,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "ins8", nome: "Chocolate 70% Cacau", unidadeMedida: { sigla: "g" } }
         },
         {
           id: "ing4",
           receitaId: "rec2",
-          insumoId: "ins9",
-          quantidade: 200,
-          custo: 6.00,
-          insumo: { id: "ins9", nome: "Leite", unidadeMedida: { sigla: "ml" } }
+          insumoId: "ins15",
+          quantidade: 150,
+          custo: 4.00,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "ins15", nome: "Leite Condensado", unidadeMedida: { sigla: "g" } }
         }
       ]
     },
     {
       id: "rec3",
-      nome: "Mix de Granola Especial",
-      descricao: "Mix especial de granola com castanhas",
-      categoriaId: "cat4",
-      categoria: { id: "cat4", nome: "Mix", cor: "#10b981", ativo: true },
-      tempoPreparo: 10,
-      porcoes: 15,
-      custoTotal: 25.00,
-      custoPorGrama: 0.050,
-      custoPorPorcao: 1.67,
+      nome: "Creme de Paçoca",
+      descricao: "Creme cremoso e doce sabor paçoca tradicional",
+      categoriaId: "cat3",
+      categoria: { id: "cat3", nome: "Molhos", cor: "#f59e0b", ativo: true, createdAt: new Date(), updatedAt: new Date() },
+      rendimento: 350,
+      custoPorGrama: 0.057,
+      custoTotal: 20.00,
+      tempoPreparo: 25,
+      instrucoes: "1. Triture a paçoca até virar pó\n2. Aqueça o leite condensado\n3. Misture a paçoca triturada\n4. Cozinhe mexendo até encorpar\n5. Finalize com leite em pó",
       ativo: true,
-      observacoes: "Granola premium",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ingredientes: [
+        {
+          id: "ing10",
+          receitaId: "rec3",
+          insumoId: "ins14",
+          quantidade: 200,
+          custo: 12.00,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "ins14", nome: "Paçoca Tradicional", unidadeMedida: { sigla: "g" } }
+        },
+        {
+          id: "ing11",
+          receitaId: "rec3",
+          insumoId: "ins15",
+          quantidade: 150,
+          custo: 8.00,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "ins15", nome: "Leite Condensado", unidadeMedida: { sigla: "g" } }
+        }
+      ]
+    },
+    {
+      id: "rec4",
+      nome: "Calda de Caramelo",
+      descricao: "Calda dourada e cremosa de caramelo caseiro",
+      categoriaId: "cat3",
+      categoria: { id: "cat3", nome: "Molhos", cor: "#f59e0b", ativo: true, createdAt: new Date(), updatedAt: new Date() },
+      rendimento: 300,
+      custoPorGrama: 0.033,
+      custoTotal: 10.00,
+      tempoPreparo: 30,
+      instrucoes: "1. Derreta o açúcar em panela até caramelizar\n2. Adicione o creme de leite aos poucos\n3. Mexa constantemente\n4. Cozinhe até engrossar\n5. Deixe esfriar antes de usar",
+      ativo: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ingredientes: [
+        {
+          id: "ing12",
+          receitaId: "rec4",
+          insumoId: "ins7",
+          quantidade: 200,
+          custo: 6.00,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "ins7", nome: "Açúcar Cristal", unidadeMedida: { sigla: "g" } }
+        },
+        {
+          id: "ing13",
+          receitaId: "rec4",
+          insumoId: "ins16",
+          quantidade: 100,
+          custo: 4.00,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "ins16", nome: "Creme de Leite", unidadeMedida: { sigla: "ml" } }
+        }
+      ]
+    },
+
+    // MIX E COMPLEMENTOS
+    {
+      id: "rec5",
+      nome: "Mix de Granola Especial",
+      descricao: "Mix especial de granola com castanhas e frutas secas",
+      categoriaId: "cat4",
+      categoria: { id: "cat4", nome: "Mix", cor: "#10b981", ativo: true, createdAt: new Date(), updatedAt: new Date() },
+      rendimento: 600,
+      custoPorGrama: 0.042,
+      custoTotal: 25.00,
+      tempoPreparo: 10,
+      instrucoes: "1. Misture a granola com as castanhas\n2. Adicione as frutas secas\n3. Incorpore as sementes\n4. Mexa bem para homogeneizar\n5. Armazene em recipiente hermético",
+      ativo: true,
       createdAt: new Date(),
       updatedAt: new Date(),
       ingredientes: [
         {
           id: "ing5",
-          receitaId: "rec3",
+          receitaId: "rec5",
           insumoId: "ins3",
-          quantidade: 300,
-          custo: 15.00,
+          quantidade: 400,
+          custo: 16.00,
+          createdAt: new Date(),
+          updatedAt: new Date(),
           insumo: { id: "ins3", nome: "Granola Tradicional", unidadeMedida: { sigla: "g" } }
         },
         {
           id: "ing6",
-          receitaId: "rec3",
+          receitaId: "rec5",
           insumoId: "ins10",
+          quantidade: 150,
+          custo: 7.50,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "ins10", nome: "Castanha do Pará", unidadeMedida: { sigla: "g" } }
+        },
+        {
+          id: "ing7",
+          receitaId: "rec5",
+          insumoId: "ins11",
+          quantidade: 50,
+          custo: 1.50,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "ins11", nome: "Uva Passa", unidadeMedida: { sigla: "g" } }
+        }
+      ]
+    },
+    {
+      id: "rec6",
+      nome: "Mix Tropical",
+      descricao: "Mistura de frutas secas tropicais e coco",
+      categoriaId: "cat4",
+      categoria: { id: "cat4", nome: "Mix", cor: "#10b981", ativo: true, createdAt: new Date(), updatedAt: new Date() },
+      rendimento: 400,
+      custoPorGrama: 0.065,
+      custoTotal: 26.00,
+      tempoPreparo: 5,
+      instrucoes: "1. Corte as frutas secas em pedaços uniformes\n2. Misture com o coco ralado\n3. Adicione as castanhas picadas\n4. Armazene em local seco",
+      ativo: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ingredientes: [
+        {
+          id: "ing14",
+          receitaId: "rec6",
+          insumoId: "ins17",
           quantidade: 200,
-          custo: 10.00,
-          insumo: { id: "ins10", nome: "Castanha", unidadeMedida: { sigla: "g" } }
+          custo: 18.00,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "ins17", nome: "Mix de Frutas Secas", unidadeMedida: { sigla: "g" } }
+        },
+        {
+          id: "ing15",
+          receitaId: "rec6",
+          insumoId: "ins18",
+          quantidade: 150,
+          custo: 6.00,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "ins18", nome: "Coco Ralado", unidadeMedida: { sigla: "g" } }
+        },
+        {
+          id: "ing16",
+          receitaId: "rec6",
+          insumoId: "ins10",
+          quantidade: 50,
+          custo: 2.00,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "ins10", nome: "Castanha do Pará", unidadeMedida: { sigla: "g" } }
+        }
+      ]
+    },
+
+    // ACOMPANHAMENTOS
+    {
+      id: "rec7",
+      nome: "Farofa de Tapioca Doce",
+      descricao: "Farofa crocante de tapioca com canela e açúcar mascavo",
+      categoriaId: "cat5",
+      categoria: { id: "cat5", nome: "Acompanhamentos", cor: "#8b5cf6", ativo: true, createdAt: new Date(), updatedAt: new Date() },
+      rendimento: 300,
+      custoPorGrama: 0.020,
+      custoTotal: 6.00,
+      tempoPreparo: 8,
+      instrucoes: "1. Torre a tapioca em frigideira seca\n2. Adicione canela em pó\n3. Incorpore o açúcar mascavo\n4. Mexa até dourar uniformemente\n5. Reserve em temperatura ambiente",
+      ativo: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ingredientes: [
+        {
+          id: "ing8",
+          receitaId: "rec7",
+          insumoId: "ins12",
+          quantidade: 250,
+          custo: 4.50,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "ins12", nome: "Tapioca Granulada", unidadeMedida: { sigla: "g" } }
+        },
+        {
+          id: "ing9",
+          receitaId: "rec7",
+          insumoId: "ins13",
+          quantidade: 5,
+          custo: 1.50,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "ins13", nome: "Canela em Pó", unidadeMedida: { sigla: "g" } }
+        }
+      ]
+    },
+    {
+      id: "rec8",
+      nome: "Crumble de Biscoito",
+      descricao: "Farofa crocante de biscoito tipo cookies",
+      categoriaId: "cat5",
+      categoria: { id: "cat5", nome: "Acompanhamentos", cor: "#8b5cf6", ativo: true, createdAt: new Date(), updatedAt: new Date() },
+      rendimento: 250,
+      custoPorGrama: 0.040,
+      custoTotal: 10.00,
+      tempoPreparo: 12,
+      instrucoes: "1. Triture os biscoitos até formar farelos grossos\n2. Misture com a manteiga derretida\n3. Torre em frigideira até dourar\n4. Deixe esfriar completamente\n5. Armazene em recipiente hermético",
+      ativo: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ingredientes: [
+        {
+          id: "ing17",
+          receitaId: "rec8",
+          insumoId: "ins19",
+          quantidade: 200,
+          custo: 8.00,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "ins19", nome: "Biscoito Maisena", unidadeMedida: { sigla: "g" } }
+        },
+        {
+          id: "ing18",
+          receitaId: "rec8",
+          insumoId: "ins20",
+          quantidade: 30,
+          custo: 2.00,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "ins20", nome: "Manteiga", unidadeMedida: { sigla: "g" } }
+        }
+      ]
+    },
+
+    // FRUTAS PREPARADAS
+    {
+      id: "rec9",
+      nome: "Banana Caramelizada",
+      descricao: "Bananas em fatias douradas no açúcar mascavo",
+      categoriaId: "cat6",
+      categoria: { id: "cat6", nome: "Frutas", cor: "#ef4444", ativo: true, createdAt: new Date(), updatedAt: new Date() },
+      rendimento: 400,
+      custoPorGrama: 0.035,
+      custoTotal: 14.00,
+      tempoPreparo: 15,
+      instrucoes: "1. Descasque e corte as bananas em rodelas\n2. Aqueça uma frigideira com manteiga\n3. Adicione o açúcar mascavo\n4. Coloque as bananas quando caramelizar\n5. Cozinhe até dourar dos dois lados",
+      ativo: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ingredientes: [
+        {
+          id: "ing19",
+          receitaId: "rec9",
+          insumoId: "ins21",
+          quantidade: 300,
+          custo: 9.00,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "ins21", nome: "Banana Prata", unidadeMedida: { sigla: "g" } }
+        },
+        {
+          id: "ing20",
+          receitaId: "rec9",
+          insumoId: "ins22",
+          quantidade: 50,
+          custo: 3.00,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "ins22", nome: "Açúcar Mascavo", unidadeMedida: { sigla: "g" } }
+        },
+        {
+          id: "ing21",
+          receitaId: "rec9",
+          insumoId: "ins20",
+          quantidade: 20,
+          custo: 2.00,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "ins20", nome: "Manteiga", unidadeMedida: { sigla: "g" } }
+        }
+      ]
+    },
+    {
+      id: "rec10",
+      nome: "Compota de Frutas Vermelhas",
+      descricao: "Mistura doce de morangos, framboesas e cerejas",
+      categoriaId: "cat6",
+      categoria: { id: "cat6", nome: "Frutas", cor: "#ef4444", ativo: true, createdAt: new Date(), updatedAt: new Date() },
+      rendimento: 500,
+      custoPorGrama: 0.048,
+      custoTotal: 24.00,
+      tempoPreparo: 40,
+      instrucoes: "1. Lave e corte todas as frutas\n2. Leve ao fogo com açúcar cristal\n3. Cozinhe em fogo baixo mexendo sempre\n4. Adicione suco de limão\n5. Cozinhe até consistência de geleia\n6. Deixe esfriar antes de armazenar",
+      ativo: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ingredientes: [
+        {
+          id: "ing22",
+          receitaId: "rec10",
+          insumoId: "ins6",
+          quantidade: 200,
+          custo: 12.00,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "ins6", nome: "Morango Fresco", unidadeMedida: { sigla: "g" } }
+        },
+        {
+          id: "ing23",
+          receitaId: "rec10",
+          insumoId: "ins23",
+          quantidade: 150,
+          custo: 9.00,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "ins23", nome: "Framboesa", unidadeMedida: { sigla: "g" } }
+        },
+        {
+          id: "ing24",
+          receitaId: "rec10",
+          insumoId: "ins7",
+          quantidade: 100,
+          custo: 3.00,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "ins7", nome: "Açúcar Cristal", unidadeMedida: { sigla: "g" } }
+        }
+      ]
+    },
+
+    // RECEITA INATIVA PARA TESTE
+    {
+      id: "rec11",
+      nome: "Molho de Amendoim (Descontinuado)",
+      descricao: "Creme cremoso de amendoim - produto descontinuado",
+      categoriaId: "cat3",
+      categoria: { id: "cat3", nome: "Molhos", cor: "#f59e0b", ativo: true, createdAt: new Date(), updatedAt: new Date() },
+      rendimento: 300,
+      custoPorGrama: 0.055,
+      custoTotal: 16.50,
+      tempoPreparo: 18,
+      instrucoes: "Produto descontinuado - não produzir",
+      ativo: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ingredientes: [
+        {
+          id: "ing25",
+          receitaId: "rec11",
+          insumoId: "ins24",
+          quantidade: 250,
+          custo: 15.00,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "ins24", nome: "Pasta de Amendoim", unidadeMedida: { sigla: "g" } }
+        },
+        {
+          id: "ing26",
+          receitaId: "rec11",
+          insumoId: "ins15",
+          quantidade: 50,
+          custo: 1.50,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "ins15", nome: "Leite Condensado", unidadeMedida: { sigla: "g" } }
         }
       ]
     }
@@ -165,8 +522,8 @@ const Receitas = () => {
   };
 
   const handleViewReceita = (receita: Receita) => {
-    // TODO: Implementar modal de visualização se necessário
-    console.log("Visualizando receita:", receita);
+    setViewingReceita(receita);
+    setViewModalOpen(true);
   };
 
   const handleDeleteReceita = (receita: Receita) => {
@@ -208,7 +565,7 @@ const Receitas = () => {
         </TableCell>
         <TableCell>
           <div className="text-sm font-medium">
-            {formatarMoeda(receita.custoPorGrama)}
+            {formatarCustoPorUnidade(receita.custoPorGrama)}
           </div>
           <div className="text-xs text-muted-foreground">por grama</div>
         </TableCell>
@@ -340,7 +697,6 @@ const Receitas = () => {
         <Tabs defaultValue="lista" className="space-y-4">
           <TabsList>
             <TabsTrigger value="lista">Lista de Receitas</TabsTrigger>
-            <TabsTrigger value="custos">Análise de Custos</TabsTrigger>
           </TabsList>
 
           <TabsContent value="lista" className="space-y-4">
@@ -495,82 +851,6 @@ const Receitas = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="custos" className="space-y-4">
-            {/* Análise por Categoria */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Análise de Custos por Categoria</CardTitle>
-                <CardDescription>
-                  Distribuição de custos médios por categoria de receita
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {state.categorias.map((categoria) => {
-                    const receitasCat = receitasData.filter(r => r.categoriaId === categoria.id);
-                    const custoMedio = receitasCat.length > 0 
-                      ? receitasCat.reduce((acc, r) => acc + r.custoPorGrama, 0) / receitasCat.length 
-                      : 0;
-                    
-                    if (receitasCat.length === 0) return null;
-                    
-                    return (
-                      <div key={categoria.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <h4 className="font-semibold">{categoria.nome}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {receitasCat.length} receitas
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold">{formatarMoeda(custoMedio)}</p>
-                          <p className="text-sm text-muted-foreground">custo médio/g</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Receitas Mais Custosas */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Receitas por Custo</CardTitle>
-                <CardDescription>
-                  Receitas ordenadas por custo total
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {filteredReceitas
-                    .sort((a, b) => b.custoTotal - a.custoTotal)
-                    .slice(0, 10)
-                    .map((receita, index) => (
-                      <div key={receita.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center gap-4">
-                          <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold">
-                            {index + 1}
-                          </div>
-                          <div>
-                            <h4 className="font-semibold">{receita.nome}</h4>
-                            <p className="text-sm text-muted-foreground">
-                              Rendimento: {receita.rendimento}g
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold">{formatarMoeda(receita.custoTotal)}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {formatarMoeda(receita.custoPorGrama)}/g
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
       </div>
 
@@ -579,6 +859,315 @@ const Receitas = () => {
         onOpenChange={setModalOpen}
         receita={editingReceita}
       />
+
+      {/* Modal de Visualização Aprimorado */}
+      <Dialog open={viewModalOpen} onOpenChange={setViewModalOpen}>
+        <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden">
+          <DialogHeader className="pb-6 border-b">
+            <div className="flex items-start justify-between">
+              <div className="space-y-2">
+                <DialogTitle className="text-2xl font-bold flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <ChefHat className="w-6 h-6 text-white" />
+                  </div>
+                  {viewingReceita?.nome}
+                </DialogTitle>
+                <DialogDescription className="text-base">
+                  {viewingReceita?.descricao || "Receita para preparo"}
+                </DialogDescription>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge
+                  variant={viewingReceita?.ativo ? "default" : "secondary"}
+                  className="text-sm px-3 py-1"
+                >
+                  {viewingReceita?.ativo ? "✓ Ativa" : "⊘ Inativa"}
+                </Badge>
+                <Badge variant="outline" className="text-sm px-3 py-1">
+                  {viewingReceita?.categoria?.nome || "Sem categoria"}
+                </Badge>
+              </div>
+            </div>
+          </DialogHeader>
+
+          {viewingReceita && (
+            <div className="flex flex-col h-full max-h-[75vh] overflow-hidden">
+              {/* Métricas Principais */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardDescription className="text-green-700">Rendimento</CardDescription>
+                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                        <Users className="w-4 h-4 text-white" />
+                      </div>
+                    </div>
+                    <CardTitle className="text-2xl text-green-800">
+                      {viewingReceita.rendimento}g
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardDescription className="text-blue-700">Custo Total</CardDescription>
+                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                        <Calculator className="w-4 h-4 text-white" />
+                      </div>
+                    </div>
+                    <CardTitle className="text-2xl text-blue-800">
+                      {formatarMoeda(viewingReceita.custoTotal)}
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardDescription className="text-purple-700">Custo por Grama</CardDescription>
+                      <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                        <Calculator className="w-4 h-4 text-white" />
+                      </div>
+                    </div>
+                    <CardTitle className="text-2xl text-purple-800">
+                      {formatarCustoPorUnidade(viewingReceita.custoPorGrama)}
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardDescription className="text-orange-700">Tempo Preparo</CardDescription>
+                      <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                        <Clock className="w-4 h-4 text-white" />
+                      </div>
+                    </div>
+                    <CardTitle className="text-2xl text-orange-800">
+                      {viewingReceita.tempoPreparo || 0}min
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+              </div>
+
+              {/* Conteúdo Principal com Scroll */}
+              <div className="flex-1 overflow-y-auto space-y-6 pr-2">
+                {/* Análise de Custos */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Calculator className="w-5 h-5 text-green-600" />
+                      Análise de Custos
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="text-center p-4 bg-gray-50 rounded-lg">
+                        <div className="text-2xl font-bold text-gray-800">
+                          {viewingReceita.ingredientes?.length || 0}
+                        </div>
+                        <div className="text-sm text-gray-600">Ingredientes</div>
+                      </div>
+                      <div className="text-center p-4 bg-blue-50 rounded-lg">
+                        <div className="text-2xl font-bold text-blue-800">
+                          {((viewingReceita.custoTotal / (viewingReceita.rendimento / 100)) || 0).toFixed(1)}%
+                        </div>
+                        <div className="text-sm text-blue-600">Custo por 100g</div>
+                      </div>
+                      <div className="text-center p-4 bg-green-50 rounded-lg">
+                        <div className="text-2xl font-bold text-green-800">
+                          {formatarMoeda((viewingReceita.custoTotal * 3) || 0)}
+                        </div>
+                        <div className="text-sm text-green-600">Preço Sugerido (3x)</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Lista de Ingredientes Detalhada */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Plus className="w-5 h-5 text-blue-600" />
+                      Ingredientes e Custos
+                    </CardTitle>
+                    <CardDescription>
+                      Composição detalhada da receita com análise de custos
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {viewingReceita.ingredientes?.map((ingrediente, index) => {
+                        // Buscar dados do insumo no state para ter informações completas
+                        const insumo = state.insumos.find(i => i.id === ingrediente.insumoId);
+                        const percentualCusto = viewingReceita.custoTotal > 0
+                          ? (ingrediente.custo / viewingReceita.custoTotal * 100)
+                          : 0;
+
+                        return (
+                          <div key={ingrediente.id} className="group hover:bg-gray-50 transition-colors duration-200">
+                            <div className="flex items-center justify-between p-4 border rounded-lg">
+                              <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold">
+                                  {index + 1}
+                                </div>
+                                <div className="space-y-1">
+                                  <div className="font-semibold text-gray-800">
+                                    {insumo?.nome || ingrediente.insumo?.nome || `Ingrediente ${index + 1}`}
+                                  </div>
+                                  <div className="text-sm text-gray-600">
+                                    {insumo?.descricao || "Ingrediente da receita"}
+                                  </div>
+                                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                                    <Badge variant="outline" className="text-xs">
+                                      {insumo?.categoria?.nome || "Sem categoria"}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="text-right space-y-1">
+                                <div className="flex items-center gap-4">
+                                  <div className="text-right">
+                                    <div className="text-sm text-gray-600">Quantidade</div>
+                                    <div className="font-semibold">
+                                      {ingrediente.quantidade}{insumo?.unidadeMedida?.sigla || ingrediente.insumo?.unidadeMedida?.sigla || 'g'}
+                                    </div>
+                                  </div>
+                                  <div className="text-right">
+                                    <div className="text-sm text-gray-600">Custo</div>
+                                    <div className="font-bold text-green-700">
+                                      {formatarMoeda(ingrediente.custo)}
+                                    </div>
+                                  </div>
+                                  <div className="text-right">
+                                    <div className="text-sm text-gray-600">% do Total</div>
+                                    <div className="font-semibold text-blue-700">
+                                      {percentualCusto.toFixed(1)}%
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {/* Totalizador */}
+                      <div className="border-t pt-4 mt-4">
+                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
+                              <Calculator className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                              <div className="font-bold text-lg">Custo Total da Receita</div>
+                              <div className="text-sm text-gray-600">
+                                {viewingReceita.rendimento}g • {formatarCustoPorUnidade(viewingReceita.custoPorGrama)}/g
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-2xl font-bold text-green-700">
+                              {formatarMoeda(viewingReceita.custoTotal)}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              Total dos ingredientes
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Instruções de Preparo */}
+                {viewingReceita.instrucoes && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <ChefHat className="w-5 h-5 text-orange-600" />
+                        Instruções de Preparo
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="whitespace-pre-line text-sm leading-relaxed text-gray-800">
+                          {viewingReceita.instrucoes}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Informações Adicionais */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Eye className="w-5 h-5 text-gray-600" />
+                      Informações Adicionais
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-600">Categoria:</span>
+                        <Badge variant="outline" className="ml-2">
+                          {viewingReceita.categoria?.nome || "Sem categoria"}
+                        </Badge>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Status:</span>
+                        <Badge variant={viewingReceita.ativo ? "default" : "secondary"} className="ml-2">
+                          {viewingReceita.ativo ? "✓ Ativa" : "⊘ Inativa"}
+                        </Badge>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Criada em:</span>
+                        <span className="ml-2 font-medium">
+                          {new Date(viewingReceita.createdAt).toLocaleDateString('pt-BR')}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Última atualização:</span>
+                        <span className="ml-2 font-medium">
+                          {new Date(viewingReceita.updatedAt).toLocaleDateString('pt-BR')}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
+
+          {/* Rodapé com Ações */}
+          <div className="flex justify-between items-center pt-6 border-t mt-6">
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Eye className="w-4 h-4" />
+              Visualização detalhada da receita
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setViewModalOpen(false)}>
+                Fechar
+              </Button>
+              <Button
+                onClick={() => {
+                  setViewModalOpen(false);
+                  if (viewingReceita) {
+                    handleEditReceita(viewingReceita);
+                  }
+                }}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Editar Receita
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };
