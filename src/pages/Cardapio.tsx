@@ -574,42 +574,42 @@ const Cardapio = () => {
       {
         id: "INS001",
         nome: "Açaí Premium",
-        custo: 12.50,
+        custo: 0.0125, // R$ 0.0125 por grama (R$ 12.50/kg convertido)
         fornecedorPadrao: "Amazônia Açaí Ltda",
         descricao: "Açaí premium de alta qualidade",
-        unidade: "kg"
+        unidade: "g"
       },
       {
         id: "INS002",
         nome: "Banana Prata",
-        custo: 3.20,
+        custo: 0.0032, // R$ 0.0032 por grama (R$ 3.20/kg convertido)
         fornecedorPadrao: "Frutas do Vale",
         descricao: "Banana prata fresca",
-        unidade: "kg"
+        unidade: "g"
       },
       {
         id: "INS003",
         nome: "Granola Artesanal",
-        custo: 8.90,
+        custo: 0.0089, // R$ 0.0089 por grama (R$ 8.90/kg convertido)
         fornecedorPadrao: "Cereais & Grãos",
         descricao: "Granola artesanal sem conservantes",
-        unidade: "kg"
+        unidade: "g"
       },
       {
         id: "INS004",
         nome: "Mel Orgânico",
-        custo: 15.50,
+        custo: 0.0155, // R$ 0.0155 por grama (R$ 15.50/kg convertido)
         fornecedorPadrao: "Apiário Dourado",
         descricao: "Mel orgânico puro",
-        unidade: "kg"
+        unidade: "g"
       },
       {
         id: "INS005",
         nome: "Aveia em Flocos",
-        custo: 4.80,
+        custo: 0.0048, // R$ 0.0048 por grama (R$ 4.80/kg convertido)
         fornecedorPadrao: "Cereais & Grãos",
         descricao: "Aveia em flocos finos",
-        unidade: "kg"
+        unidade: "g"
       }
     ],
     "copo-base": [
@@ -2560,7 +2560,7 @@ const Cardapio = () => {
                       </div>
                       <p className="text-xs text-muted-foreground">
                         {selectedItemType === "insumo"
-                          ? `Quantidade em ${selectedSearchItem.unidade || 'gramas'} conforme o insumo (ex: 0.2 para 200g se unidade for kg)`
+                          ? `Quantidade em ${selectedSearchItem.unidade || 'gramas'} conforme o insumo`
                           : selectedItemType === "receita"
                           ? "Quantidade em gramas da receita utilizada"
                           : "Quantidade em unidades do item (copos base ou combinados)"
