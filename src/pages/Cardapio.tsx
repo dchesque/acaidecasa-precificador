@@ -2879,23 +2879,23 @@ const Cardapio = () => {
                         return (
                           <div className="space-y-4">
                             {/* Resumo Financeiro */}
-                            <div className="grid grid-cols-3 gap-4">
-                              <div className="text-center p-3 bg-white rounded-lg border shadow-sm">
+                            <div className="grid grid-cols-3 gap-3">
+                              <div className="text-center p-2 bg-white rounded-lg border shadow-sm">
                                 <p className="text-xs text-gray-600 font-medium">CUSTO</p>
-                                <p className="text-lg font-bold text-red-600">
-                                  R$ {custoCalculado.toFixed(4)}
+                                <p className="text-sm font-bold text-red-600">
+                                  R$ {custoCalculado.toFixed(3)}
                                 </p>
                               </div>
-                              <div className="text-center p-3 bg-white rounded-lg border shadow-sm">
+                              <div className="text-center p-2 bg-white rounded-lg border shadow-sm">
                                 <p className="text-xs text-gray-600 font-medium">VENDA</p>
-                                <p className="text-lg font-bold text-blue-600">
-                                  R$ {precoVenda.toFixed(2)}
+                                <p className="text-sm font-bold text-blue-600">
+                                  R$ {precoVenda.toFixed(3)}
                                 </p>
                               </div>
-                              <div className="text-center p-3 bg-white rounded-lg border shadow-sm">
+                              <div className="text-center p-2 bg-white rounded-lg border shadow-sm">
                                 <p className="text-xs text-gray-600 font-medium">LUCRO</p>
-                                <p className={`text-lg font-bold ${getMargemColor(margem)}`}>
-                                  R$ {lucroTotal.toFixed(4)}
+                                <p className={`text-sm font-bold ${getMargemColor(margem)}`}>
+                                  R$ {lucroTotal.toFixed(3)}
                                 </p>
                               </div>
                             </div>
@@ -2951,24 +2951,6 @@ const Cardapio = () => {
                   </Card>
                 )}
 
-                {/* Dicas */}
-                <Card className="bg-blue-50 border-blue-200">
-                  <CardContent className="pt-4">
-                    <div className="flex items-start gap-2">
-                      <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span className="text-white text-xs">💡</span>
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-blue-900 text-sm">Dicas</h4>
-                        <ul className="text-xs text-blue-700 mt-1 space-y-1">
-                          <li>• Use nomes claros e atrativos</li>
-                          <li>• Considere margens entre 100-200%</li>
-                          <li>• Adicione observações sobre alergias</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
               </div>
             </div>
           </div>
