@@ -2829,69 +2829,31 @@ const Cardapio = () => {
                           </div>
                         ))}
 
-                        {/* Totalizador */}
-                        <div className="border-t pt-4 mt-4">
-                          <div className="flex justify-between items-center p-4 bg-gradient-to-r from-red-50 to-orange-50 rounded-lg border border-red-200">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-orange-600 rounded-lg flex items-center justify-center">
-                                <Calculator className="w-5 h-5 text-white" />
+                        {/* Totalizador Compacto */}
+                        <div className="border-t pt-3 mt-3">
+                          <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-200">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 bg-red-500 rounded-lg flex items-center justify-center">
+                                <Calculator className="w-3 h-3 text-white" />
                               </div>
                               <div>
-                                <div className="font-bold text-lg text-gray-900">Custo Total do Produto</div>
-                                <div className="text-sm text-gray-600">
-                                  {selectedSearchItem.composicao.length} insumo{selectedSearchItem.composicao.length > 1 ? 's' : ''} •
-                                  {itemQuantity && ` ${parseFloat(itemQuantity)} unidades`}
+                                <div className="font-bold text-sm text-gray-900">Custo Total do Produto</div>
+                                <div className="text-xs text-gray-600">
+                                  {selectedSearchItem.composicao.length} insumo{selectedSearchItem.composicao.length > 1 ? 's' : ''}
                                 </div>
                               </div>
                             </div>
                             <div className="text-right">
-                              <div className="text-2xl font-bold text-red-700">
+                              <div className="text-xl font-bold text-red-700">
                                 {itemQuantity ?
-                                  `R$ ${calcularCustoComQuantidade(selectedSearchItem, parseFloat(itemQuantity), selectedItemType).toFixed(4)}` :
-                                  `R$ ${selectedSearchItem.custo.toFixed(4)}`
+                                  `R$ ${calcularCustoComQuantidade(selectedSearchItem, parseFloat(itemQuantity), selectedItemType).toFixed(2)}` :
+                                  `R$ ${selectedSearchItem.custo.toFixed(2)}`
                                 }
                               </div>
-                              {itemQuantity && (
-                                <div className="text-sm text-gray-600">
-                                  R$ {selectedSearchItem.custo.toFixed(4)}/{selectedSearchItem.unidade} × {parseFloat(itemQuantity)}{selectedSearchItem.unidade}
-                                </div>
-                              )}
                             </div>
                           </div>
                         </div>
 
-                        {/* Resumo de Fornecedores Aprimorado */}
-                        <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                          <h5 className="text-sm font-bold text-blue-900 mb-3 flex items-center gap-2">
-                            <div className="w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center">
-                              <Users className="w-2.5 h-2.5 text-white" />
-                            </div>
-                            Fornecedores Envolvidos
-                          </h5>
-                          <div className="grid grid-cols-1 gap-2">
-                            {Array.from(new Set(selectedSearchItem.composicao.map((comp: any) => comp.insumo.fornecedorPadrao)))
-                              .map((fornecedor: string, index: number) => {
-                                const itensDoFornecedor = selectedSearchItem.composicao.filter((comp: any) => comp.insumo.fornecedorPadrao === fornecedor);
-                                const custoTotal = itensDoFornecedor.reduce((sum: number, comp: any) => sum + comp.custo, 0);
-                                return (
-                                  <div key={index} className="flex items-center justify-between p-2 bg-white rounded border border-blue-100">
-                                    <div className="flex items-center gap-2">
-                                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                                      <span className="text-blue-900 font-medium text-sm">{fornecedor}</span>
-                                    </div>
-                                    <div className="flex items-center gap-3 text-xs">
-                                      <span className="text-blue-700">
-                                        {itensDoFornecedor.length} item{itensDoFornecedor.length > 1 ? 's' : ''}
-                                      </span>
-                                      <span className="font-bold text-blue-900">
-                                        R$ {custoTotal.toFixed(2)}
-                                      </span>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                          </div>
-                        </div>
                       </div>
                     </CardContent>
                   </Card>
