@@ -54,7 +54,9 @@ import {
   Gift,
   Target,
   AlertTriangle,
-  TrendingDown
+  TrendingDown,
+  Calculator,
+  Users
 } from "lucide-react";
 
 const Cardapio = () => {
@@ -100,6 +102,7 @@ const Cardapio = () => {
   const [itemName, setItemName] = useState("");
   const [itemPrice, setItemPrice] = useState("");
   const [itemNotes, setItemNotes] = useState("");
+  const [itemQuantity, setItemQuantity] = useState("");
 
   const handleSimulacaoChange = (itemNome: string, valor: string) => {
     setSimulacaoPrecos(prev => ({ ...prev, [itemNome]: valor }));
@@ -108,6 +111,43 @@ const Cardapio = () => {
   const calcularMargemSimulacao = (custoOriginal: number, novoPreco: number) => {
     if (!novoPreco || novoPreco <= 0) return 0;
     return ((novoPreco - custoOriginal) / custoOriginal) * 100;
+  };
+
+  // Função melhorada para calcular margem com validações
+  const calcularMargem = (precoVenda: number, custoTotal: number) => {
+    if (!precoVenda || !custoTotal || precoVenda <= 0 || custoTotal <= 0) return 0;
+    return ((precoVenda - custoTotal) / custoTotal) * 100;
+  };
+
+  // Função para determinar cor da margem baseada no valor
+  const getMargemColor = (margem: number) => {
+    if (margem < 0) return "text-red-600"; // Prejuízo
+    if (margem < 50) return "text-orange-600"; // Margem baixa
+    if (margem < 100) return "text-yellow-600"; // Margem média
+    return "text-green-600"; // Margem boa
+  };
+
+  // Função para classificar a margem
+  const getMargemClassificacao = (margem: number) => {
+    if (margem < 0) return "PREJUÍZO";
+    if (margem < 50) return "BAIXA";
+    if (margem < 100) return "MÉDIA";
+    if (margem < 200) return "BOA";
+    return "EXCELENTE";
+  };
+
+  // Função para converter unidades corretamente
+  const calcularCustoComQuantidade = (item: any, quantidade: number, tipoItem: string) => {
+    if (!item || !quantidade) return 0;
+
+    // Se o item está em kg e estamos calculando insumos, converter
+    if (item.unidade === 'kg' && tipoItem === 'insumo') {
+      // Quantidade está em gramas, custo está por kg
+      return item.custo * (quantidade / 1000);
+    }
+
+    // Para outros casos, multiplicação direta
+    return item.custo * quantidade;
   };
 
   const handleEditPrice = (itemNome: string, precoAtual: number) => {
@@ -264,6 +304,7 @@ const Cardapio = () => {
     setItemName("");
     setItemPrice("");
     setItemNotes("");
+    setItemQuantity("");
     setSelectedItemCategory("");
     setSelectedItemType("");
     setSelectedSearchItem(null);
@@ -1006,7 +1047,8 @@ const Cardapio = () => {
                         <TableHeader>
                           <TableRow className="border-b border-border/40">
                             <TableHead className="w-[5%] text-center py-3 text-xs font-medium text-muted-foreground">ID</TableHead>
-                            <TableHead className="w-[20%] py-3 text-xs font-medium text-muted-foreground">Item</TableHead>
+                            <TableHead className="w-[18%] py-3 text-xs font-medium text-muted-foreground">Item</TableHead>
+                            <TableHead className="w-[8%] text-center py-3 text-xs font-medium text-muted-foreground">Qtd</TableHead>
                             <TableHead className="w-[10%] text-center py-3 text-xs font-medium text-muted-foreground">Categoria</TableHead>
                             <TableHead className="w-[10%] text-center py-3 text-xs font-medium text-muted-foreground">Custo</TableHead>
                             <TableHead className="w-[10%] text-center py-3 text-xs font-medium text-muted-foreground">Preço</TableHead>
@@ -1039,6 +1081,20 @@ const Cardapio = () => {
                                       </div>
                                     );
                                   })()}
+                                </TableCell>
+                                <TableCell className="text-center py-3">
+                                  {item.quantidade ? (
+                                    <div className="text-center">
+                                      <span className="text-sm font-medium text-blue-600">
+                                        {item.quantidade}
+                                      </span>
+                                      <div className="text-xs text-muted-foreground">
+                                        {item.unidade || 'un'}
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <span className="text-xs text-muted-foreground">-</span>
+                                  )}
                                 </TableCell>
                                 <TableCell className="text-center py-3">
                                   <Badge
@@ -1229,7 +1285,8 @@ const Cardapio = () => {
                     <TableHeader>
                       <TableRow className="border-b border-border/40">
                         <TableHead className="w-[5%] text-center py-3 text-xs font-medium text-muted-foreground">ID</TableHead>
-                        <TableHead className="w-[20%] py-3 text-xs font-medium text-muted-foreground">Item</TableHead>
+                        <TableHead className="w-[18%] py-3 text-xs font-medium text-muted-foreground">Item</TableHead>
+                        <TableHead className="w-[8%] text-center py-3 text-xs font-medium text-muted-foreground">Qtd</TableHead>
                         <TableHead className="w-[10%] text-center py-3 text-xs font-medium text-muted-foreground">Custo</TableHead>
                         <TableHead className="w-[10%] text-center py-3 text-xs font-medium text-muted-foreground">Preço</TableHead>
                         <TableHead className="w-[10%] text-center py-3 text-xs font-medium text-muted-foreground">Margem</TableHead>
@@ -1260,6 +1317,20 @@ const Cardapio = () => {
                                 </div>
                               );
                             })()}
+                          </TableCell>
+                          <TableCell className="text-center py-3">
+                            {item.quantidade ? (
+                              <div className="text-center">
+                                <span className="text-sm font-medium text-blue-600">
+                                  {item.quantidade}
+                                </span>
+                                <div className="text-xs text-muted-foreground">
+                                  {item.unidade || 'un'}
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">-</span>
+                            )}
                           </TableCell>
                           <TableCell className="text-center py-3">
                             <span className="font-medium text-sm text-destructive">
@@ -2365,7 +2436,7 @@ const Cardapio = () => {
             </div>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto py-6">
+          <div className="flex-1 overflow-y-auto py-6 px-6">
             <div className="grid grid-cols-12 gap-6">
               {/* Seção Principal - Formulário */}
               <div className="col-span-12 lg:col-span-7 space-y-6">
@@ -2446,6 +2517,8 @@ const Cardapio = () => {
                           setSelectedSearchItem(item);
                           if (item) {
                             setItemName(item.nome);
+                            // Resetar quantidade quando trocar de item
+                            setItemQuantity("");
                           }
                         }}
                       >
@@ -2465,6 +2538,38 @@ const Cardapio = () => {
                       </Select>
                       <p className="text-xs text-muted-foreground">
                         Selecione um item existente para aproveitar as informações de custo
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Campo Quantidade - Movido para depois da busca */}
+                  {selectedSearchItem && (
+                    <div className="space-y-2">
+                      <Label htmlFor="item-quantity" className="text-sm font-medium">
+                        Quantidade *
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          id="item-quantity"
+                          type="number"
+                          value={itemQuantity}
+                          onChange={(e) => setItemQuantity(e.target.value)}
+                          placeholder="1"
+                          step={selectedItemType === "insumo" ? "0.001" : "1"}
+                          min="0.001"
+                          className="h-11 flex-1"
+                        />
+                        <div className="text-sm text-muted-foreground bg-gray-50 px-3 py-2 rounded border min-w-[60px] text-center">
+                          {selectedSearchItem.unidade === 'kg' ? 'g' : (selectedSearchItem.unidade || (selectedItemType === "insumo" ? "g" : "un"))}
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {selectedItemType === "insumo"
+                          ? `Quantidade em ${selectedSearchItem.unidade === 'kg' ? 'gramas (será convertido)' : selectedSearchItem.unidade || 'gramas'} conforme o insumo`
+                          : selectedItemType === "receita"
+                          ? "Quantidade em gramas da receita utilizada"
+                          : "Quantidade em unidades do item (copos base ou combinados)"
+                        }
                       </p>
                     </div>
                   )}
@@ -2507,6 +2612,7 @@ const Cardapio = () => {
                       </div>
                     </div>
                   </div>
+
 
                   <div className="space-y-2">
                     <Label htmlFor="item-name" className="text-sm font-medium">Nome no Cardápio *</Label>
@@ -2576,10 +2682,15 @@ const Cardapio = () => {
                             </div>
                             <div className="text-right">
                               <p className="text-lg font-bold text-green-600">R$ {parseFloat(itemPrice).toFixed(2)}</p>
-                              {selectedSearchItem && (
-                                <p className="text-xs text-gray-500">
-                                  Margem: {(((parseFloat(itemPrice) - selectedSearchItem.custo) / selectedSearchItem.custo) * 100).toFixed(1)}%
-                                </p>
+                              {selectedSearchItem && itemQuantity && (
+                                <>
+                                  <p className="text-xs text-gray-500">
+                                    Qtd: {parseFloat(itemQuantity)}{selectedSearchItem.unidade}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    Margem: {(((parseFloat(itemPrice) - (selectedSearchItem.custo * parseFloat(itemQuantity))) / (selectedSearchItem.custo * parseFloat(itemQuantity))) * 100).toFixed(1)}%
+                                  </p>
+                                </>
                               )}
                             </div>
                           </div>
@@ -2602,15 +2713,46 @@ const Cardapio = () => {
                       <div className="space-y-3">
                         <div className="grid grid-cols-2 gap-4">
                           <div className="p-3 bg-red-50 rounded-lg border border-red-100">
-                            <p className="text-xs text-red-600 font-medium">CUSTO</p>
-                            <p className="text-lg font-bold text-red-700">R$ {selectedSearchItem.custo?.toFixed(2)}</p>
+                            <p className="text-xs text-red-600 font-medium">CUSTO TOTAL</p>
+                            <p className="text-lg font-bold text-red-700">
+                              R$ {(() => {
+                                if (!itemQuantity) return selectedSearchItem.custo?.toFixed(4) || '0.0000';
+                                const quantidade = parseFloat(itemQuantity);
+                                let quantidadeAjustada = quantidade;
+                                if (selectedSearchItem.unidade === 'kg' && selectedItemType === 'insumo') {
+                                  quantidadeAjustada = quantidade / 1000;
+                                }
+                                return (selectedSearchItem.custo * quantidadeAjustada).toFixed(4);
+                              })()}
+                            </p>
+                            {itemQuantity && (
+                              <p className="text-xs text-red-500">
+                                {parseFloat(itemQuantity)}{selectedSearchItem.unidade === 'kg' ? 'g' : selectedSearchItem.unidade} × R$ {selectedSearchItem.custo?.toFixed(4)}
+                                {selectedSearchItem.unidade === 'kg' && ' /kg'}
+                              </p>
+                            )}
                           </div>
                           {itemPrice && (
                             <div className="p-3 bg-green-50 rounded-lg border border-green-100">
                               <p className="text-xs text-green-600 font-medium">MARGEM</p>
-                              <p className="text-lg font-bold text-green-700">
-                                {(((parseFloat(itemPrice) - selectedSearchItem.custo) / selectedSearchItem.custo) * 100).toFixed(1)}%
-                              </p>
+                              {(() => {
+                                const custoCalculado = itemQuantity ?
+                                  (selectedSearchItem.custo * parseFloat(itemQuantity)) :
+                                  selectedSearchItem.custo;
+                                const margem = calcularMargem(parseFloat(itemPrice), custoCalculado);
+                                const classificacao = getMargemClassificacao(margem);
+
+                                return (
+                                  <>
+                                    <p className={`text-lg font-bold ${getMargemColor(margem)}`}>
+                                      {margem.toFixed(1)}%
+                                    </p>
+                                    <p className={`text-xs font-medium ${getMargemColor(margem)}`}>
+                                      {classificacao}
+                                    </p>
+                                  </>
+                                );
+                              })()}
                             </div>
                           )}
                         </div>
@@ -2643,9 +2785,12 @@ const Cardapio = () => {
                           )}
                           {itemPrice && (
                             <div className="flex items-center justify-between text-sm mt-1 pt-1 border-t">
-                              <span className="text-muted-foreground">Lucro por unidade:</span>
+                              <span className="text-muted-foreground">Lucro total:</span>
                               <span className="font-medium text-green-600">
-                                R$ {(parseFloat(itemPrice) - selectedSearchItem.custo).toFixed(2)}
+                                R$ {itemQuantity ?
+                                  (parseFloat(itemPrice) - (selectedSearchItem.custo * parseFloat(itemQuantity))).toFixed(2)
+                                  : (parseFloat(itemPrice) - selectedSearchItem.custo).toFixed(2)
+                                }
                               </span>
                             </div>
                           )}
@@ -2660,60 +2805,240 @@ const Cardapio = () => {
                   <Card>
                     <CardHeader className="pb-3">
                       <CardTitle className="text-lg flex items-center gap-2">
-                        <Package className="w-5 h-5" />
-                        Composição
+                        <Package className="w-5 h-5 text-purple-600" />
+                        Composição do {selectedItemType === "copo-base" ? "Copo Base" : "Combinado"}
                       </CardTitle>
+                      <div className="text-sm text-muted-foreground">
+                        Insumos que compõem este produto
+                      </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         {selectedSearchItem.composicao.map((comp: any, index: number) => (
-                          <div key={index} className="p-3 bg-gray-50 rounded-lg border">
+                          <div key={index} className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
                             <div className="flex justify-between items-start">
                               <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <p className="font-medium text-sm">{comp.insumo.nome}</p>
-                                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
-                                    {comp.quantidade}
-                                  </span>
+                                <div className="flex items-center gap-3 mb-2">
+                                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">
+                                    {index + 1}
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold text-gray-900">{comp.insumo.nome}</p>
+                                    <p className="text-xs text-gray-600">{comp.insumo.id}</p>
+                                  </div>
                                 </div>
-                                <div className="flex items-center gap-1">
-                                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                                  <span className="text-xs text-muted-foreground">
-                                    Fornecedor: {comp.insumo.fornecedorPadrao}
-                                  </span>
+
+                                <div className="ml-11 space-y-1">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                    <span className="text-sm text-blue-700 font-medium">
+                                      {comp.insumo.fornecedorPadrao}
+                                    </span>
+                                    <span className="text-xs text-gray-500">(Fornecedor)</span>
+                                  </div>
+
+                                  <div className="flex items-center gap-4 text-xs text-gray-600">
+                                    <div className="flex items-center gap-1">
+                                      <span className="font-medium">Quantidade:</span>
+                                      <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                                        {comp.quantidade}{comp.insumo.unidade}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <span className="font-medium">Custo/unidade:</span>
+                                      <span>R$ {(comp.custo / comp.quantidade).toFixed(4)}</span>
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
-                              <div className="text-right">
-                                <p className="text-sm font-medium">R$ {comp.custo.toFixed(2)}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {comp.insumo.id}
-                                </p>
+
+                              <div className="text-right ml-4">
+                                <div className="bg-white px-3 py-2 rounded-lg border shadow-sm">
+                                  <p className="text-sm text-gray-600">Custo Total</p>
+                                  <p className="text-lg font-bold text-red-700">R$ {comp.custo.toFixed(2)}</p>
+                                </div>
                               </div>
                             </div>
                           </div>
                         ))}
-                        <div className="flex justify-between items-center pt-3 border-t font-medium">
-                          <span>Custo Total:</span>
-                          <span className="text-lg text-red-600">R$ {selectedSearchItem.custo.toFixed(2)}</span>
+
+                        {/* Totalizador */}
+                        <div className="border-t pt-4 mt-4">
+                          <div className="flex justify-between items-center p-4 bg-gradient-to-r from-red-50 to-orange-50 rounded-lg border border-red-200">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-orange-600 rounded-lg flex items-center justify-center">
+                                <Calculator className="w-5 h-5 text-white" />
+                              </div>
+                              <div>
+                                <div className="font-bold text-lg text-gray-900">Custo Total do Produto</div>
+                                <div className="text-sm text-gray-600">
+                                  {selectedSearchItem.composicao.length} insumo{selectedSearchItem.composicao.length > 1 ? 's' : ''} •
+                                  {itemQuantity && ` ${parseFloat(itemQuantity)} unidades`}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-2xl font-bold text-red-700">
+                                {(() => {
+                                  if (!itemQuantity) return `R$ ${selectedSearchItem.custo.toFixed(4)}`;
+                                  const quantidade = parseFloat(itemQuantity);
+                                  let quantidadeAjustada = quantidade;
+                                  if (selectedSearchItem.unidade === 'kg' && selectedItemType === 'insumo') {
+                                    quantidadeAjustada = quantidade / 1000;
+                                  }
+                                  return `R$ ${(selectedSearchItem.custo * quantidadeAjustada).toFixed(4)}`;
+                                })()}
+                              </div>
+                              {itemQuantity && (
+                                <div className="text-sm text-gray-600">
+                                  R$ {selectedSearchItem.custo.toFixed(4)}{selectedSearchItem.unidade === 'kg' ? '/kg' : `/${selectedSearchItem.unidade}`} × {parseFloat(itemQuantity)}{selectedSearchItem.unidade === 'kg' ? 'g' : selectedSearchItem.unidade}
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
 
-                        {/* Resumo de Fornecedores */}
-                        <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                          <h5 className="text-sm font-medium text-blue-900 mb-2">Fornecedores Envolvidos:</h5>
-                          <div className="space-y-1">
+                        {/* Resumo de Fornecedores Aprimorado */}
+                        <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                          <h5 className="text-sm font-bold text-blue-900 mb-3 flex items-center gap-2">
+                            <div className="w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center">
+                              <Users className="w-2.5 h-2.5 text-white" />
+                            </div>
+                            Fornecedores Envolvidos
+                          </h5>
+                          <div className="grid grid-cols-1 gap-2">
                             {Array.from(new Set(selectedSearchItem.composicao.map((comp: any) => comp.insumo.fornecedorPadrao)))
-                              .map((fornecedor: string, index: number) => (
-                              <div key={index} className="flex items-center gap-2 text-xs">
-                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-                                <span className="text-blue-700 font-medium">{fornecedor}</span>
-                                <span className="text-blue-600">
-                                  ({selectedSearchItem.composicao.filter((comp: any) => comp.insumo.fornecedorPadrao === fornecedor).length} item{selectedSearchItem.composicao.filter((comp: any) => comp.insumo.fornecedorPadrao === fornecedor).length > 1 ? 's' : ''})
-                                </span>
-                              </div>
-                            ))}
+                              .map((fornecedor: string, index: number) => {
+                                const itensDoFornecedor = selectedSearchItem.composicao.filter((comp: any) => comp.insumo.fornecedorPadrao === fornecedor);
+                                const custoTotal = itensDoFornecedor.reduce((sum: number, comp: any) => sum + comp.custo, 0);
+                                return (
+                                  <div key={index} className="flex items-center justify-between p-2 bg-white rounded border border-blue-100">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                      <span className="text-blue-900 font-medium text-sm">{fornecedor}</span>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-xs">
+                                      <span className="text-blue-700">
+                                        {itensDoFornecedor.length} item{itensDoFornecedor.length > 1 ? 's' : ''}
+                                      </span>
+                                      <span className="font-bold text-blue-900">
+                                        R$ {custoTotal.toFixed(2)}
+                                      </span>
+                                    </div>
+                                  </div>
+                                );
+                              })}
                           </div>
                         </div>
                       </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Análise de Margem */}
+                {selectedSearchItem && itemPrice && itemQuantity && (
+                  <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5 text-green-600" />
+                        Análise de Rentabilidade
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {(() => {
+                        let custoCalculado = selectedSearchItem.custo * parseFloat(itemQuantity);
+                        // Converter unidades se necessário (kg para gramas)
+                        if (selectedSearchItem.unidade === 'kg' && selectedItemType === 'insumo') {
+                          custoCalculado = selectedSearchItem.custo * (parseFloat(itemQuantity) / 1000);
+                        }
+                        const precoVenda = parseFloat(itemPrice);
+                        const margem = calcularMargem(precoVenda, custoCalculado);
+                        const lucroTotal = precoVenda - custoCalculado;
+                        const classificacao = getMargemClassificacao(margem);
+
+                        return (
+                          <div className="space-y-4">
+                            {/* Resumo Financeiro */}
+                            <div className="grid grid-cols-3 gap-4">
+                              <div className="text-center p-3 bg-white rounded-lg border shadow-sm">
+                                <p className="text-xs text-gray-600 font-medium">CUSTO</p>
+                                <p className="text-lg font-bold text-red-600">
+                                  R$ {custoCalculado.toFixed(4)}
+                                </p>
+                              </div>
+                              <div className="text-center p-3 bg-white rounded-lg border shadow-sm">
+                                <p className="text-xs text-gray-600 font-medium">VENDA</p>
+                                <p className="text-lg font-bold text-blue-600">
+                                  R$ {precoVenda.toFixed(2)}
+                                </p>
+                              </div>
+                              <div className="text-center p-3 bg-white rounded-lg border shadow-sm">
+                                <p className="text-xs text-gray-600 font-medium">LUCRO</p>
+                                <p className={`text-lg font-bold ${getMargemColor(margem)}`}>
+                                  R$ {lucroTotal.toFixed(4)}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Indicador de Margem */}
+                            <div className="bg-white p-4 rounded-lg border shadow-sm">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm font-medium text-gray-700">Margem de Lucro</span>
+                                <div className="flex items-center gap-2">
+                                  <span className={`text-xl font-bold ${getMargemColor(margem)}`}>
+                                    {margem.toFixed(1)}%
+                                  </span>
+                                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                                    margem < 0 ? 'bg-red-100 text-red-700' :
+                                    margem < 50 ? 'bg-orange-100 text-orange-700' :
+                                    margem < 100 ? 'bg-yellow-100 text-yellow-700' :
+                                    'bg-green-100 text-green-700'
+                                  }`}>
+                                    {classificacao}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Barra de Progresso da Margem */}
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div
+                                  className={`h-2 rounded-full transition-all ${
+                                    margem < 0 ? 'bg-red-500' :
+                                    margem < 50 ? 'bg-orange-500' :
+                                    margem < 100 ? 'bg-yellow-500' :
+                                    'bg-green-500'
+                                  }`}
+                                  style={{width: `${Math.min(Math.max(margem, 0), 200)}%`}}
+                                ></div>
+                              </div>
+
+                              {/* Recomendações */}
+                              <div className="mt-3 text-xs">
+                                {margem < 0 && (
+                                  <p className="text-red-600 bg-red-50 p-2 rounded">
+                                    ⚠️ ATENÇÃO: Este item está em prejuízo! O preço de venda é menor que o custo.
+                                  </p>
+                                )}
+                                {margem >= 0 && margem < 50 && (
+                                  <p className="text-orange-600 bg-orange-50 p-2 rounded">
+                                    💡 Margem baixa. Considere aumentar o preço ou reduzir custos.
+                                  </p>
+                                )}
+                                {margem >= 50 && margem < 100 && (
+                                  <p className="text-yellow-600 bg-yellow-50 p-2 rounded">
+                                    ✅ Margem aceitável, mas há espaço para melhorar.
+                                  </p>
+                                )}
+                                {margem >= 100 && (
+                                  <p className="text-green-600 bg-green-50 p-2 rounded">
+                                    🎯 Excelente margem! Este item tem boa rentabilidade.
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </CardContent>
                   </Card>
                 )}
@@ -2757,21 +3082,31 @@ const Cardapio = () => {
                 Cancelar
               </Button>
               <Button
-                disabled={!selectedItemCategory || !itemName || !itemPrice}
+                disabled={!selectedItemCategory || !itemName || !itemPrice || (selectedSearchItem && !itemQuantity)}
                 onClick={() => {
                   const preco = parseFloat(itemPrice);
-                  const custoEstimado = preco * 0.4; // Estima custo como 40% do preço
+                  const quantidade = parseFloat(itemQuantity) || 1;
+
+                  // Calcular custo baseado na quantidade se item foi selecionado
+                  let custoCalculado = preco * 0.4; // Fallback: estima custo como 40% do preço
+
+                  if (selectedSearchItem) {
+                    custoCalculado = calcularCustoComQuantidade(selectedSearchItem, quantidade, selectedItemType);
+                  }
 
                   if (selectedItemCategory && itemName && preco && preco > 0) {
                     const novoItem = {
                       id: itemId || `item_${Date.now()}`,
                       nome: itemName,
                       preco: preco,
-                      custo: custoEstimado,
-                      margem: ((preco - custoEstimado) / custoEstimado) * 100,
+                      custo: custoCalculado,
+                      margem: ((preco - custoCalculado) / custoCalculado) * 100,
                       disponivel: true,
                       tipo: selectedItemType || "receita",
-                      fornecedor: null
+                      fornecedor: selectedSearchItem?.fornecedorPadrao || null,
+                      quantidade: selectedSearchItem ? quantidade : undefined,
+                      unidade: selectedSearchItem?.unidade || undefined,
+                      itemReferencia: selectedSearchItem?.id || undefined
                     };
 
                     setManagedCategorias(prev =>
