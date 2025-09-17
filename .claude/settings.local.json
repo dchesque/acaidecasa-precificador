@@ -25,7 +25,8 @@
       "Bash(taskkill:*)",
       "Bash(move srcpagesCombinados.tsx srcpagesCombinados.backup.tsx)",
       "Bash(move srcpagesCombinadosFixed.tsx srcpagesCombinados.tsx)",
-      "Bash(netstat:*)"
+      "Bash(netstat:*)",
+      "Bash(sed:*)"
     ],
     "deny": [],
     "ask": []
