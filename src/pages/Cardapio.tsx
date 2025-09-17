@@ -2840,9 +2840,9 @@ const Cardapio = () => {
                               </div>
 
                               <div className="text-right ml-4">
-                                <div className="bg-white px-3 py-2 rounded-lg border shadow-sm">
-                                  <p className="text-sm text-gray-600">Custo Total</p>
-                                  <p className="text-lg font-bold text-red-700">R$ {comp.custo.toFixed(2)}</p>
+                                <div className="bg-white px-2 py-1.5 rounded-lg border shadow-sm min-w-[80px]">
+                                  <p className="text-xs text-gray-600 leading-tight">Custo</p>
+                                  <p className="text-sm font-bold text-red-700 leading-tight whitespace-nowrap">R$ {comp.custo.toFixed(2)}</p>
                                 </div>
                               </div>
                             </div>
