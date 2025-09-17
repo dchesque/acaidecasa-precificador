@@ -2802,47 +2802,27 @@ const Cardapio = () => {
                     <CardContent>
                       <div className="space-y-3">
                         {selectedSearchItem.composicao.map((comp: any, index: number) => (
-                          <div key={index} className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
-                            <div className="flex justify-between items-start">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-2">
-                                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">
-                                    {index + 1}
-                                  </div>
-                                  <div>
-                                    <p className="font-semibold text-gray-900">{comp.insumo.nome}</p>
-                                    <p className="text-xs text-gray-600">{comp.insumo.id}</p>
-                                  </div>
-                                </div>
-
-                                <div className="ml-11 space-y-1">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                                    <span className="text-sm text-blue-700 font-medium">
-                                      {comp.insumo.fornecedorPadrao}
-                                    </span>
-                                    <span className="text-xs text-gray-500">(Fornecedor)</span>
-                                  </div>
-
-                                  <div className="flex items-center gap-4 text-xs text-gray-600">
-                                    <div className="flex items-center gap-1">
-                                      <span className="font-medium">Quantidade:</span>
-                                      <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
-                                        {comp.quantidade}{comp.insumo.unidade}
-                                      </span>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                      <span className="font-medium">Custo/unidade:</span>
-                                      <span>R$ {(comp.custo / comp.quantidade).toFixed(4)}</span>
-                                    </div>
-                                  </div>
-                                </div>
+                          <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                            <div className="flex items-center gap-3 flex-1">
+                              <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                                {index + 1}
                               </div>
-
-                              <div className="text-right ml-4">
-                                <div className="bg-white px-2 py-1.5 rounded-lg border shadow-sm min-w-[80px]">
-                                  <p className="text-xs text-gray-600 leading-tight">Custo</p>
-                                  <p className="text-sm font-bold text-red-700 leading-tight whitespace-nowrap">R$ {comp.custo.toFixed(2)}</p>
+                              <div className="flex-1">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="font-medium text-sm text-gray-900">{comp.insumo.nome}</p>
+                                    <p className="text-xs text-blue-600">
+                                      <span className="font-medium">{comp.insumo.fornecedorPadrao}</span>
+                                    </p>
+                                  </div>
+                                  <div className="text-right ml-2">
+                                    <p className="text-xs text-gray-600">
+                                      {comp.quantidade}{comp.insumo.unidade}
+                                    </p>
+                                    <p className="text-sm font-bold text-red-600">
+                                      R$ {comp.custo.toFixed(2)}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
                             </div>
