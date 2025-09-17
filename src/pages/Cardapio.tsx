@@ -2883,19 +2883,19 @@ const Cardapio = () => {
                               <div className="text-center p-2 bg-white rounded-lg border shadow-sm">
                                 <p className="text-xs text-gray-600 font-medium">CUSTO</p>
                                 <p className="text-sm font-bold text-red-600">
-                                  R$ {custoCalculado.toFixed(3)}
+                                  R$ {custoCalculado.toFixed(2)}
                                 </p>
                               </div>
                               <div className="text-center p-2 bg-white rounded-lg border shadow-sm">
                                 <p className="text-xs text-gray-600 font-medium">VENDA</p>
                                 <p className="text-sm font-bold text-blue-600">
-                                  R$ {precoVenda.toFixed(3)}
+                                  R$ {precoVenda.toFixed(2)}
                                 </p>
                               </div>
                               <div className="text-center p-2 bg-white rounded-lg border shadow-sm">
                                 <p className="text-xs text-gray-600 font-medium">LUCRO</p>
                                 <p className={`text-sm font-bold ${getMargemColor(margem)}`}>
-                                  R$ {lucroTotal.toFixed(3)}
+                                  R$ {lucroTotal.toFixed(2)}
                                 </p>
                               </div>
                             </div>
