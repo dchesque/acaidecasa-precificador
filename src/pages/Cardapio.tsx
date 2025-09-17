@@ -140,13 +140,8 @@ const Cardapio = () => {
   const calcularCustoComQuantidade = (item: any, quantidade: number, tipoItem: string) => {
     if (!item || !quantidade) return 0;
 
-    // Se o item está em kg e estamos calculando insumos, converter
-    if (item.unidade === 'kg' && tipoItem === 'insumo') {
-      // Quantidade está em gramas, custo está por kg
-      return item.custo * (quantidade / 1000);
-    }
-
-    // Para outros casos, multiplicação direta
+    // Para insumos, usar multiplicação direta na unidade original
+    // Exemplo: 0.2 kg × R$ 3.20/kg = R$ 0.64
     return item.custo * quantidade;
   };
 
@@ -2560,12 +2555,12 @@ const Cardapio = () => {
                           className="h-11 flex-1"
                         />
                         <div className="text-sm text-muted-foreground bg-gray-50 px-3 py-2 rounded border min-w-[60px] text-center">
-                          {selectedSearchItem.unidade === 'kg' ? 'g' : (selectedSearchItem.unidade || (selectedItemType === "insumo" ? "g" : "un"))}
+                          {selectedSearchItem.unidade || (selectedItemType === "insumo" ? "g" : "un")}
                         </div>
                       </div>
                       <p className="text-xs text-muted-foreground">
                         {selectedItemType === "insumo"
-                          ? `Quantidade em ${selectedSearchItem.unidade === 'kg' ? 'gramas (será convertido)' : selectedSearchItem.unidade || 'gramas'} conforme o insumo`
+                          ? `Quantidade em ${selectedSearchItem.unidade || 'gramas'} conforme o insumo (ex: 0.2 para 200g se unidade for kg)`
                           : selectedItemType === "receita"
                           ? "Quantidade em gramas da receita utilizada"
                           : "Quantidade em unidades do item (copos base ou combinados)"
@@ -2715,20 +2710,14 @@ const Cardapio = () => {
                           <div className="p-3 bg-red-50 rounded-lg border border-red-100">
                             <p className="text-xs text-red-600 font-medium">CUSTO TOTAL</p>
                             <p className="text-lg font-bold text-red-700">
-                              R$ {(() => {
-                                if (!itemQuantity) return selectedSearchItem.custo?.toFixed(4) || '0.0000';
-                                const quantidade = parseFloat(itemQuantity);
-                                let quantidadeAjustada = quantidade;
-                                if (selectedSearchItem.unidade === 'kg' && selectedItemType === 'insumo') {
-                                  quantidadeAjustada = quantidade / 1000;
-                                }
-                                return (selectedSearchItem.custo * quantidadeAjustada).toFixed(4);
-                              })()}
+                              R$ {itemQuantity ?
+                                (selectedSearchItem.custo * parseFloat(itemQuantity)).toFixed(4) :
+                                selectedSearchItem.custo?.toFixed(4) || '0.0000'
+                              }
                             </p>
                             {itemQuantity && (
                               <p className="text-xs text-red-500">
-                                {parseFloat(itemQuantity)}{selectedSearchItem.unidade === 'kg' ? 'g' : selectedSearchItem.unidade} × R$ {selectedSearchItem.custo?.toFixed(4)}
-                                {selectedSearchItem.unidade === 'kg' && ' /kg'}
+                                {parseFloat(itemQuantity)}{selectedSearchItem.unidade} × R$ {selectedSearchItem.custo?.toFixed(4)}/{selectedSearchItem.unidade}
                               </p>
                             )}
                           </div>
@@ -2736,9 +2725,7 @@ const Cardapio = () => {
                             <div className="p-3 bg-green-50 rounded-lg border border-green-100">
                               <p className="text-xs text-green-600 font-medium">MARGEM</p>
                               {(() => {
-                                const custoCalculado = itemQuantity ?
-                                  (selectedSearchItem.custo * parseFloat(itemQuantity)) :
-                                  selectedSearchItem.custo;
+                                const custoCalculado = calcularCustoComQuantidade(selectedSearchItem, parseFloat(itemQuantity) || 1, selectedItemType);
                                 const margem = calcularMargem(parseFloat(itemPrice), custoCalculado);
                                 const classificacao = getMargemClassificacao(margem);
 
@@ -2879,19 +2866,14 @@ const Cardapio = () => {
                             </div>
                             <div className="text-right">
                               <div className="text-2xl font-bold text-red-700">
-                                {(() => {
-                                  if (!itemQuantity) return `R$ ${selectedSearchItem.custo.toFixed(4)}`;
-                                  const quantidade = parseFloat(itemQuantity);
-                                  let quantidadeAjustada = quantidade;
-                                  if (selectedSearchItem.unidade === 'kg' && selectedItemType === 'insumo') {
-                                    quantidadeAjustada = quantidade / 1000;
-                                  }
-                                  return `R$ ${(selectedSearchItem.custo * quantidadeAjustada).toFixed(4)}`;
-                                })()}
+                                {itemQuantity ?
+                                  `R$ ${calcularCustoComQuantidade(selectedSearchItem, parseFloat(itemQuantity), selectedItemType).toFixed(4)}` :
+                                  `R$ ${selectedSearchItem.custo.toFixed(4)}`
+                                }
                               </div>
                               {itemQuantity && (
                                 <div className="text-sm text-gray-600">
-                                  R$ {selectedSearchItem.custo.toFixed(4)}{selectedSearchItem.unidade === 'kg' ? '/kg' : `/${selectedSearchItem.unidade}`} × {parseFloat(itemQuantity)}{selectedSearchItem.unidade === 'kg' ? 'g' : selectedSearchItem.unidade}
+                                  R$ {selectedSearchItem.custo.toFixed(4)}/{selectedSearchItem.unidade} × {parseFloat(itemQuantity)}{selectedSearchItem.unidade}
                                 </div>
                               )}
                             </div>
@@ -2946,11 +2928,7 @@ const Cardapio = () => {
                     </CardHeader>
                     <CardContent>
                       {(() => {
-                        let custoCalculado = selectedSearchItem.custo * parseFloat(itemQuantity);
-                        // Converter unidades se necessário (kg para gramas)
-                        if (selectedSearchItem.unidade === 'kg' && selectedItemType === 'insumo') {
-                          custoCalculado = selectedSearchItem.custo * (parseFloat(itemQuantity) / 1000);
-                        }
+                        const custoCalculado = calcularCustoComQuantidade(selectedSearchItem, parseFloat(itemQuantity), selectedItemType);
                         const precoVenda = parseFloat(itemPrice);
                         const margem = calcularMargem(precoVenda, custoCalculado);
                         const lucroTotal = precoVenda - custoCalculado;
