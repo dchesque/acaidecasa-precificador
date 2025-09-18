@@ -11,20 +11,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { 
-  Settings, 
-  Users, 
-  Package, 
-  ChefHat, 
-  Coffee, 
-  Layers, 
+import {
+  Settings,
+  Users,
+  Package,
+  ChefHat,
+  Coffee,
+  Layers,
   LayoutDashboard,
   UserCircle,
   Building2,
   MenuSquare,
   User,
   LogOut,
-  ChevronUp
+  ChevronUp,
+  GlassWater
 } from "lucide-react";
 
 export const Navigation = () => {
@@ -93,7 +94,7 @@ export const Navigation = () => {
         
         <NavItem
           href="/copos-base"
-          icon={<Coffee className="h-5 w-5" />}
+          icon={<GlassWater className="h-5 w-5" />}
           label="Copos Base"
           isCollapsed={isCollapsed}
           color="text-amber-400"

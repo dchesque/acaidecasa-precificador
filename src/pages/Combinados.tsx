@@ -42,91 +42,154 @@ const Combinados = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [viewMode, setViewMode] = useState<"complete" | "by-category">("by-category");
 
-  // Dados mockados simplificados para desenvolvimento
+  // Dados mockados consistentes com outras páginas
   const combinadosMock: Combinado[] = [
     {
-      id: "1",
+      id: "COMB001",
       nome: "Açaí Completo 500ml",
-      descricao: "Açaí completo com granola, banana, morango e leite condensado",
+      descricao: "Açaí premium com banana, granola e mel - nossa especialidade",
       categoriaId: "cat1",
       categoria: {
         id: "cat1",
         nome: "Premium",
-        descricao: "Produtos premium",
+        descricao: "Produtos premium da casa",
         cor: "#8b5cf6",
         ativo: true,
-        createdAt: new Date('2023-01-01'),
-        updatedAt: new Date('2023-01-01')
+        createdAt: new Date(),
+        updatedAt: new Date()
       },
-      copoBaseId: "copo1",
+      copoBaseId: "COPO002",
       copoBase: {
-        id: "copo1",
-        nome: "Copo 500ml Premium",
-        custoTotal: 5.50
+        id: "COPO002",
+        nome: "Copo 500ml Tradicional",
+        custoTotal: 6.20
       },
-      complementos: [],
-      custoCopoBase: 5.50,
-      custoComplementos: 1.25,
-      custoTotal: 6.75,
+      complementos: [
+        {
+          id: "comp1",
+          combinadoId: "COMB001",
+          insumoId: "INS003",
+          quantidade: 30,
+          custo: 0.27, // 30 * 0.0089
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "INS003", nome: "Granola Artesanal", unidadeMedida: { sigla: "g" } }
+        },
+        {
+          id: "comp2",
+          combinadoId: "COMB001",
+          insumoId: "INS004",
+          quantidade: 20,
+          custo: 0.31, // 20 * 0.0155
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "INS004", nome: "Mel Orgânico", unidadeMedida: { sigla: "g" } }
+        }
+      ],
+      custoCopoBase: 6.20,
+      custoComplementos: 0.58, // 0.27 + 0.31
+      custoTotal: 6.78,
       ativo: true,
-      createdAt: new Date('2023-01-01'),
-      updatedAt: new Date('2023-01-01')
+      createdAt: new Date(),
+      updatedAt: new Date()
     },
     {
-      id: "2",
+      id: "COMB002",
       nome: "Açaí Fitness 300ml",
-      descricao: "Açaí fit com granola light, banana e castanhas",
+      descricao: "Açaí saudável com aveia e granola - ideal para fitness",
       categoriaId: "cat2",
       categoria: {
         id: "cat2",
         nome: "Saudável",
-        descricao: "Opções saudáveis",
+        descricao: "Opções fitness e saudáveis",
         cor: "#10b981",
         ativo: true,
-        createdAt: new Date('2023-01-01'),
-        updatedAt: new Date('2023-01-01')
+        createdAt: new Date(),
+        updatedAt: new Date()
       },
-      copoBaseId: "copo2",
+      copoBaseId: "COPO001",
       copoBase: {
-        id: "copo2",
-        nome: "Copo 300ml Fitness",
-        custoTotal: 4.20
+        id: "COPO001",
+        nome: "Copo 300ml Premium",
+        custoTotal: 4.50
       },
-      complementos: [],
-      custoCopoBase: 4.20,
-      custoComplementos: 0,
-      custoTotal: 4.20,
+      complementos: [
+        {
+          id: "comp3",
+          combinadoId: "COMB002",
+          insumoId: "INS005",
+          quantidade: 25,
+          custo: 0.12, // 25 * 0.0048
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "INS005", nome: "Aveia em Flocos", unidadeMedida: { sigla: "g" } }
+        },
+        {
+          id: "comp4",
+          combinadoId: "COMB002",
+          insumoId: "INS003",
+          quantidade: 20,
+          custo: 0.18, // 20 * 0.0089
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "INS003", nome: "Granola Artesanal", unidadeMedida: { sigla: "g" } }
+        }
+      ],
+      custoCopoBase: 4.50,
+      custoComplementos: 0.30, // 0.12 + 0.18
+      custoTotal: 4.80,
       ativo: true,
-      createdAt: new Date('2023-01-01'),
-      updatedAt: new Date('2023-01-01')
+      createdAt: new Date(),
+      updatedAt: new Date()
     },
     {
-      id: "3",
-      nome: "Açaí Kids 200ml",
-      descricao: "Açaí infantil com granola, banana e chocolate granulado",
+      id: "COMB003",
+      nome: "Smoothie Verde 400ml",
+      descricao: "Smoothie nutritivo com aveia, banana e mel - energia natural",
       categoriaId: "cat3",
       categoria: {
         id: "cat3",
-        nome: "Infantil",
-        descricao: "Para crianças",
+        nome: "Smoothies",
+        descricao: "Smoothies nutritivos",
         cor: "#f59e0b",
         ativo: true,
-        createdAt: new Date('2023-01-01'),
-        updatedAt: new Date('2023-01-01')
+        createdAt: new Date(),
+        updatedAt: new Date()
       },
-      copoBaseId: "copo3",
+      copoBaseId: "COPO003",
       copoBase: {
-        id: "copo3",
-        nome: "Copo 200ml Kids",
-        custoTotal: 2.85
+        id: "COPO003",
+        nome: "Copo 400ml Especial",
+        custoTotal: 3.85
       },
-      complementos: [],
-      custoCopoBase: 2.85,
-      custoComplementos: 0,
-      custoTotal: 2.85,
+      complementos: [
+        {
+          id: "comp5",
+          combinadoId: "COMB003",
+          insumoId: "INS005",
+          quantidade: 40,
+          custo: 0.19, // 40 * 0.0048
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "INS005", nome: "Aveia em Flocos", unidadeMedida: { sigla: "g" } }
+        },
+        {
+          id: "comp6",
+          combinadoId: "COMB003",
+          insumoId: "INS002",
+          quantidade: 80,
+          custo: 0.26, // 80 * 0.0032
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "INS002", nome: "Banana Prata", unidadeMedida: { sigla: "g" } }
+        }
+      ],
+      custoCopoBase: 3.85,
+      custoComplementos: 0.45, // 0.19 + 0.26
+      custoTotal: 4.30,
       ativo: true,
-      createdAt: new Date('2023-01-01'),
-      updatedAt: new Date('2023-01-01')
+      createdAt: new Date(),
+      updatedAt: new Date()
     }
   ];
 

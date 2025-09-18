@@ -30,101 +30,115 @@ const CoposBase = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [viewMode, setViewMode] = useState<"complete" | "by-category">("by-category");
 
-  // Dados mockados temporários para desenvolvimento
+  // Dados mockados consistentes com outras páginas
   const coposBaseMock = [
     {
-      id: "copo1",
-      nome: "Açaí Premium 500ml",
-      descricao: "Açaí batido cremoso com base premium",
+      id: "COPO001",
+      nome: "Copo 300ml Premium",
+      descricao: "Base de açaí premium 300ml com banana - tamanho ideal",
       categoriaId: "cat1",
       categoria: { id: "cat1", nome: "Premium", cor: "#8b5cf6", ativo: true },
-      insumoBaseId: "ins1",
-      insumoBase: { id: "ins1", nome: "Açaí Congelado Premium", unidadeMedida: { sigla: "g" } },
-      quantidadeBase: 500,
-      custoBase: 4.50,
-      custoInsumos: 1.20,
-      custoTotal: 5.70,
+      insumoBaseId: "INS001",
+      insumoBase: { id: "INS001", nome: "Açaí Premium", unidadeMedida: { sigla: "g" } },
+      quantidadeBase: 200, // 200g de açaí
+      custoBase: 2.50, // 200 * 0.0125
+      custoInsumos: 2.00, // embalagem + complementos
+      custoTotal: 4.50,
       ativo: true,
       createdAt: new Date(),
       updatedAt: new Date(),
       insumos: [
         {
           id: "ins1",
-          insumoId: "emb1",
+          insumoId: "INS006",
           quantidade: 1,
-          custo: 0.80,
-          insumo: { id: "emb1", nome: "Copo 500ml", unidadeMedida: { sigla: "un" } }
+          custo: 0.35, // Copo 300ml
+          insumo: { id: "INS006", nome: "Copo 300ml", unidadeMedida: { sigla: "un" } }
         },
         {
           id: "ins2",
-          insumoId: "emb2",
-          quantidade: 1,
-          custo: 0.40,
-          insumo: { id: "emb2", nome: "Tampa", unidadeMedida: { sigla: "un" } }
+          insumoId: "INS002",
+          quantidade: 80, // 80g banana
+          custo: 0.26, // 80 * 0.0032
+          insumo: { id: "INS002", nome: "Banana Prata", unidadeMedida: { sigla: "g" } }
         }
       ]
     },
     {
-      id: "copo2",
-      nome: "Açaí Tradicional 300ml",
-      descricao: "Açaí batido tradicional tamanho médio",
+      id: "COPO002",
+      nome: "Copo 500ml Tradicional",
+      descricao: "Base de açaí tradicional 500ml com banana e granola",
       categoriaId: "cat2",
       categoria: { id: "cat2", nome: "Tradicional", cor: "#06b6d4", ativo: true },
-      insumoBaseId: "ins2",
-      insumoBase: { id: "ins2", nome: "Açaí Congelado Tradicional", unidadeMedida: { sigla: "g" } },
-      quantidadeBase: 300,
-      custoBase: 2.40,
-      custoInsumos: 0.90,
-      custoTotal: 3.30,
-      ativo: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      insumos: [
-        {
-          id: "ins3",
-          insumoId: "emb3",
-          quantidade: 1,
-          custo: 0.60,
-          insumo: { id: "emb3", nome: "Copo 300ml", unidadeMedida: { sigla: "un" } }
-        },
-        {
-          id: "ins4",
-          insumoId: "emb2",
-          quantidade: 1,
-          custo: 0.30,
-          insumo: { id: "emb2", nome: "Colher", unidadeMedida: { sigla: "un" } }
-        }
-      ]
-    },
-    {
-      id: "copo3",
-      nome: "Cupuaçu Premium 400ml",
-      descricao: "Cupuaçu cremoso premium",
-      categoriaId: "cat1",
-      categoria: { id: "cat1", nome: "Premium", cor: "#8b5cf6", ativo: true },
-      insumoBaseId: "ins3",
-      insumoBase: { id: "ins3", nome: "Cupuaçu Congelado", unidadeMedida: { sigla: "g" } },
-      quantidadeBase: 400,
-      custoBase: 5.20,
-      custoInsumos: 1.00,
+      insumoBaseId: "INS001",
+      insumoBase: { id: "INS001", nome: "Açaí Premium", unidadeMedida: { sigla: "g" } },
+      quantidadeBase: 350, // 350g de açaí
+      custoBase: 4.38, // 350 * 0.0125
+      custoInsumos: 1.82, // embalagem + complementos
       custoTotal: 6.20,
       ativo: true,
       createdAt: new Date(),
       updatedAt: new Date(),
       insumos: [
         {
-          id: "ins5",
-          insumoId: "emb4",
+          id: "ins3",
+          insumoId: "INS007",
           quantidade: 1,
-          custo: 0.70,
-          insumo: { id: "emb4", nome: "Copo 400ml", unidadeMedida: { sigla: "un" } }
+          custo: 0.48, // Copo 500ml
+          insumo: { id: "INS007", nome: "Copo 500ml", unidadeMedida: { sigla: "un" } }
         },
         {
+          id: "ins4",
+          insumoId: "INS002",
+          quantidade: 100, // 100g banana
+          custo: 0.32, // 100 * 0.0032
+          insumo: { id: "INS002", nome: "Banana Prata", unidadeMedida: { sigla: "g" } }
+        },
+        {
+          id: "ins5",
+          insumoId: "INS003",
+          quantidade: 25, // 25g granola
+          custo: 0.22, // 25 * 0.0089
+          insumo: { id: "INS003", nome: "Granola Artesanal", unidadeMedida: { sigla: "g" } }
+        }
+      ]
+    },
+    {
+      id: "COPO003",
+      nome: "Copo 400ml Especial",
+      descricao: "Base nutritiva com açaí, aveia e banana - opção saudável",
+      categoriaId: "cat3",
+      categoria: { id: "cat3", nome: "Saudável", cor: "#10b981", ativo: true },
+      insumoBaseId: "INS001",
+      insumoBase: { id: "INS001", nome: "Açaí Premium", unidadeMedida: { sigla: "g" } },
+      quantidadeBase: 250, // 250g de açaí
+      custoBase: 3.13, // 250 * 0.0125
+      custoInsumos: 0.72, // embalagem + complementos
+      custoTotal: 3.85,
+      ativo: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      insumos: [
+        {
           id: "ins6",
-          insumoId: "emb5",
+          insumoId: "INS006", // Usando copo 300ml (mais próximo de 400ml)
           quantidade: 1,
-          custo: 0.30,
-          insumo: { id: "emb5", nome: "Colher Premium", unidadeMedida: { sigla: "un" } }
+          custo: 0.35,
+          insumo: { id: "INS006", nome: "Copo 300ml", unidadeMedida: { sigla: "un" } }
+        },
+        {
+          id: "ins7",
+          insumoId: "INS005",
+          quantidade: 30, // 30g aveia
+          custo: 0.14, // 30 * 0.0048
+          insumo: { id: "INS005", nome: "Aveia em Flocos", unidadeMedida: { sigla: "g" } }
+        },
+        {
+          id: "ins8",
+          insumoId: "INS002",
+          quantidade: 70, // 70g banana
+          custo: 0.22, // 70 * 0.0032
+          insumo: { id: "INS002", nome: "Banana Prata", unidadeMedida: { sigla: "g" } }
         }
       ]
     }

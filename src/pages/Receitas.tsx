@@ -31,50 +31,117 @@ const Receitas = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [viewMode, setViewMode] = useState<"complete" | "by-category">("by-category");
 
-  // Dados mockados temporários para desenvolvimento - Alinhados com interface Receita
+  // Dados mockados temporários para desenvolvimento - Consistentes com Cardápio e Insumos
   const receitasMock = [
-    // MOLHOS E CREMES
+    // RECEITAS DE AÇAÍ
     {
-      id: "rec1",
-      nome: "Molho de Morango",
-      descricao: "Molho doce de morango para cobertura",
-      categoriaId: "cat3",
-      categoria: { id: "cat3", nome: "Molhos", cor: "#f59e0b", ativo: true, createdAt: new Date(), updatedAt: new Date() },
+      id: "REC001",
+      nome: "Açaí da Casa",
+      descricao: "Receita especial da casa com açaí premium, banana e granola",
+      categoriaId: "cat1",
+      categoria: { id: "cat1", nome: "Açaí", cor: "#8b5cf6", ativo: true, createdAt: new Date(), updatedAt: new Date() },
       rendimento: 500,
-      custoPorGrama: 0.025,
-      custoTotal: 12.50,
-      tempoPreparo: 15,
-      instrucoes: "1. Lave e pique os morangos\n2. Misture com açúcar\n3. Cozinhe em fogo baixo por 10 minutos\n4. Mexa até engrossar",
+      custoPorGrama: 0.0178, // R$ 0.0178 por grama (R$ 17.80/kg)
+      custoTotal: 8.90,
+      tempoPreparo: 5,
+      instrucoes: "1. Bata o açaí congelado com a banana\n2. Sirva no copo\n3. Adicione a granola por cima\n4. Finalize com mel",
       ativo: true,
       createdAt: new Date(),
       updatedAt: new Date(),
       ingredientes: [
         {
           id: "ing1",
-          receitaId: "rec1",
-          insumoId: "ins6",
-          quantidade: 300,
-          custo: 9.00,
+          receitaId: "REC001",
+          insumoId: "INS001",
+          quantidade: 250, // 250g de açaí
+          custo: 3.13, // 250 * 0.0125
           createdAt: new Date(),
           updatedAt: new Date(),
-          insumo: { id: "ins6", nome: "Morango Fresco", unidadeMedida: { sigla: "g" } }
+          insumo: { id: "INS001", nome: "Açaí Premium", unidadeMedida: { sigla: "g" } }
         },
         {
           id: "ing2",
-          receitaId: "rec1",
-          insumoId: "ins7",
-          quantidade: 80,
-          custo: 3.50,
+          receitaId: "REC001",
+          insumoId: "INS002",
+          quantidade: 100, // 100g de banana
+          custo: 0.32, // 100 * 0.0032
           createdAt: new Date(),
           updatedAt: new Date(),
-          insumo: { id: "ins7", nome: "Açúcar Cristal", unidadeMedida: { sigla: "g" } }
+          insumo: { id: "INS002", nome: "Banana Prata", unidadeMedida: { sigla: "g" } }
+        },
+        {
+          id: "ing3",
+          receitaId: "REC001",
+          insumoId: "INS003",
+          quantidade: 50, // 50g de granola
+          custo: 0.45, // 50 * 0.0089
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "INS003", nome: "Granola Artesanal", unidadeMedida: { sigla: "g" } }
+        },
+        {
+          id: "ing4",
+          receitaId: "REC001",
+          insumoId: "INS004",
+          quantidade: 30, // 30g de mel
+          custo: 0.47, // 30 * 0.0155
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "INS004", nome: "Mel Orgânico", unidadeMedida: { sigla: "g" } }
         }
       ]
     },
     {
-      id: "rec2",
-      nome: "Calda de Chocolate Premium",
-      descricao: "Calda cremosa de chocolate belga 70% cacau",
+      id: "REC002",
+      nome: "Smoothie Verde",
+      descricao: "Smoothie verde nutritivo com aveia, banana e mel",
+      categoriaId: "cat2",
+      categoria: { id: "cat2", nome: "Smoothies", cor: "#10b981", ativo: true, createdAt: new Date(), updatedAt: new Date() },
+      rendimento: 500,
+      custoPorGrama: 0.0144, // R$ 0.0144 por grama (R$ 14.40/kg)
+      custoTotal: 7.20,
+      tempoPreparo: 3,
+      instrucoes: "1. Adicione a aveia no liquidificador\n2. Acrescente a banana picada\n3. Bata com água gelada\n4. Finalize com mel a gosto",
+      ativo: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ingredientes: [
+        {
+          id: "ing5",
+          receitaId: "REC002",
+          insumoId: "INS005",
+          quantidade: 80, // 80g de aveia
+          custo: 0.38, // 80 * 0.0048
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "INS005", nome: "Aveia em Flocos", unidadeMedida: { sigla: "g" } }
+        },
+        {
+          id: "ing6",
+          receitaId: "REC002",
+          insumoId: "INS002",
+          quantidade: 120, // 120g de banana
+          custo: 0.38, // 120 * 0.0032
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "INS002", nome: "Banana Prata", unidadeMedida: { sigla: "g" } }
+        },
+        {
+          id: "ing7",
+          receitaId: "REC002",
+          insumoId: "INS004",
+          quantidade: 25, // 25g de mel
+          custo: 0.39, // 25 * 0.0155
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          insumo: { id: "INS004", nome: "Mel Orgânico", unidadeMedida: { sigla: "g" } }
+        }
+      ]
+    },
+    {
+      id: "REC003",
+      nome: "Mix de Granola Premium",
+      descricao: "Mix especial de granola com aveia e mel",
       categoriaId: "cat3",
       categoria: { id: "cat3", nome: "Molhos", cor: "#f59e0b", ativo: true, createdAt: new Date(), updatedAt: new Date() },
       rendimento: 400,

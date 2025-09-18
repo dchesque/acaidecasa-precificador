@@ -49,61 +49,117 @@ const Insumos = () => {
     setIsClient(true);
   }, []);
 
-  // Dados mockados temporários para desenvolvimento
+  // Dados mockados temporários para desenvolvimento (consistentes com Cardápio)
   const insumosMock = [
     {
-      id: "ins1",
-      nome: "Açaí Congelado Premium",
-      descricao: "Açaí congelado de alta qualidade",
+      id: "INS001",
+      nome: "Açaí Premium",
+      descricao: "Açaí premium de alta qualidade da Amazônia",
       categoriaId: "cat1",
       categoria: { id: "cat1", nome: "Frutas", cor: "#8b5cf6", ativo: true },
       unidadeMedidaId: "um1",
       unidadeMedida: { id: "um1", nome: "Gramas", sigla: "g", tipo: "PESO" },
       fornecedorCalculoId: "forn1",
       ativo: true,
-      observacoes: "Açaí premium da Amazônia",
+      observacoes: "Açaí premium congelado, alta qualidade",
+      custo: 0.0125, // R$ 0.0125 por grama (R$ 12.50/kg)
+      fornecedorPadrao: "Amazônia Açaí Ltda",
       createdAt: new Date(),
       updatedAt: new Date()
     },
     {
-      id: "ins2",
+      id: "INS002",
+      nome: "Banana Prata",
+      descricao: "Banana prata fresca selecionada",
+      categoriaId: "cat1",
+      categoria: { id: "cat1", nome: "Frutas", cor: "#8b5cf6", ativo: true },
+      unidadeMedidaId: "um1",
+      unidadeMedida: { id: "um1", nome: "Gramas", sigla: "g", tipo: "PESO" },
+      fornecedorCalculoId: "forn2",
+      ativo: true,
+      observacoes: "Banana orgânica, ideal para vitaminas",
+      custo: 0.0032, // R$ 0.0032 por grama (R$ 3.20/kg)
+      fornecedorPadrao: "Frutas do Vale",
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: "INS003",
+      nome: "Granola Artesanal",
+      descricao: "Granola crocante artesanal sem conservantes",
+      categoriaId: "cat3",
+      categoria: { id: "cat3", nome: "Complementos", cor: "#f59e0b", ativo: true },
+      unidadeMedidaId: "um1",
+      unidadeMedida: { id: "um1", nome: "Gramas", sigla: "g", tipo: "PESO" },
+      fornecedorCalculoId: "forn3",
+      ativo: true,
+      observacoes: "Granola artesanal com aveia, castanhas e mel",
+      custo: 0.0089, // R$ 0.0089 por grama (R$ 8.90/kg)
+      fornecedorPadrao: "Cereais & Grãos",
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: "INS004",
+      nome: "Mel Orgânico",
+      descricao: "Mel orgânico puro de flores silvestres",
+      categoriaId: "cat3",
+      categoria: { id: "cat3", nome: "Complementos", cor: "#f59e0b", ativo: true },
+      unidadeMedidaId: "um1",
+      unidadeMedida: { id: "um1", nome: "Gramas", sigla: "g", tipo: "PESO" },
+      fornecedorCalculoId: "forn4",
+      ativo: true,
+      observacoes: "Mel orgânico certificado, sabor suave",
+      custo: 0.0155, // R$ 0.0155 por grama (R$ 15.50/kg)
+      fornecedorPadrao: "Apiário Dourado",
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: "INS005",
+      nome: "Aveia em Flocos",
+      descricao: "Aveia em flocos integral",
+      categoriaId: "cat3",
+      categoria: { id: "cat3", nome: "Complementos", cor: "#f59e0b", ativo: true },
+      unidadeMedidaId: "um1",
+      unidadeMedida: { id: "um1", nome: "Gramas", sigla: "g", tipo: "PESO" },
+      fornecedorCalculoId: "forn3",
+      ativo: true,
+      observacoes: "Aveia integral rica em fibras",
+      custo: 0.0048, // R$ 0.0048 por grama (R$ 4.80/kg)
+      fornecedorPadrao: "Cereais & Grãos",
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: "INS006",
+      nome: "Copo 300ml",
+      descricao: "Copo plástico transparente 300ml",
+      categoriaId: "cat2",
+      categoria: { id: "cat2", nome: "Embalagens", cor: "#06b6d4", ativo: true },
+      unidadeMedidaId: "um2",
+      unidadeMedida: { id: "um2", nome: "Unidade", sigla: "un", tipo: "UNIDADE" },
+      fornecedorCalculoId: "forn5",
+      ativo: true,
+      observacoes: "Copo descartável para porções menores",
+      custo: 0.35, // R$ 0.35 por unidade
+      fornecedorPadrao: "Embalagens Eco",
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      id: "INS007",
       nome: "Copo 500ml",
       descricao: "Copo plástico transparente 500ml",
       categoriaId: "cat2",
       categoria: { id: "cat2", nome: "Embalagens", cor: "#06b6d4", ativo: true },
       unidadeMedidaId: "um2",
       unidadeMedida: { id: "um2", nome: "Unidade", sigla: "un", tipo: "UNIDADE" },
-      fornecedorCalculoId: "forn2",
+      fornecedorCalculoId: "forn5",
       ativo: true,
-      observacoes: "Copo descartável",
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: "ins3",
-      nome: "Granola Tradicional",
-      descricao: "Granola crocante tradicional",
-      categoriaId: "cat3",
-      categoria: { id: "cat3", nome: "Complementos", cor: "#f59e0b", ativo: true },
-      unidadeMedidaId: "um1",
-      unidadeMedida: { id: "um1", nome: "Gramas", sigla: "g", tipo: "PESO" },
-      fornecedorCalculoId: "forn1",
-      ativo: true,
-      observacoes: "Granola artesanal",
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: "ins4",
-      nome: "Banana",
-      descricao: "Banana prata fresca",
-      categoriaId: "cat1",
-      categoria: { id: "cat1", nome: "Frutas", cor: "#8b5cf6", ativo: true },
-      unidadeMedidaId: "um1",
-      unidadeMedida: { id: "um1", nome: "Gramas", sigla: "g", tipo: "PESO" },
-      fornecedorCalculoId: "forn3",
-      ativo: true,
-      observacoes: "Banana orgânica",
+      observacoes: "Copo descartável tamanho padrão",
+      custo: 0.48, // R$ 0.48 por unidade
+      fornecedorPadrao: "Embalagens Eco",
       createdAt: new Date(),
       updatedAt: new Date()
     }

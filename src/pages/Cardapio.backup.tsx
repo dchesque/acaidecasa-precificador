@@ -62,8 +62,7 @@ import {
   Info,
   FileText,
   Search,
-  Link,
-  AlertTriangle
+  Link
 } from "lucide-react";
 
 const Cardapio = () => {
@@ -1992,38 +1991,352 @@ const Cardapio = () => {
           </div>
 
           {/* Ações Rápidas */}
-          <div className="flex gap-3 pt-4 border-t">
-            <Button
-              variant="outline"
-              onClick={() => setViewModalOpen(false)}
-              className="flex-1"
-            >
-              Fechar
-            </Button>
-            <Button
-              onClick={() => {
-                setViewModalOpen(false);
-                handleEditItem(selectedItem);
-              }}
-              className="flex-1"
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Editar Item
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                setViewModalOpen(false);
-                handleDeleteItem(selectedItem);
-              }}
-              className="px-4"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
+                    <CardContent className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <p className="text-xs text-muted-foreground">Nome</p>
+                          <p className="font-semibold text-sm">{selectedItem.nome}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">ID</p>
+                          <p className="font-mono text-sm">{selectedItem.id || "N/A"}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Categoria</p>
+                          <Badge variant="outline" className="text-xs mt-1">{selectedItem.categoria}</Badge>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Status</p>
+                          <Badge variant={selectedItem.disponivel ? "default" : "secondary"} className="text-xs mt-1">
+                            {selectedItem.disponivel ? "Disponível" : "Indisponível"}
+                          </Badge>
+                        </div>
+                        {selectedItem.tipo && (
+                          <div>
+                            <p className="text-xs text-muted-foreground">Tipo</p>
+                            <Badge variant="secondary" className="text-xs mt-1">
+                              {selectedItem.tipo === "copo-base" ? "Copo Base" :
+                               selectedItem.tipo === "combinado" ? "Combinado" :
+                               selectedItem.tipo === "receita" ? "Receita" : selectedItem.tipo}
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Informações Adicionais - Sempre mostrar para ter espaçamento consistente */}
+                      <div className="pt-3 border-t space-y-2">
+                        {selectedItem.quantidade && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Quantidade:</span>
+                            <span className="font-medium">{selectedItem.quantidade}{selectedItem.unidade || ""}</span>
+                          </div>
+                        )}
+                        {selectedItem.unidade && !selectedItem.quantidade && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Unidade:</span>
+                            <span className="font-medium">{selectedItem.unidade}</span>
+                          </div>
+                        )}
+                        {selectedItem.fornecedor && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Fornecedor:</span>
+                            <span className="font-medium">{selectedItem.fornecedor}</span>
+                          </div>
+                        )}
+                        {selectedItem.fornecedorPadrao && selectedItem.fornecedorPadrao !== selectedItem.fornecedor && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Fornecedor Padrão:</span>
+                            <span className="font-medium text-blue-600">{selectedItem.fornecedorPadrao}</span>
+                          </div>
+                        )}
+                        {selectedItem.itemReferencia && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Item Base:</span>
+                            <span className="font-medium text-blue-600">#{selectedItem.itemReferencia}</span>
+                          </div>
+                        )}
+                        {selectedItem.descricao && (
+                          <div className="pt-2">
+                            <span className="text-muted-foreground text-sm">Descrição:</span>
+                            <p className="text-sm mt-1 p-2 bg-gray-50 rounded text-gray-700">{selectedItem.descricao}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Observações - Seção dedicada */}
+                      {selectedItem.observacoes && (
+                        <div className="pt-3 border-t">
+                          <p className="text-xs text-muted-foreground mb-2">Observações:</p>
+                          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                            <p className="text-sm text-amber-800">{selectedItem.observacoes}</p>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Card Financeiro */}
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <DollarSign className="w-4 h-4" />
+                        Informações Financeiras
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="text-center p-2 bg-green-50 rounded border border-green-200">
+                            <p className="text-xs text-green-600">Preço</p>
+                            <p className="text-sm font-bold text-green-700">R$ {selectedItem.preco?.toFixed(2)}</p>
+                          </div>
+                          <div className="text-center p-2 bg-red-50 rounded border border-red-200">
+                            <p className="text-xs text-red-600">Custo</p>
+                            <p className="text-sm font-bold text-red-700">R$ {selectedItem.custo?.toFixed(2)}</p>
+                          </div>
+                          <div className="text-center p-2 bg-blue-50 rounded border border-blue-200">
+                            <p className="text-xs text-blue-600">Margem</p>
+                            <p className="text-sm font-bold text-blue-700">{selectedItem.margem?.toFixed(1)}%</p>
+                          </div>
+                        </div>
+
+                        {selectedItem.margem && (
+                          <div className="pt-2">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-xs text-muted-foreground">Análise de Margem</span>
+                              <span className={`text-xs font-medium px-2 py-0.5 rounded ${
+                                selectedItem.margem >= 100 ? 'bg-green-100 text-green-700' :
+                                selectedItem.margem >= 50 ? 'bg-yellow-100 text-yellow-700' :
+                                selectedItem.margem >= 0 ? 'bg-orange-100 text-orange-700' :
+                                'bg-red-100 text-red-700'
+                              }`}>
+                                {selectedItem.margem >= 100 ? 'Excelente' :
+                                 selectedItem.margem >= 50 ? 'Boa' :
+                                 selectedItem.margem >= 0 ? 'Baixa' : 'Prejuízo'}
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-1.5">
+                              <div
+                                className={`h-1.5 rounded-full transition-all duration-300 ${
+                                  selectedItem.margem >= 100 ? 'bg-green-600' :
+                                  selectedItem.margem >= 50 ? 'bg-yellow-500' :
+                                  selectedItem.margem >= 0 ? 'bg-orange-500' :
+                                  'bg-red-600'
+                                }`}
+                                style={{ width: `${Math.min(Math.max(selectedItem.margem, 0), 100)}%` }}
+                              />
+                            </div>
+                            {/* Lucro Total */}
+                            <div className="flex justify-between items-center mt-2 pt-2 border-t text-sm">
+                              <span className="text-muted-foreground">Lucro por unidade:</span>
+                              <span className={`font-medium ${
+                                (selectedItem.preco - selectedItem.custo) > 0 ? 'text-green-600' : 'text-red-600'
+                              }`}>
+                                R$ {(selectedItem.preco - selectedItem.custo).toFixed(2)}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+
+                {/* Composição para itens complexos */}
+                {(selectedItem.tipo === "copo-base" || selectedItem.tipo === "combinado") && selectedItem.composicao && (
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Package className="w-4 h-4 text-purple-600" />
+                        Composição do {selectedItem.tipo === "copo-base" ? "Copo Base" : "Combinado"}
+                      </CardTitle>
+                      <div className="text-xs text-muted-foreground">
+                        {selectedItem.composicao.length} insumo{selectedItem.composicao.length > 1 ? 's' : ''} utilizado{selectedItem.composicao.length > 1 ? 's' : ''}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-2">
+                      <div className="space-y-2 max-h-48 overflow-y-auto">
+                        {selectedItem.composicao.map((comp: any, index: number) => (
+                          <div key={index} className="flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border">
+                            <div className="flex items-center gap-3">
+                              <span className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                {index + 1}
+                              </span>
+                              <div>
+                                <p className="font-medium text-sm text-gray-900">{comp.insumo.nome}</p>
+                                <div className="flex items-center gap-2 text-xs text-gray-600">
+                                  <span>{comp.quantidade}{comp.insumo.unidade}</span>
+                                  {comp.insumo.fornecedorPadrao && (
+                                    <span className="text-blue-600">• {comp.insumo.fornecedorPadrao}</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-bold text-red-600">R$ {comp.custo.toFixed(2)}</p>
+                              <p className="text-xs text-gray-500">
+                                R$ {(comp.custo / comp.quantidade).toFixed(4)}/{comp.insumo.unidade}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* Totalizador melhorado */}
+                        <div className="pt-3 mt-3 border-t">
+                          <div className="flex justify-between items-center p-3 bg-gradient-to-r from-red-50 to-red-100 rounded-lg border border-red-200">
+                            <div className="flex items-center gap-2">
+                              <Calculator className="w-4 h-4 text-red-600" />
+                              <span className="text-sm font-medium text-red-800">Custo Total da Composição</span>
+                            </div>
+                            <span className="text-lg font-bold text-red-700">
+                              R$ {selectedItem.custoTotal?.toFixed(2) || selectedItem.custo?.toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Detalhes Técnicos e Adicionais */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Settings className="w-4 h-4 text-gray-600" />
+                      Detalhes Técnicos
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Coluna esquerda */}
+                      <div className="space-y-3">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">ID do Item:</span>
+                          <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">{selectedItem.id}</span>
+                        </div>
+
+                        {selectedItem.tipo && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Tipo:</span>
+                            <Badge variant="secondary" className="text-xs">
+                              {selectedItem.tipo === "copo-base" ? "Copo Base" :
+                               selectedItem.tipo === "combinado" ? "Combinado" :
+                               selectedItem.tipo === "receita" ? "Receita" :
+                               selectedItem.tipo === "insumo" ? "Insumo" : selectedItem.tipo}
+                            </Badge>
+                          </div>
+                        )}
+
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Status de Disponibilidade:</span>
+                          <div className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full ${selectedItem.disponivel ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                            <span className="font-medium">{selectedItem.disponivel ? "Disponível" : "Indisponível"}</span>
+                          </div>
+                        </div>
+
+                        {selectedItem.custo && selectedItem.preco && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Lucro por Unidade:</span>
+                            <span className={`font-medium ${(selectedItem.preco - selectedItem.custo) > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              R$ {(selectedItem.preco - selectedItem.custo).toFixed(2)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Coluna direita */}
+                      <div className="space-y-3">
+                        {selectedItem.categoria && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Categoria:</span>
+                            <Badge variant="outline" className="text-xs">{selectedItem.categoria}</Badge>
+                          </div>
+                        )}
+
+                        {selectedItem.custo && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Custo Unitário:</span>
+                            <span className="font-medium text-red-600">R$ {selectedItem.custo.toFixed(4)}</span>
+                          </div>
+                        )}
+
+                        {selectedItem.preco && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Preço de Venda:</span>
+                            <span className="font-medium text-green-600">R$ {selectedItem.preco.toFixed(2)}</span>
+                          </div>
+                        )}
+
+                        {selectedItem.margem !== undefined && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Taxa de Markup:</span>
+                            <span className={`font-medium ${
+                              selectedItem.margem >= 100 ? 'text-green-600' :
+                              selectedItem.margem >= 50 ? 'text-yellow-600' :
+                              selectedItem.margem >= 0 ? 'text-orange-600' : 'text-red-600'
+                            }`}>
+                              {selectedItem.margem.toFixed(1)}%
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Seção de informações de origem se for item baseado em outro */}
+                    {selectedItem.itemReferencia && (
+                      <div className="pt-3 mt-3 border-t">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Link className="w-4 h-4 text-blue-600" />
+                            <span className="text-sm font-medium text-blue-800">Item Baseado em Referência</span>
+                          </div>
+                          <div className="text-xs text-blue-700">
+                            Este item é baseado no item <strong>#{selectedItem.itemReferencia}</strong>
+                            {selectedItem.quantidade && selectedItem.unidade && (
+                              <span> com quantidade de <strong>{selectedItem.quantidade}{selectedItem.unidade}</strong></span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Ações Rápidas */}
+                <div className="flex gap-3 pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    onClick={() => setViewModalOpen(false)}
+                    className="flex-1"
+                  >
+                    Fechar
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setViewModalOpen(false);
+                      handleEditItem(selectedItem);
+                    }}
+                    className="flex-1"
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Editar Item
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      setViewModalOpen(false);
+                      handleDeleteItem(selectedItem);
+                    }}
+                    className="px-4"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-      )}
-    </div>
         </DialogContent>
       </Dialog>
 
