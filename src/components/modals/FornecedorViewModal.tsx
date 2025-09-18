@@ -1,6 +1,7 @@
 import { BaseModal } from "./BaseModal";
 import { useAppContext } from "@/contexts/AppContext";
 import { Fornecedor } from "@/types/database";
+import { formatarMoeda } from "@/utils/calculations";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -43,10 +44,7 @@ export const FornecedorViewModal = ({
     if (typeof value !== "number") {
       return "-";
     }
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
+    return formatarMoeda(value);
   };
 
   const formatDate = (date: Date) => {

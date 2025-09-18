@@ -1,12 +1,12 @@
 "use client"
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, Fragment } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -15,9 +15,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CombinadoModal } from "@/components/modals/CombinadoModal";
+import { CombinadoViewModal } from "@/components/modals/CombinadoViewModal";
 import { useAppContext } from "@/contexts/AppContext";
 import { Combinado, Categoria } from "@/types/database";
-import { formatarMoeda } from "@/utils/calculations";
+import { formatarMoeda, calcularPrecoVendaCombinado, verificarComboPrecoCompleto } from "@/utils/calculations";
 import {
   Plus,
   Layers,
@@ -28,12 +29,38 @@ import {
   Eye,
   Package,
   TrendingUp,
-  Tags,
-  Coffee
+  Settings,
+  ChevronLeft,
+  ChevronRight,
+  GripVertical,
+  X,
+  Coffee,
+  Cherry,
+  Cake,
+  ShoppingCart,
+  Apple,
+  Banana,
+  Cookie,
+  Pizza,
+  Salad,
+  Sandwich,
+  IceCream,
+  Milk,
+  Wine,
+  Utensils,
+  Heart,
+  Star,
+  Flame,
+  Sparkles,
+  Crown,
+  Gift,
+  Target,
+  Tags
 } from "lucide-react";
+import { Label } from "@/components/ui/label";
 
 const Combinados = () => {
-  const { state, dispatch } = useAppContext();
+  const { combinados, categorias, cardapio, getPrecoVendaItem, deleteCombinado } = useAppContext();
   const [modalOpen, setModalOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [editingCombinado, setEditingCombinado] = useState<Combinado | undefined>();
@@ -41,6 +68,165 @@ const Combinados = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [viewMode, setViewMode] = useState<"complete" | "by-category">("by-category");
+  const [apenasPrecoCompleto, setApenasPrecoCompleto] = useState(false);
+  const [categoriesModalOpen, setCategoriesModalOpen] = useState(false);
+
+  // Estados para categorias inline (padrão cardápio)
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryIcon, setNewCategoryIcon] = useState("Layers");
+  const [newCategoryColor, setNewCategoryColor] = useState("#8B5CF6");
+  const [editingCategory, setEditingCategory] = useState<string | null>(null);
+  const [editCategoryName, setEditCategoryName] = useState("");
+  const [editCategoryIcon, setEditCategoryIcon] = useState("Layers");
+  const [editCategoryColor, setEditCategoryColor] = useState("#8B5CF6");
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [iconScrollIndex, setIconScrollIndex] = useState(0);
+  const [colorScrollIndex, setColorScrollIndex] = useState(0);
+
+  // Configuração de ícones disponíveis para combinados
+  const availableIcons = [
+    { name: "Layers", icon: Layers },
+    { name: "Coffee", icon: Coffee },
+    { name: "Cherry", icon: Cherry },
+    { name: "Cake", icon: Cake },
+    { name: "Package", icon: Package },
+    { name: "ShoppingCart", icon: ShoppingCart },
+    { name: "Apple", icon: Apple },
+    { name: "Banana", icon: Banana },
+    { name: "Cookie", icon: Cookie },
+    { name: "Pizza", icon: Pizza },
+    { name: "Salad", icon: Salad },
+    { name: "Sandwich", icon: Sandwich },
+    { name: "IceCream", icon: IceCream },
+    { name: "Milk", icon: Milk },
+    { name: "Wine", icon: Wine },
+    { name: "Utensils", icon: Utensils },
+    { name: "Heart", icon: Heart },
+    { name: "Star", icon: Star },
+    { name: "Flame", icon: Flame },
+    { name: "Sparkles", icon: Sparkles },
+    { name: "Crown", icon: Crown },
+    { name: "Gift", icon: Gift },
+    { name: "Target", icon: Target },
+  ];
+
+  const availableColors = [
+    "#8B5CF6", "#EC4899", "#10B981", "#F59E0B", "#EF4444", "#3B82F6", "#8B5A2B",
+    "#06B6D4", "#84CC16", "#F97316", "#E11D48", "#7C3AED", "#059669", "#DC2626",
+    "#2563EB", "#7C2D12", "#BE123C", "#9333EA", "#0D9488", "#EA580C", "#1D4ED8",
+    "#92400E", "#BE185D", "#6366F1", "#047857", "#C2410C", "#1E40AF", "#A16207"
+  ];
+
+  // Configurações de visualização
+  const iconsPerView = 5;
+  const colorsPerView = 8;
+
+  // Visualizações calculadas
+  const visibleIcons = availableIcons.slice(iconScrollIndex, iconScrollIndex + iconsPerView);
+  const visibleColors = availableColors.slice(colorScrollIndex, colorScrollIndex + colorsPerView);
+
+  // Funções para gerenciamento de categorias inline (padrão cardápio)
+  const handleCreateCategory = () => {
+    if (!newCategoryName.trim()) return;
+
+    // Verificar se já existe uma categoria com esse nome
+    const categoryExists = state.categorias.some(cat =>
+      cat.nome.toLowerCase() === newCategoryName.trim().toLowerCase()
+    );
+
+    if (categoryExists) {
+      console.log("❌ Já existe uma categoria com esse nome:", newCategoryName.trim());
+      return;
+    }
+
+    const newCategory = {
+      id: `categoria-combinado-${Date.now()}`,
+      nome: newCategoryName.trim(),
+      descricao: `Categoria de combinados: ${newCategoryName.trim()}`,
+      cor: newCategoryColor,
+      ativo: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    dispatch({ type: 'ADD_CATEGORIA', payload: newCategory });
+
+    // Reset form
+    setNewCategoryName("");
+    setNewCategoryIcon("Layers");
+    setNewCategoryColor("#8B5CF6");
+
+    // Feedback visual de sucesso
+    console.log("✅ Categoria de combinado criada com sucesso:", newCategory.nome);
+  };
+
+  const handleEditCategory = (categoryId: string) => {
+    const categoria = state.categorias.find(cat => cat.id === categoryId);
+    if (categoria) {
+      setEditingCategory(categoryId);
+      setEditCategoryName(categoria.nome);
+      setEditCategoryIcon("Layers");
+      setEditCategoryColor(categoria.cor || "#8B5CF6");
+    }
+  };
+
+  const handleUpdateCategory = () => {
+    if (!editingCategory || !editCategoryName.trim()) return;
+
+    const updatedCategory = {
+      id: editingCategory,
+      nome: editCategoryName.trim(),
+      descricao: `Categoria de combinados: ${editCategoryName.trim()}`,
+      cor: editCategoryColor,
+      ativo: true,
+      updatedAt: new Date(),
+    };
+
+    dispatch({ type: 'UPDATE_CATEGORIA', payload: updatedCategory });
+
+    console.log("✅ Categoria de combinado editada com sucesso:", editCategoryName.trim());
+
+    setEditingCategory(null);
+    setEditCategoryName("");
+    setEditCategoryIcon("Layers");
+    setEditCategoryColor("#8B5CF6");
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCategory(null);
+    setEditCategoryName("");
+    setEditCategoryIcon("Layers");
+    setEditCategoryColor("#8B5CF6");
+  };
+
+  const handleDeleteCategory = (categoryId: string) => {
+    const categoria = state.categorias.find(cat => cat.id === categoryId);
+    if (window.confirm(`Tem certeza que deseja excluir a categoria "${categoria?.nome}"?`)) {
+      dispatch({ type: 'DELETE_CATEGORIA', payload: categoryId });
+      console.log("🗑️ Categoria de combinado excluída:", categoria?.nome);
+    }
+  };
+
+  // Handlers para navegação de ícones e cores
+  const handlePrevIcons = () => {
+    setIconScrollIndex(prev => Math.max(0, prev - iconsPerView));
+  };
+
+  const handleNextIcons = () => {
+    setIconScrollIndex(prev =>
+      Math.min(availableIcons.length - iconsPerView, prev + iconsPerView)
+    );
+  };
+
+  const handlePrevColors = () => {
+    setColorScrollIndex(prev => Math.max(0, prev - colorsPerView));
+  };
+
+  const handleNextColors = () => {
+    setColorScrollIndex(prev =>
+      Math.min(availableColors.length - colorsPerView, prev + colorsPerView)
+    );
+  };
 
   // Dados mockados consistentes com outras páginas
   const combinadosMock: Combinado[] = [
@@ -193,23 +379,14 @@ const Combinados = () => {
     }
   ];
 
-  // Use mock data for demonstration, fallback to real data if available
-  const combinados = state.combinados.length > 0 ? state.combinados : combinadosMock;
-
   const filteredCombinados = combinados.filter((combinado) => {
     const matchesSearch = combinado.nome.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = !selectedCategory || selectedCategory === "all" || combinado.categoriaId === selectedCategory;
-    return matchesSearch && matchesCategory;
+    const matchesPrecoCompleto = !apenasPrecoCompleto || verificarComboPrecoCompleto(combinado, cardapio);
+    return matchesSearch && matchesCategory && matchesPrecoCompleto;
   });
 
-  // Categorias mockadas para demonstração
-  const categoriasMock: Pick<Categoria, "id" | "nome" | "cor" | "ativo">[] = [
-    { id: "cat1", nome: "Premium", cor: "#8b5cf6", ativo: true },
-    { id: "cat2", nome: "Saudável", cor: "#10b981", ativo: true },
-    { id: "cat3", nome: "Infantil", cor: "#f59e0b", ativo: true }
-  ];
-
-  const categorias = (state.categorias.length > 0 ? state.categorias : categoriasMock) as Pick<Categoria, "id" | "nome" | "cor" | "ativo">[];
+  // Remove mock categories since we're using context
 
   // Group combinados by category for the "by-category" view
   const combinadosByCategory = viewMode === "by-category" ?
@@ -241,12 +418,16 @@ const Combinados = () => {
 
   const handleDeleteCombinado = (combinado: Combinado) => {
     if (window.confirm(`Tem certeza que deseja excluir "${combinado.nome}"?`)) {
-      dispatch({ type: 'DELETE_COMBINADO', payload: combinado.id });
+      deleteCombinado(combinado.id);
     }
   };
 
   // Component to render a table row for a combinado
   const CombinadoTableRow = ({ combinado, showCategory = true }: { combinado: Combinado; showCategory?: boolean }) => {
+    // Calcular preços de venda
+    const resultadoPrecos = calcularPrecoVendaCombinado(combinado, cardapio);
+    const temPrecoCompleto = verificarComboPrecoCompleto(combinado, cardapio);
+
     return (
       <TableRow key={combinado.id}>
         <TableCell>
@@ -285,6 +466,27 @@ const Combinados = () => {
             {formatarMoeda(combinado.custoTotal)}
           </div>
         </TableCell>
+        <TableCell>
+          <div className="text-sm font-bold text-green-600">
+            {resultadoPrecos.precoVendaTotal > 0 ? formatarMoeda(resultadoPrecos.precoVendaTotal) : "Incompleto"}
+          </div>
+          {resultadoPrecos.precoVendaTotal > 0 && (
+            <div className="text-xs text-muted-foreground">
+              {resultadoPrecos.itensComPreco}/{resultadoPrecos.totalItens} itens
+            </div>
+          )}
+        </TableCell>
+        <TableCell className="text-center">
+          {temPrecoCompleto ? (
+            <Badge variant="default" className="text-xs">
+              ✓ Completo
+            </Badge>
+          ) : (
+            <Badge variant="secondary" className="text-xs">
+              ⚠ Incompleto
+            </Badge>
+          )}
+        </TableCell>
         <TableCell className="text-center">
           <div className="flex items-center gap-1 justify-center">
             <Button
@@ -313,23 +515,31 @@ const Combinados = () => {
             </Button>
           </div>
         </TableCell>
-        <TableCell className="text-center">
-          <div className="w-2 h-2 rounded-full mx-auto"
-               style={{backgroundColor: combinado.ativo ? '#22c55e' : '#6b7280'}}
-               title={combinado.ativo ? "Ativo" : "Inativo"}
-          />
-        </TableCell>
       </TableRow>
     );
   };
 
-  const stats = {
-    totalCombinados: combinados.filter(c => c.ativo).length,
-    combinadosInativos: combinados.filter(c => !c.ativo).length,
-    categoriasComCombinados: new Set(combinados.filter(c => c.ativo).map(c => c.categoriaId)).size,
-    custoMedio: combinados.filter(c => c.ativo).reduce((acc, c) => acc + c.custoTotal, 0) / (combinados.filter(c => c.ativo).length || 1),
-    custoMaiorCombinado: combinados.filter(c => c.ativo).length > 0 ? Math.max(...combinados.filter(c => c.ativo).map(c => c.custoTotal)) : 0,
-  };
+  const stats = React.useMemo(() => {
+    const combinadosAtivos = combinados.filter(c => c.ativo);
+    const combinadosComPrecoCompleto = combinadosAtivos.filter(c => verificarComboPrecoCompleto(c, cardapio));
+
+    const precosVenda = combinadosAtivos.map(c => {
+      const resultado = calcularPrecoVendaCombinado(c, cardapio);
+      return resultado.precoVendaTotal;
+    }).filter(p => p > 0);
+
+    return {
+      totalCombinados: combinadosAtivos.length,
+      combinadosInativos: combinados.filter(c => !c.ativo).length,
+      categoriasComCombinados: new Set(combinadosAtivos.map(c => c.categoriaId)).size,
+      custoMedio: combinadosAtivos.reduce((acc, c) => acc + c.custoTotal, 0) / (combinadosAtivos.length || 1),
+      custoMaiorCombinado: combinadosAtivos.length > 0 ? Math.max(...combinadosAtivos.map(c => c.custoTotal)) : 0,
+      combinadosComPrecoCompleto: combinadosComPrecoCompleto.length,
+      percentualPrecoCompleto: combinadosAtivos.length > 0 ? (combinadosComPrecoCompleto.length / combinadosAtivos.length) * 100 : 0,
+      precoVendaMedio: precosVenda.length > 0 ? precosVenda.reduce((acc, p) => acc + p, 0) / precosVenda.length : 0,
+      maiorPrecoVenda: precosVenda.length > 0 ? Math.max(...precosVenda) : 0,
+    };
+  }, [combinados, cardapio]);
 
 
   return (
@@ -342,14 +552,24 @@ const Combinados = () => {
               Gerencie os produtos combinados e kits do seu cardápio
             </p>
           </div>
-          <Button onClick={handleNewCombinado} className="flex items-center gap-2">
-            <Plus className="w-4 h-4" />
-            Novo Combinado
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setCategoriesModalOpen(true)}
+              className="flex items-center gap-2"
+            >
+              <Settings className="w-4 h-4" />
+              Gerenciar Categorias
+            </Button>
+            <Button onClick={handleNewCombinado} className="flex items-center gap-2">
+              <Plus className="w-4 h-4" />
+              Novo Combinado
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -405,6 +625,36 @@ const Combinados = () => {
               </p>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Preços Completos
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">{stats.combinadosComPrecoCompleto}</div>
+              <p className="text-xs text-muted-foreground">
+                {stats.percentualPrecoCompleto.toFixed(0)}% dos combinados
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Preço Médio de Venda
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                {stats.precoVendaMedio > 0 ? formatarMoeda(stats.precoVendaMedio) : "N/A"}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                preço médio dos combinados
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="space-y-4">
@@ -417,7 +667,7 @@ const Combinados = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 <Input
                   placeholder="Buscar combinado..."
                   value={searchTerm}
@@ -449,6 +699,13 @@ const Combinados = () => {
                   className="w-full"
                 >
                   Por Categoria
+                </Button>
+                <Button
+                  variant={apenasPrecoCompleto ? "default" : "outline"}
+                  onClick={() => setApenasPrecoCompleto(!apenasPrecoCompleto)}
+                  className="w-full"
+                >
+                  {apenasPrecoCompleto ? "✓ Preços Completos" : "Apenas Preços Completos"}
                 </Button>
               </div>
             </CardContent>
@@ -484,8 +741,9 @@ const Combinados = () => {
                           <TableHead>Custo Copo Base</TableHead>
                           <TableHead>Custo Complementos</TableHead>
                           <TableHead>Custo Total</TableHead>
+                          <TableHead>Preço Venda Total</TableHead>
+                          <TableHead className="text-center">Status Preços</TableHead>
                           <TableHead className="text-center">Ações</TableHead>
-                          <TableHead className="text-center">Status</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -551,11 +809,321 @@ const Combinados = () => {
         </div>
       </div>
 
+      {/* Modal de Gerenciamento de Categorias - Padrão Cardápio */}
+      <Dialog open={categoriesModalOpen} onOpenChange={setCategoriesModalOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Gerenciar Categorias</DialogTitle>
+            <DialogDescription>
+              Crie novas categorias, edite existentes e organize a ordem de exibição
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Seção de Nova Categoria */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Plus className="w-5 h-5" />
+                  Nova Categoria
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="category-name">Nome da Categoria</Label>
+                  <Input
+                    id="category-name"
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    placeholder="Ex: Combinados Premium"
+                  />
+                </div>
+
+                <div>
+                  <Label>Ícone</Label>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-10 w-8 p-0"
+                      onClick={handlePrevIcons}
+                      disabled={iconScrollIndex === 0}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <div className="grid grid-cols-5 gap-2 flex-1">
+                      {visibleIcons.map((iconData) => {
+                        const IconComponent = iconData.icon;
+                        return (
+                          <Button
+                            key={iconData.name}
+                            variant={newCategoryIcon === iconData.name ? "default" : "outline"}
+                            size="sm"
+                            className="h-10 w-10 p-0"
+                            onClick={() => setNewCategoryIcon(iconData.name)}
+                          >
+                            <IconComponent className="w-4 h-4" />
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-10 w-8 p-0"
+                      onClick={handleNextIcons}
+                      disabled={iconScrollIndex >= availableIcons.length - iconsPerView}
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Cor</Label>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={handlePrevColors}
+                      disabled={colorScrollIndex === 0}
+                    >
+                      <ChevronLeft className="w-3 h-3" />
+                    </Button>
+                    <div className="grid grid-cols-8 gap-2 flex-1">
+                      {visibleColors.map((color) => (
+                        <Button
+                          key={color}
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8 p-0 border-2"
+                          style={{
+                            backgroundColor: color,
+                            borderColor: newCategoryColor === color ? "#000" : "#e5e7eb"
+                          }}
+                          onClick={() => setNewCategoryColor(color)}
+                        />
+                      ))}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={handleNextColors}
+                      disabled={colorScrollIndex >= availableColors.length - colorsPerView}
+                    >
+                      <ChevronRight className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleCreateCategory}
+                  disabled={!newCategoryName.trim()}
+                  className="w-full"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Criar Categoria
+                </Button>
+
+                {/* Feedback visual */}
+                {newCategoryName.trim() && (
+                  <div className="text-xs text-muted-foreground mt-2 p-2 bg-muted rounded">
+                    Preview: <span style={{ color: newCategoryColor }}>●</span> {newCategoryName.trim()}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Seção de Categorias Existentes */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Settings className="w-5 h-5" />
+                  Categorias Existentes
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {editingCategory && (
+                  <div className="p-4 border rounded-lg bg-muted/20">
+                    <h4 className="font-medium mb-3">Editando Categoria</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <Label htmlFor="edit-category-name">Nome</Label>
+                        <Input
+                          id="edit-category-name"
+                          value={editCategoryName}
+                          onChange={(e) => setEditCategoryName(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label>Ícone</Label>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 w-6 p-0"
+                            onClick={handlePrevIcons}
+                            disabled={iconScrollIndex === 0}
+                          >
+                            <ChevronLeft className="w-3 h-3" />
+                          </Button>
+                          <div className="grid grid-cols-5 gap-2 flex-1">
+                            {visibleIcons.map((iconData) => {
+                              const IconComponent = iconData.icon;
+                              return (
+                                <Button
+                                  key={iconData.name}
+                                  variant={editCategoryIcon === iconData.name ? "default" : "outline"}
+                                  size="sm"
+                                  className="h-8 w-8 p-0"
+                                  onClick={() => setEditCategoryIcon(iconData.name)}
+                                >
+                                  <IconComponent className="w-3 h-3" />
+                                </Button>
+                              );
+                            })}
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 w-6 p-0"
+                            onClick={handleNextIcons}
+                            disabled={iconScrollIndex >= availableIcons.length - iconsPerView}
+                          >
+                            <ChevronRight className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div>
+                        <Label>Cor</Label>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={handlePrevColors}
+                            disabled={colorScrollIndex === 0}
+                          >
+                            <ChevronLeft className="w-3 h-3" />
+                          </Button>
+                          <div className="grid grid-cols-8 gap-2 flex-1">
+                            {visibleColors.map((color) => (
+                              <Button
+                                key={color}
+                                variant="outline"
+                                size="sm"
+                                className="h-6 w-6 p-0 border-2"
+                                style={{
+                                  backgroundColor: color,
+                                  borderColor: editCategoryColor === color ? "#000" : "#e5e7eb"
+                                }}
+                                onClick={() => setEditCategoryColor(color)}
+                              />
+                            ))}
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={handleNextColors}
+                            disabled={colorScrollIndex >= availableColors.length - colorsPerView}
+                          >
+                            <ChevronRight className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={handleUpdateCategory}
+                          size="sm"
+                          disabled={!editCategoryName.trim()}
+                        >
+                          <Settings className="w-3 h-3 mr-1" />
+                          Salvar
+                        </Button>
+                        <Button variant="outline" onClick={handleCancelEdit} size="sm">
+                          <X className="w-3 h-3 mr-1" />
+                          Cancelar
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  {state.categorias.map((categoria, index) => {
+                    const IconComponent = Layers; // Fallback icon
+                    const isEditing = editingCategory === categoria.id;
+
+                    return (
+                      <div
+                        key={categoria.id}
+                        className={`flex items-center gap-3 p-2 border rounded-lg transition-all ${
+                          isEditing ? 'bg-primary/10 border-primary/30' : 'hover:bg-muted/50'
+                        }`}
+                      >
+                        <div className="cursor-grab hover:cursor-grabbing">
+                          <GripVertical className="w-4 h-4 text-muted-foreground" />
+                        </div>
+                        <div
+                          className="w-6 h-6 rounded-full flex items-center justify-center text-white"
+                          style={{ backgroundColor: categoria.cor || "#8B5CF6" }}
+                        >
+                          <IconComponent className="w-3 h-3" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">{categoria.nome}</p>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0"
+                            onClick={() => handleEditCategory(categoria.id)}
+                            disabled={isEditing}
+                          >
+                            <Edit className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                            onClick={() => handleDeleteCategory(categoria.id)}
+                            disabled={isEditing}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button variant="outline" onClick={() => setCategoriesModalOpen(false)}>
+              Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Edit/Create Modal */}
       <CombinadoModal
         open={modalOpen}
         onOpenChange={setModalOpen}
         combinado={editingCombinado}
+      />
+
+      {/* View Modal */}
+      <CombinadoViewModal
+        open={viewModalOpen}
+        onOpenChange={setViewModalOpen}
+        combinado={viewingCombinado}
       />
     </Layout>
   );

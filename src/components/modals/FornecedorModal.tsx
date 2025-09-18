@@ -4,6 +4,7 @@ import { FornecedorForm } from "@/components/forms/FornecedorForm";
 import { useAppContext } from "@/contexts/AppContext";
 import { FornecedorFormData } from "@/types/forms";
 import { Fornecedor } from "@/types/database";
+import { formatarMoeda } from "@/utils/calculations";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -159,7 +160,7 @@ export const FornecedorModal = ({
             {fornecedor.pedidoMinimo && (
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Pedido Mínimo</label>
-                <p>R$ {Number(fornecedor.pedidoMinimo).toFixed(2)}</p>
+                <p>{formatarMoeda(Number(fornecedor.pedidoMinimo))}</p>
               </div>
             )}
           </div>
@@ -190,7 +191,7 @@ export const FornecedorModal = ({
                 {insumosFornecidos.map((item: any) => (
                   <TableRow key={item.id}>
                     <TableCell>{item.nome}</TableCell>
-                    <TableCell>R$ {item.preco?.toFixed(2) || '0,00'}</TableCell>
+                    <TableCell>{item.preco ? formatarMoeda(item.preco) : formatarMoeda(0)}</TableCell>
                     <TableCell>
                       <Badge variant={item.ativo ? "default" : "secondary"}>
                         {item.ativo ? "Ativo" : "Inativo"}

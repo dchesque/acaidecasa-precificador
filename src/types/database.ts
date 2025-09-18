@@ -160,6 +160,8 @@ export interface Combinado {
   custoTotal: number;
   precoSugerido: number;
   precoCardapio?: number;
+  precoVendaTotal: number; // Soma dos preços de venda dos componentes
+  precoVendaSugerido: number; // Baseado nos preços individuais do cardápio
   margem: number;
   ativo: boolean;
   createdAt: Date;
@@ -178,6 +180,8 @@ export interface CombinadoComplemento {
   receita?: Receita;
   quantidade: number;
   custo: number;
+  precoVenda?: number; // Preço de venda do item no cardápio
+  itemCardapioId?: string; // Referência ao item do cardápio
   createdAt: Date;
   updatedAt: Date;
 }
@@ -188,11 +192,15 @@ export interface ItemCardapio {
   descricao?: string;
   categoriaId: string;
   categoria?: Categoria;
-  tipo: 'COPO_BASE' | 'COMBINADO';
+  tipo: 'COPO_BASE' | 'COMBINADO' | 'INSUMO' | 'RECEITA';
   copoBaseId?: string;
   copoBase?: CopoBase;
   combinadoId?: string;
   combinado?: Combinado;
+  insumoId?: string;
+  insumo?: Insumo;
+  receitaId?: string;
+  receita?: Receita;
   custoAtual: number;
   precoAtual: number;
   margemAtual: number;

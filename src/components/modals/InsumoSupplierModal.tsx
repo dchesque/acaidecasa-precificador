@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { useAppContext } from "@/contexts/AppContext";
 import { InsumoFornecedor } from "@/types/database";
+import { formatarCustoPorUnidade } from "@/utils/calculations";
 import { z } from "zod";
 
 const insumoSupplierSchema = z.object({
@@ -294,11 +295,11 @@ export const InsumoSupplierModal = ({
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Custo por unidade:</span>
               <span className="font-bold text-lg text-primary">
-                R$ {custoPorUnidade.toFixed(4)}/un
+                {formatarCustoPorUnidade(custoPorUnidade)}/un
               </span>
             </div>
             <div className="text-xs text-muted-foreground mt-1">
-              Baseado em: R$ {precoParaCalculo.toFixed(2)} ÷ {quantidadeComprada} = R$ {custoPorUnidade.toFixed(4)}
+              Baseado em: {formatarCustoPorUnidade(precoParaCalculo)} ÷ {quantidadeComprada} = {formatarCustoPorUnidade(custoPorUnidade)}
             </div>
           </div>
 

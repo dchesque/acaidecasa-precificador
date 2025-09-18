@@ -30,7 +30,11 @@
       "Bash(npm install:*)",
       "Bash(cat:*)",
       "Bash(awk:*)",
-      "Bash(timeout 30s npm run dev)"
+      "Bash(timeout 30s npm run dev)",
+      "Bash(timeout:*)",
+      "Bash(move src/pages/Cardapio.backup.tsx src/pages/Cardapio.backup.tsx.disabled)",
+      "Bash(move src/pages/Cardapio.backup2.tsx src/pages/Cardapio.backup2.tsx.disabled)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []

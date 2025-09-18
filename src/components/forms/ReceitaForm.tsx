@@ -26,13 +26,14 @@ import { receitaSchema, ReceitaFormData } from "@/types/forms";
 import { Receita } from "@/types/database";
 import { useAppContext } from "@/contexts/AppContext";
 import { formatarMoeda, formatarCustoPorUnidade, calcularCustoPorGrama } from "@/utils/calculations";
-import { Plus, Trash2, Search } from "lucide-react";
+import { Plus, Trash2, Search, Settings } from "lucide-react";
 
 interface ReceitaFormProps {
   receita?: Receita;
   onSubmit: (data: ReceitaFormData) => void;
   onCancel: () => void;
   isLoading?: boolean;
+  onOpenCategoriesModal?: () => void;
 }
 
 export const ReceitaForm = ({
@@ -40,6 +41,7 @@ export const ReceitaForm = ({
   onSubmit,
   onCancel,
   isLoading = false,
+  onOpenCategoriesModal,
 }: ReceitaFormProps) => {
   const { state } = useAppContext();
   const [searchTerm, setSearchTerm] = useState("");
@@ -122,20 +124,40 @@ export const ReceitaForm = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Categoria *</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma categoria" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {categorias.map((categoria) => (
-                      <SelectItem key={categoria.id} value={categoria.id}>
-                        {categoria.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-2">
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="flex-1">
+                        <SelectValue placeholder="Selecione uma categoria" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {categorias.map((categoria) => (
+                        <SelectItem key={categoria.id} value={categoria.id}>
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: categoria.cor }}
+                            />
+                            {categoria.nome}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {onOpenCategoriesModal && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={onOpenCategoriesModal}
+                      className="px-3"
+                      title="Gerenciar categorias"
+                    >
+                      <Settings className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
                 <FormMessage />
               </FormItem>
             )}

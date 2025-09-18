@@ -12,15 +12,16 @@ import {
   ItemCardapio,
   Alerta
 } from '@/types/database';
-import { 
-  mockCategorias, 
-  mockUnidadesMedida, 
+import {
+  mockCategorias,
+  mockUnidadesMedida,
   mockFornecedores,
   mockInsumoFornecedores,
-  mockInsumos, 
-  mockReceitas, 
-  mockCoposBase, 
-  mockCombinados 
+  mockInsumos,
+  mockReceitas,
+  mockCoposBase,
+  mockCombinados,
+  mockCardapio
 } from '@/data/mockData';
 
 // App State Interface
@@ -96,7 +97,7 @@ const initialState: AppState = {
   receitas: mockReceitas,
   coposBase: mockCoposBase,
   combinados: mockCombinados,
-  cardapio: [],
+  cardapio: mockCardapio,
   alertas: [],
   loading: false,
   error: null,
@@ -313,25 +314,159 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
   }
 };
 
-// Context
-const AppContext = createContext<{
+// Enhanced Context with helper functions
+interface AppContextValue {
+  // State
   state: AppState;
   dispatch: React.Dispatch<AppAction>;
-} | null>(null);
+
+  // Data getters
+  configuracao: Configuracao | null;
+  categorias: Categoria[];
+  unidadesMedida: UnidadeMedida[];
+  fornecedores: Fornecedor[];
+  insumoFornecedores: InsumoFornecedor[];
+  insumos: Insumo[];
+  receitas: Receita[];
+  coposBase: CopoBase[];
+  combinados: Combinado[];
+  cardapio: ItemCardapio[];
+  alertas: Alerta[];
+
+  // Action functions
+  addCategoria: (categoria: Categoria) => void;
+  updateCategoria: (categoria: Categoria) => void;
+  deleteCategoria: (id: string) => void;
+  addFornecedor: (fornecedor: Fornecedor) => void;
+  updateFornecedor: (fornecedor: Fornecedor) => void;
+  deleteFornecedor: (id: string) => void;
+  addInsumo: (insumo: Insumo) => void;
+  updateInsumo: (insumo: Insumo) => void;
+  deleteInsumo: (id: string) => void;
+  addReceita: (receita: Receita) => void;
+  updateReceita: (receita: Receita) => void;
+  deleteReceita: (id: string) => void;
+  addCopoBase: (copoBase: CopoBase) => void;
+  updateCopoBase: (copoBase: CopoBase) => void;
+  deleteCopoBase: (id: string) => void;
+  addCombinado: (combinado: Combinado) => void;
+  updateCombinado: (combinado: Combinado) => void;
+  deleteCombinado: (id: string) => void;
+  addItemCardapio: (item: ItemCardapio) => void;
+  updateItemCardapio: (item: ItemCardapio) => void;
+  deleteItemCardapio: (id: string) => void;
+
+  // Price helper functions
+  getPrecoVendaItem: (tipo: 'INSUMO' | 'RECEITA' | 'COPO_BASE', itemId: string) => number | null;
+}
+
+const AppContext = createContext<AppContextValue | null>(null);
 
 // Provider
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
+  // Action functions
+  const addCategoria = (categoria: Categoria) => dispatch({ type: 'ADD_CATEGORIA', payload: categoria });
+  const updateCategoria = (categoria: Categoria) => dispatch({ type: 'UPDATE_CATEGORIA', payload: categoria });
+  const deleteCategoria = (id: string) => dispatch({ type: 'DELETE_CATEGORIA', payload: id });
+
+  const addFornecedor = (fornecedor: Fornecedor) => dispatch({ type: 'ADD_FORNECEDOR', payload: fornecedor });
+  const updateFornecedor = (fornecedor: Fornecedor) => dispatch({ type: 'UPDATE_FORNECEDOR', payload: fornecedor });
+  const deleteFornecedor = (id: string) => dispatch({ type: 'DELETE_FORNECEDOR', payload: id });
+
+  const addInsumo = (insumo: Insumo) => dispatch({ type: 'ADD_INSUMO', payload: insumo });
+  const updateInsumo = (insumo: Insumo) => dispatch({ type: 'UPDATE_INSUMO', payload: insumo });
+  const deleteInsumo = (id: string) => dispatch({ type: 'DELETE_INSUMO', payload: id });
+
+  const addReceita = (receita: Receita) => dispatch({ type: 'ADD_RECEITA', payload: receita });
+  const updateReceita = (receita: Receita) => dispatch({ type: 'UPDATE_RECEITA', payload: receita });
+  const deleteReceita = (id: string) => dispatch({ type: 'DELETE_RECEITA', payload: id });
+
+  const addCopoBase = (copoBase: CopoBase) => dispatch({ type: 'ADD_COPO_BASE', payload: copoBase });
+  const updateCopoBase = (copoBase: CopoBase) => dispatch({ type: 'UPDATE_COPO_BASE', payload: copoBase });
+  const deleteCopoBase = (id: string) => dispatch({ type: 'DELETE_COPO_BASE', payload: id });
+
+  const addCombinado = (combinado: Combinado) => dispatch({ type: 'ADD_COMBINADO', payload: combinado });
+  const updateCombinado = (combinado: Combinado) => dispatch({ type: 'UPDATE_COMBINADO', payload: combinado });
+  const deleteCombinado = (id: string) => dispatch({ type: 'DELETE_COMBINADO', payload: id });
+
+  const addItemCardapio = (item: ItemCardapio) => dispatch({ type: 'ADD_ITEM_CARDAPIO', payload: item });
+  const updateItemCardapio = (item: ItemCardapio) => dispatch({ type: 'UPDATE_ITEM_CARDAPIO', payload: item });
+  const deleteItemCardapio = (id: string) => dispatch({ type: 'DELETE_ITEM_CARDAPIO', payload: id });
+
+  // Price helper functions
+  const getPrecoVendaItem = (tipo: 'INSUMO' | 'RECEITA' | 'COPO_BASE', itemId: string): number | null => {
+    const itemCardapio = state.cardapio.find(item => {
+      switch (tipo) {
+        case 'INSUMO':
+          return item.tipo === 'INSUMO' && item.insumoId === itemId;
+        case 'RECEITA':
+          return item.tipo === 'RECEITA' && item.receitaId === itemId;
+        case 'COPO_BASE':
+          return item.tipo === 'COPO_BASE' && item.copoBaseId === itemId;
+        default:
+          return false;
+      }
+    });
+
+    return itemCardapio?.precoAtual || null;
+  };
+
+  const contextValue: AppContextValue = {
+    // State
+    state,
+    dispatch,
+
+    // Data getters
+    configuracao: state.configuracao,
+    categorias: state.categorias,
+    unidadesMedida: state.unidadesMedida,
+    fornecedores: state.fornecedores,
+    insumoFornecedores: state.insumoFornecedores,
+    insumos: state.insumos,
+    receitas: state.receitas,
+    coposBase: state.coposBase,
+    combinados: state.combinados,
+    cardapio: state.cardapio,
+    alertas: state.alertas,
+
+    // Action functions
+    addCategoria,
+    updateCategoria,
+    deleteCategoria,
+    addFornecedor,
+    updateFornecedor,
+    deleteFornecedor,
+    addInsumo,
+    updateInsumo,
+    deleteInsumo,
+    addReceita,
+    updateReceita,
+    deleteReceita,
+    addCopoBase,
+    updateCopoBase,
+    deleteCopoBase,
+    addCombinado,
+    updateCombinado,
+    deleteCombinado,
+    addItemCardapio,
+    updateItemCardapio,
+    deleteItemCardapio,
+
+    // Price helper functions
+    getPrecoVendaItem,
+  };
+
   return (
-    <AppContext.Provider value={{ state, dispatch }}>
+    <AppContext.Provider value={contextValue}>
       {children}
     </AppContext.Provider>
   );
 };
 
 // Hook
-export const useAppContext = () => {
+export const useAppContext = (): AppContextValue => {
   const context = useContext(AppContext);
   if (!context) {
     throw new Error('useAppContext must be used within an AppProvider');

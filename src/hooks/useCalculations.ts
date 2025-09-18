@@ -218,7 +218,7 @@ export const useCalculations = () => {
       type: 'SET_ALERTAS',
       payload: [...alertasPersistentes, ...alertasAtualizados],
     });
-  }, [state.alertas, state.coposBase, state.combinados, dispatch]);
+  }, [state.coposBase, state.combinados, state.alertas, dispatch]);
 
   return {
     recalcularInsumo,

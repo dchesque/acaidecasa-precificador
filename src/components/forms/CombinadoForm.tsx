@@ -41,10 +41,10 @@ import { cn } from "@/lib/utils";
 import { combinadoSchema, CombinadoFormData } from "@/types/forms";
 import { Combinado } from "@/types/database";
 import { useAppContext } from "@/contexts/AppContext";
-import { formatarMoeda, calcularCustoPorGrama } from "@/utils/calculations";
-import { Plus, Trash2, Calculator, Package, Tags } from "lucide-react";
-import { CategoriaModal } from "@/components/modals/CategoriaModal";
-import { Categoria } from "@/types/database";
+import { formatarMoeda, formatarCustoPorUnidade, calcularCustoPorGrama, calcularPrecoVendaCombinado, calcularEconomiaCombinado } from "@/utils/calculations";
+import { Plus, Trash2, Calculator, Package, Tags, Settings, ChevronLeft, ChevronRight, GripVertical, X } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 interface CombinadoFormProps {
   combinado?: Combinado;
@@ -59,8 +59,43 @@ export const CombinadoForm = ({
   onCancel,
   isLoading = false,
 }: CombinadoFormProps) => {
-  const { state } = useAppContext();
+  const { categorias, coposBase, insumos, receitas, cardapio, insumoFornecedores, getPrecoVendaItem } = useAppContext();
   const [categoriaModalOpen, setCategoriaModalOpen] = React.useState(false);
+
+  // Estados para modal de categorias (padrão cardápio)
+  const [newCategoryName, setNewCategoryName] = React.useState("");
+  const [newCategoryIcon, setNewCategoryIcon] = React.useState("Package");
+  const [newCategoryColor, setNewCategoryColor] = React.useState("#8B5CF6");
+  const [editingCategory, setEditingCategory] = React.useState<string | null>(null);
+  const [editCategoryName, setEditCategoryName] = React.useState("");
+  const [editCategoryIcon, setEditCategoryIcon] = React.useState("Package");
+  const [editCategoryColor, setEditCategoryColor] = React.useState("#8B5CF6");
+  const [iconScrollIndex, setIconScrollIndex] = React.useState(0);
+  const [colorScrollIndex, setColorScrollIndex] = React.useState(0);
+
+  // Configuração de ícones disponíveis
+  const availableIcons = [
+    { name: "Package", icon: Package },
+    { name: "Calculator", icon: Calculator },
+    { name: "Plus", icon: Plus },
+    { name: "Tags", icon: Tags },
+    { name: "Settings", icon: Settings },
+  ];
+
+  const availableColors = [
+    "#8B5CF6", "#EC4899", "#10B981", "#F59E0B", "#EF4444", "#3B82F6", "#8B5A2B",
+    "#06B6D4", "#84CC16", "#F97316", "#E11D48", "#7C3AED", "#059669", "#DC2626",
+    "#2563EB", "#7C2D12", "#BE123C", "#9333EA", "#0D9488", "#EA580C", "#1D4ED8",
+    "#92400E", "#BE185D", "#6366F1", "#047857", "#C2410C", "#1E40AF", "#A16207"
+  ];
+
+  // Configurações de visualização
+  const iconsPerView = 5;
+  const colorsPerView = 8;
+
+  // Visualizações calculadas
+  const visibleIcons = availableIcons.slice(iconScrollIndex, iconScrollIndex + iconsPerView);
+  const visibleColors = availableColors.slice(colorScrollIndex, colorScrollIndex + colorsPerView);
   
   const form = useForm<CombinadoFormData>({
     resolver: zodResolver(combinadoSchema),
@@ -116,9 +151,110 @@ export const CombinadoForm = ({
     onSubmit(data);
   };
 
-  const handleCategoriaCreated = (novaCategoria: Categoria) => {
-    form.setValue("categoriaId", novaCategoria.id);
+  // Funções do modal de categorias (padrão cardápio)
+  const handleCreateCategory = () => {
+    if (!newCategoryName.trim()) return;
+
+    // Verificar se já existe uma categoria com esse nome
+    const categoryExists = state.categorias.some(cat =>
+      cat.nome.toLowerCase() === newCategoryName.trim().toLowerCase()
+    );
+
+    if (categoryExists) {
+      console.log("❌ Já existe uma categoria com esse nome:", newCategoryName.trim());
+      return;
+    }
+
+    const newCategory = {
+      id: `categoria-combinado-${Date.now()}`,
+      nome: newCategoryName.trim(),
+      descricao: `Categoria de combinados: ${newCategoryName.trim()}`,
+      cor: newCategoryColor,
+      ativo: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    dispatch({ type: 'ADD_CATEGORIA', payload: newCategory });
+
+    // Selecionar automaticamente a categoria recém-criada
+    form.setValue("categoriaId", newCategory.id);
+
+    // Reset form
+    setNewCategoryName("");
+    setNewCategoryIcon("Package");
+    setNewCategoryColor("#8B5CF6");
     setCategoriaModalOpen(false);
+
+    console.log("✅ Categoria de combinado criada com sucesso:", newCategory.nome);
+  };
+
+  const handleEditCategory = (categoryId: string) => {
+    const categoria = state.categorias.find(cat => cat.id === categoryId);
+    if (categoria) {
+      setEditingCategory(categoryId);
+      setEditCategoryName(categoria.nome);
+      setEditCategoryIcon("Package");
+      setEditCategoryColor(categoria.cor || "#8B5CF6");
+    }
+  };
+
+  const handleUpdateCategory = () => {
+    if (!editingCategory || !editCategoryName.trim()) return;
+
+    const updatedCategory = {
+      id: editingCategory,
+      nome: editCategoryName.trim(),
+      descricao: `Categoria de combinados: ${editCategoryName.trim()}`,
+      cor: editCategoryColor,
+      ativo: true,
+      updatedAt: new Date(),
+    };
+
+    dispatch({ type: 'UPDATE_CATEGORIA', payload: updatedCategory });
+
+    console.log("✅ Categoria de combinado editada com sucesso:", editCategoryName.trim());
+
+    setEditingCategory(null);
+    setEditCategoryName("");
+    setEditCategoryIcon("Package");
+    setEditCategoryColor("#8B5CF6");
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCategory(null);
+    setEditCategoryName("");
+    setEditCategoryIcon("Package");
+    setEditCategoryColor("#8B5CF6");
+  };
+
+  const handleDeleteCategory = (categoryId: string) => {
+    const categoria = state.categorias.find(cat => cat.id === categoryId);
+    if (window.confirm(`Tem certeza que deseja excluir a categoria "${categoria?.nome}"?`)) {
+      dispatch({ type: 'DELETE_CATEGORIA', payload: categoryId });
+      console.log("🗑️ Categoria de combinado excluída:", categoria?.nome);
+    }
+  };
+
+  // Handlers para navegação de ícones e cores
+  const handlePrevIcons = () => {
+    setIconScrollIndex(prev => Math.max(0, prev - iconsPerView));
+  };
+
+  const handleNextIcons = () => {
+    setIconScrollIndex(prev =>
+      Math.min(availableIcons.length - iconsPerView, prev + iconsPerView)
+    );
+  };
+
+  const handlePrevColors = () => {
+    setColorScrollIndex(prev => Math.max(0, prev - colorsPerView));
+  };
+
+  const handleNextColors = () => {
+    setColorScrollIndex(prev =>
+      Math.min(availableColors.length - colorsPerView, prev + colorsPerView)
+    );
   };
 
   const categorias = state.categorias.filter(c => c.ativo);
@@ -224,7 +360,7 @@ export const CombinadoForm = ({
       if (comp.tipo === 'INSUMO' && comp.insumoId && comp.quantidade > 0) {
         const insumo = insumos.find(i => i.id === comp.insumoId);
         if (insumo) {
-          const custoPorGrama = calcularCustoPorGrama(insumo, state.insumoFornecedores);
+          const custoPorGrama = calcularCustoPorGrama(insumo, insumoFornecedores);
           return total + (custoPorGrama * comp.quantidade);
         }
       } else if (comp.tipo === 'RECEITA' && comp.receitaId && comp.quantidade > 0) {
@@ -235,11 +371,57 @@ export const CombinadoForm = ({
       }
       return total;
     }, 0);
-  }, [complementosSelecionados, insumos, receitas, state.insumoFornecedores]);
+  }, [complementosSelecionados, insumos, receitas, insumoFornecedores]);
 
   const custoTotal = React.useMemo(() => {
     return custoCopoBase + custoComplementos;
   }, [custoCopoBase, custoComplementos]);
+
+  // Cálculos de preços de venda
+  const precoVendaCopoBase = React.useMemo(() => {
+    if (copoBaseId) {
+      return getPrecoVendaItem('COPO_BASE', copoBaseId);
+    }
+    return null;
+  }, [copoBaseId, getPrecoVendaItem]);
+
+  const precoVendaComplementos = React.useMemo(() => {
+    if (!complementosSelecionados) return 0;
+    return complementosSelecionados.reduce((total, comp) => {
+      if (comp.tipo === 'INSUMO' && comp.insumoId && comp.quantidade > 0) {
+        const precoVenda = getPrecoVendaItem('INSUMO', comp.insumoId);
+        if (precoVenda) {
+          return total + (precoVenda * comp.quantidade);
+        }
+      } else if (comp.tipo === 'RECEITA' && comp.receitaId && comp.quantidade > 0) {
+        const precoVenda = getPrecoVendaItem('RECEITA', comp.receitaId);
+        if (precoVenda) {
+          return total + (precoVenda * comp.quantidade);
+        }
+      }
+      return total;
+    }, 0);
+  }, [complementosSelecionados, getPrecoVendaItem]);
+
+  const precoVendaTotal = React.useMemo(() => {
+    const precoBase = precoVendaCopoBase || 0;
+    return precoBase + precoVendaComplementos;
+  }, [precoVendaCopoBase, precoVendaComplementos]);
+
+  // Verificar se todos os itens têm preço no cardápio
+  const temPrecoCompleto = React.useMemo(() => {
+    if (!copoBaseId) return false;
+    const baseTemPreco = precoVendaCopoBase !== null;
+    const complementosComPreco = complementosSelecionados?.every(comp => {
+      if (comp.tipo === 'INSUMO' && comp.insumoId) {
+        return getPrecoVendaItem('INSUMO', comp.insumoId) !== null;
+      } else if (comp.tipo === 'RECEITA' && comp.receitaId) {
+        return getPrecoVendaItem('RECEITA', comp.receitaId) !== null;
+      }
+      return false;
+    }) ?? true;
+    return baseTemPreco && complementosComPreco;
+  }, [copoBaseId, precoVendaCopoBase, complementosSelecionados, getPrecoVendaItem]);
 
   return (
     <Form {...form}>
@@ -289,7 +471,7 @@ export const CombinadoForm = ({
                     onClick={() => setCategoriaModalOpen(true)}
                     title="Adicionar nova categoria"
                   >
-                    <Tags className="w-4 h-4" />
+                    <Settings className="w-4 h-4" />
                   </Button>
                 </div>
                 <FormMessage />
@@ -384,7 +566,9 @@ export const CombinadoForm = ({
                       <TableHead>Item</TableHead>
                       <TableHead className="text-right">Quantidade</TableHead>
                       <TableHead className="text-right">Custo Unit.</TableHead>
+                      <TableHead className="text-right">Preço Venda Unit.</TableHead>
                       <TableHead className="text-right">Custo Total</TableHead>
+                      <TableHead className="text-right">Preço Venda Total</TableHead>
                       <TableHead className="text-center">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -393,24 +577,33 @@ export const CombinadoForm = ({
                       const complemento = complementosSelecionados?.[index];
                       let custoUnitario = 0;
                       let custoTotalItem = 0;
+                      let precoVendaUnitario: number | null = null;
+                      let precoVendaTotalItem = 0;
                       let unidade = "";
                       let itemInfo = null;
+                      let temPrecoCardapio = false;
 
                       if (complemento?.tipo === 'INSUMO' && complemento.insumoId) {
                         const insumo = insumos.find(i => i.id === complemento.insumoId);
                         if (insumo) {
-                          custoUnitario = calcularCustoPorGrama(insumo, state.insumoFornecedores);
+                          custoUnitario = calcularCustoPorGrama(insumo, insumoFornecedores);
                           custoTotalItem = custoUnitario * (complemento.quantidade || 0);
+                          precoVendaUnitario = getPrecoVendaItem('INSUMO', complemento.insumoId);
+                          precoVendaTotalItem = precoVendaUnitario ? precoVendaUnitario * (complemento.quantidade || 0) : 0;
                           unidade = insumo.unidadeMedida?.sigla || "g";
                           itemInfo = insumo;
+                          temPrecoCardapio = precoVendaUnitario !== null;
                         }
                       } else if (complemento?.tipo === 'RECEITA' && complemento.receitaId) {
                         const receita = receitas.find(r => r.id === complemento.receitaId);
                         if (receita) {
                           custoUnitario = receita.custoPorGrama;
                           custoTotalItem = custoUnitario * (complemento.quantidade || 0);
+                          precoVendaUnitario = getPrecoVendaItem('RECEITA', complemento.receitaId);
+                          precoVendaTotalItem = precoVendaUnitario ? precoVendaUnitario * (complemento.quantidade || 0) : 0;
                           unidade = "g";
                           itemInfo = receita;
+                          temPrecoCardapio = precoVendaUnitario !== null;
                         }
                       }
 
@@ -454,11 +647,12 @@ export const CombinadoForm = ({
                                         placeholder="Selecione um insumo"
                                         options={insumos}
                                         renderOption={(insumo) => {
-                                          const custoPorGrama = calcularCustoPorGrama(insumo, state.insumoFornecedores);
+                                          const custoPorGrama = calcularCustoPorGrama(insumo, insumoFornecedores);
+                                          const precoVenda = getPrecoVendaItem('INSUMO', insumo.id);
                                           return {
                                             value: insumo.id,
                                             label: insumo.nome,
-                                            details: `Custo: R$ ${custoPorGrama.toFixed(4)}/g`
+                                            details: `Custo: ${formatarCustoPorUnidade(custoPorGrama)}/g${precoVenda ? ` | Venda: ${formatarMoeda(precoVenda)}` : ''}`
                                           };
                                         }}
                                       />
@@ -482,7 +676,7 @@ export const CombinadoForm = ({
                                         renderOption={(receita) => ({
                                           value: receita.id,
                                           label: receita.nome,
-                                          details: `Custo: R$ ${receita.custoPorGrama.toFixed(4)}/g`
+                                          details: `Custo: ${formatarCustoPorUnidade(receita.custoPorGrama)}/g`
                                         })}
                                       />
                                     </FormControl>
@@ -520,12 +714,37 @@ export const CombinadoForm = ({
                           </TableCell>
 
                           <TableCell className="text-right text-sm">
-                            {custoUnitario > 0 ? `R$ ${custoUnitario.toFixed(4)}` : "-"}
+                            {custoUnitario > 0 ? formatarCustoPorUnidade(custoUnitario) : "-"}
+                          </TableCell>
+
+                          <TableCell className="text-right text-sm">
+                            {precoVendaUnitario !== null ? (
+                              <div className="flex items-center justify-end gap-1">
+                                <span className="text-green-600 font-medium">
+                                  {formatarMoeda(precoVendaUnitario)}
+                                </span>
+                                {temPrecoCardapio && (
+                                  <span className="text-xs text-green-600" title="Disponível no cardápio">
+                                    📋
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground text-xs">Não no cardápio</span>
+                            )}
                           </TableCell>
 
                           <TableCell className="text-right font-medium">
                             {custoTotalItem > 0 ? (
-                              <span className="text-destructive">R$ {custoTotalItem.toFixed(4)}</span>
+                              <span className="text-destructive">{formatarCustoPorUnidade(custoTotalItem)}</span>
+                            ) : (
+                              "-"
+                            )}
+                          </TableCell>
+
+                          <TableCell className="text-right font-medium">
+                            {precoVendaTotalItem > 0 ? (
+                              <span className="text-green-600">{formatarMoeda(precoVendaTotalItem)}</span>
                             ) : (
                               "-"
                             )}
@@ -566,41 +785,106 @@ export const CombinadoForm = ({
           </CardContent>
         </Card>
 
-        {/* Cost Summary */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calculator className="h-5 w-5" />
-              Resumo de Custos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
-                  <span className="text-sm">Copo Base:</span>
-                  <span className="font-semibold">{formatarMoeda(custoCopoBase)}</span>
-                </div>
-                <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
-                  <span className="text-sm">Complementos:</span>
-                  <span className="font-semibold">{formatarMoeda(custoComplementos)}</span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-destructive/10 border border-destructive/20 rounded">
-                  <span className="font-semibold">Custo Total:</span>
-                  <span className="text-lg font-bold text-destructive">
-                    {formatarMoeda(custoTotal)}
-                  </span>
-                </div>
-              </div>
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded">
-                <div className="text-xs text-blue-700 mb-1">💡 Informação</div>
-                <div className="text-xs text-blue-700">
-                  Este combinado terá um custo total de {formatarMoeda(custoTotal)} considerando todos os insumos e complementos.
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Cost Summary */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calculator className="h-5 w-5" />
+                Resumo de Custos
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
+                    <span className="text-sm">Copo Base:</span>
+                    <span className="font-semibold">{formatarMoeda(custoCopoBase)}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
+                    <span className="text-sm">Complementos:</span>
+                    <span className="font-semibold">{formatarMoeda(custoComplementos)}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-destructive/10 border border-destructive/20 rounded">
+                    <span className="font-semibold">Custo Total:</span>
+                    <span className="text-lg font-bold text-destructive">
+                      {formatarMoeda(custoTotal)}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          {/* Sales Price Summary */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                Preços de Venda
+                {temPrecoCompleto && (
+                  <Badge variant="default" className="ml-2">
+                    Completo
+                  </Badge>
+                )}
+                {!temPrecoCompleto && (
+                  <Badge variant="secondary" className="ml-2">
+                    Incompleto
+                  </Badge>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
+                    <span className="text-sm">Copo Base:</span>
+                    <span className="font-semibold">
+                      {precoVendaCopoBase !== null ? (
+                        <span className="text-green-600">{formatarMoeda(precoVendaCopoBase)}</span>
+                      ) : (
+                        <span className="text-muted-foreground">Não no cardápio</span>
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
+                    <span className="text-sm">Complementos:</span>
+                    <span className="font-semibold">
+                      {precoVendaComplementos > 0 ? (
+                        <span className="text-green-600">{formatarMoeda(precoVendaComplementos)}</span>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-green-50 border border-green-200 rounded">
+                    <span className="font-semibold">Preço Total:</span>
+                    <span className="text-lg font-bold text-green-600">
+                      {precoVendaTotal > 0 ? formatarMoeda(precoVendaTotal) : "Incompleto"}
+                    </span>
+                  </div>
+                </div>
+                {temPrecoCompleto && precoVendaTotal > custoTotal && (
+                  <div className="p-3 bg-green-50 border border-green-200 rounded">
+                    <div className="text-xs text-green-700 mb-1">💰 Economia para o cliente</div>
+                    <div className="text-xs text-green-700">
+                      Vendido separado: {formatarMoeda(precoVendaTotal)} | Como combo: {custoTotal > 0 ? "A definir" : formatarMoeda(custoTotal)}
+                    </div>
+                  </div>
+                )}
+                {!temPrecoCompleto && (
+                  <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
+                    <div className="text-xs text-yellow-700 mb-1">⚠️ Preços incompletos</div>
+                    <div className="text-xs text-yellow-700">
+                      Alguns itens não estão disponíveis no cardápio. Adicione-os para calcular preços de venda.
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
 
         <FormField
@@ -634,13 +918,259 @@ export const CombinadoForm = ({
         </div>
       </form>
 
-      {/* Modal de Categoria */}
-      <CategoriaModal
-        open={categoriaModalOpen}
-        onOpenChange={setCategoriaModalOpen}
-        onCategoriaCreated={handleCategoriaCreated}
-        compact={true}
-      />
+      {/* Modal de Gerenciar Categorias - Padrão Cardápio */}
+      <Dialog open={categoriaModalOpen} onOpenChange={setCategoriaModalOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Gerenciar Categorias</DialogTitle>
+            <DialogDescription>
+              Crie novas categorias, edite existentes e organize a ordem de exibição
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Seção de Nova Categoria */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Plus className="w-5 h-5" />
+                  Nova Categoria
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="category-name">Nome da Categoria</Label>
+                  <Input
+                    id="category-name"
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    placeholder="Ex: Combinados Premium"
+                  />
+                </div>
+                <div>
+                  <Label>Ícone</Label>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-10 w-8 p-0"
+                      onClick={handlePrevIcons}
+                      disabled={iconScrollIndex === 0}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <div className="grid grid-cols-5 gap-2 flex-1">
+                      {visibleIcons.map((iconData) => {
+                        const IconComponent = iconData.icon;
+                        return (
+                          <Button
+                            key={iconData.name}
+                            variant={newCategoryIcon === iconData.name ? "default" : "outline"}
+                            size="sm"
+                            className="h-10 w-10 p-0"
+                            onClick={() => setNewCategoryIcon(iconData.name)}
+                          >
+                            <IconComponent className="w-4 h-4" />
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-10 w-8 p-0"
+                      onClick={handleNextIcons}
+                      disabled={iconScrollIndex >= availableIcons.length - iconsPerView}
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div>
+                  <Label>Cor</Label>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={handlePrevColors}
+                      disabled={colorScrollIndex === 0}
+                    >
+                      <ChevronLeft className="w-3 h-3" />
+                    </Button>
+                    <div className="grid grid-cols-8 gap-2 flex-1">
+                      {visibleColors.map((color) => (
+                        <Button
+                          key={color}
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8 p-0 border-2"
+                          style={{
+                            backgroundColor: color,
+                            borderColor: newCategoryColor === color ? "#000" : "#e5e7eb"
+                          }}
+                          onClick={() => setNewCategoryColor(color)}
+                        />
+                      ))}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={handleNextColors}
+                      disabled={colorScrollIndex >= availableColors.length - colorsPerView}
+                    >
+                      <ChevronRight className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+                <Button
+                  onClick={handleCreateCategory}
+                  disabled={!newCategoryName.trim()}
+                  className="w-full"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Criar Categoria
+                </Button>
+                {/* Feedback visual */}
+                {newCategoryName.trim() && (
+                  <div className="text-xs text-muted-foreground mt-2 p-2 bg-muted rounded">
+                    Preview: <span style={{ color: newCategoryColor }}>●</span> {newCategoryName.trim()}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            {/* Seção de Categorias Existentes */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Settings className="w-5 h-5" />
+                  Categorias Existentes
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {editingCategory && (
+                  <div className="p-4 border rounded-lg bg-muted/20">
+                    <h4 className="font-medium mb-3">Editando Categoria</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <Label htmlFor="edit-category-name">Nome</Label>
+                        <Input
+                          id="edit-category-name"
+                          value={editCategoryName}
+                          onChange={(e) => setEditCategoryName(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label>Cor</Label>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={handlePrevColors}
+                            disabled={colorScrollIndex === 0}
+                          >
+                            <ChevronLeft className="w-3 h-3" />
+                          </Button>
+                          <div className="grid grid-cols-8 gap-2 flex-1">
+                            {visibleColors.map((color) => (
+                              <Button
+                                key={color}
+                                variant="outline"
+                                size="sm"
+                                className="h-6 w-6 p-0 border-2"
+                                style={{
+                                  backgroundColor: color,
+                                  borderColor: editCategoryColor === color ? "#000" : "#e5e7eb"
+                                }}
+                                onClick={() => setEditCategoryColor(color)}
+                              />
+                            ))}
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={handleNextColors}
+                            disabled={colorScrollIndex >= availableColors.length - colorsPerView}
+                          >
+                            <ChevronRight className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={handleUpdateCategory}
+                          size="sm"
+                          disabled={!editCategoryName.trim()}
+                        >
+                          <Settings className="w-3 h-3 mr-1" />
+                          Salvar
+                        </Button>
+                        <Button variant="outline" onClick={handleCancelEdit} size="sm">
+                          <X className="w-3 h-3 mr-1" />
+                          Cancelar
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  {categorias.map((categoria) => {
+                    const isEditing = editingCategory === categoria.id;
+
+                    return (
+                      <div
+                        key={categoria.id}
+                        className={`flex items-center gap-3 p-2 border rounded-lg transition-all ${
+                          isEditing ? 'bg-primary/10 border-primary/30' : 'hover:bg-muted/50'
+                        }`}
+                      >
+                        <div
+                          className="w-6 h-6 rounded-full flex items-center justify-center text-white"
+                          style={{ backgroundColor: categoria.cor || "#8B5CF6" }}
+                        >
+                          <div className="w-2 h-2 bg-white rounded-full" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">{categoria.nome}</p>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0"
+                            onClick={() => handleEditCategory(categoria.id)}
+                            disabled={isEditing}
+                          >
+                            <Settings className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                            onClick={() => handleDeleteCategory(categoria.id)}
+                            disabled={isEditing}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button variant="outline" onClick={() => setCategoriaModalOpen(false)}>
+              Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Form>
   );
 };

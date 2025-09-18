@@ -648,12 +648,8 @@ const SidebarMenuSkeleton = React.forwardRef<
     showIcon?: boolean
   }
 >(({ className, showIcon = false, ...props }, ref) => {
-  // Random width between 50 to 90% - using useState to ensure consistency between server and client
+  // Static width to ensure consistency between server and client
   const [width, setWidth] = React.useState("70%")
-  
-  React.useEffect(() => {
-    setWidth(`${Math.floor(Math.random() * 40) + 50}%`)
-  }, [])
 
   return (
     <div

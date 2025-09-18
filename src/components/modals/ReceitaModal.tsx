@@ -12,12 +12,14 @@ interface ReceitaModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   receita?: Receita;
+  onOpenCategoriesModal?: () => void;
 }
 
 export const ReceitaModal = ({
   open,
   onOpenChange,
   receita,
+  onOpenCategoriesModal,
 }: ReceitaModalProps) => {
   const { state, dispatch } = useAppContext();
   const { recalcularReceita } = useCalculations();
@@ -142,6 +144,7 @@ export const ReceitaModal = ({
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         isLoading={isLoading}
+        onOpenCategoriesModal={onOpenCategoriesModal}
       />
     </BaseModal>
   );

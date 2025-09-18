@@ -1,4 +1,4 @@
-import { Insumo, InsumoFornecedor, Receita, CopoBase, Combinado, Configuracao, Fornecedor } from "@/types/database";
+import { Insumo, InsumoFornecedor, Receita, CopoBase, Combinado, Configuracao, Fornecedor, ItemCardapio, CombinadoComplemento } from "@/types/database";
 
 // Calculate cost per unit for inputs using InsumoFornecedor relationship
 // Note: Despite the name, this returns cost per unit (g, ml, or un) based on the insumo's unit
@@ -244,5 +244,128 @@ export const formatarPorcentagem = (valor: number): string => {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1
   }).format(valor / 100);
+};
+
+// Get item price from cardápio by type and ID
+export const obterPrecoVendaItem = (
+  tipo: 'INSUMO' | 'RECEITA' | 'COPO_BASE',
+  itemId: string,
+  itensCardapio: ItemCardapio[]
+): number | null => {
+  const itemCardapio = itensCardapio.find(item => {
+    switch (tipo) {
+      case 'INSUMO':
+        return item.tipo === 'INSUMO' && item.insumoId === itemId;
+      case 'RECEITA':
+        return item.tipo === 'RECEITA' && item.receitaId === itemId;
+      case 'COPO_BASE':
+        return item.tipo === 'COPO_BASE' && item.copoBaseId === itemId;
+      default:
+        return false;
+    }
+  });
+
+  return itemCardapio?.precoAtual || null;
+};
+
+// Calculate sales price for combo based on cardápio prices
+export const calcularPrecoVendaCombinado = (
+  combinado: Partial<Combinado>,
+  itensCardapio: ItemCardapio[]
+): {
+  precoCopoBase: number | null;
+  precoComplementos: number;
+  precoVendaTotal: number;
+  itensComPreco: number;
+  totalItens: number;
+  complementosComPreco: CombinadoComplemento[];
+} => {
+  let precoCopoBase: number | null = null;
+  let precoComplementos = 0;
+  let itensComPreco = 0;
+  let totalItens = 0;
+  let complementosComPreco: CombinadoComplemento[] = [];
+
+  // Get base cup price from cardápio
+  if (combinado.copoBaseId) {
+    precoCopoBase = obterPrecoVendaItem('COPO_BASE', combinado.copoBaseId, itensCardapio);
+    totalItens += 1;
+    if (precoCopoBase !== null) {
+      itensComPreco += 1;
+    }
+  }
+
+  // Calculate complements prices
+  if (combinado.complementos) {
+    totalItens += combinado.complementos.length;
+
+    combinado.complementos.forEach(complemento => {
+      let precoItem: number | null = null;
+
+      if (complemento.tipo === 'INSUMO' && complemento.insumoId) {
+        precoItem = obterPrecoVendaItem('INSUMO', complemento.insumoId, itensCardapio);
+      } else if (complemento.tipo === 'RECEITA' && complemento.receitaId) {
+        precoItem = obterPrecoVendaItem('RECEITA', complemento.receitaId, itensCardapio);
+      }
+
+      if (precoItem !== null) {
+        const subtotal = precoItem * complemento.quantidade;
+        precoComplementos += subtotal;
+        itensComPreco += 1;
+
+        // Create complement with sales price info
+        complementosComPreco.push({
+          ...complemento,
+          precoVenda: precoItem,
+          itemCardapioId: itensCardapio.find(item =>
+            (complemento.tipo === 'INSUMO' && item.insumoId === complemento.insumoId) ||
+            (complemento.tipo === 'RECEITA' && item.receitaId === complemento.receitaId)
+          )?.id
+        });
+      } else {
+        complementosComPreco.push(complemento);
+      }
+    });
+  }
+
+  const precoVendaTotal = (precoCopoBase || 0) + precoComplementos;
+
+  return {
+    precoCopoBase,
+    precoComplementos,
+    precoVendaTotal,
+    itensComPreco,
+    totalItens,
+    complementosComPreco
+  };
+};
+
+// Check if combo has complete pricing information
+export const verificarComboPrecoCompleto = (
+  combinado: Partial<Combinado>,
+  itensCardapio: ItemCardapio[]
+): boolean => {
+  const resultado = calcularPrecoVendaCombinado(combinado, itensCardapio);
+  return resultado.itensComPreco === resultado.totalItens;
+};
+
+// Calculate savings when buying combo vs individual items
+export const calcularEconomiaCombinado = (
+  precoCombo: number,
+  precoVendaIndividual: number
+): {
+  economia: number;
+  porcentagemDesconto: number;
+  temDesconto: boolean;
+} => {
+  const economia = precoVendaIndividual - precoCombo;
+  const porcentagemDesconto = precoVendaIndividual > 0 ? (economia / precoVendaIndividual) * 100 : 0;
+  const temDesconto = economia > 0;
+
+  return {
+    economia,
+    porcentagemDesconto,
+    temDesconto
+  };
 };
 

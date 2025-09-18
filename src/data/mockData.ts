@@ -1051,6 +1051,8 @@ export const mockCombinados: Combinado[] = [
     custoTotal: 4.15,
     precoSugerido: 18.90,
     precoCardapio: 19.90,
+    precoVendaTotal: 18.50, // 12.50 (copo base) + 3.50 (granola) + 2.50 (banana) = 18.50
+    precoVendaSugerido: 18.50,
     margem: 355.4,
     ativo: true,
     complementos: mockCombinadoComplementos.filter(c => c.combinadoId === '1'),
@@ -1068,6 +1070,8 @@ export const mockCombinados: Combinado[] = [
     custoTotal: 2.78,
     precoSugerido: 13.50,
     precoCardapio: 14.90,
+    precoVendaTotal: 15.50, // 9.50 (copo base) + 3.50 (granola) + 2.50 (banana) = 15.50
+    precoVendaSugerido: 15.50,
     margem: 435.9,
     ativo: true,
     complementos: mockCombinadoComplementos.filter(c => c.combinadoId === '2'),
@@ -1085,6 +1089,8 @@ export const mockCombinados: Combinado[] = [
     custoTotal: 3.40,
     precoSugerido: 16.50,
     precoCardapio: 17.90,
+    precoVendaTotal: 20.00, // 11.00 (copo base) + 5.50 (castanha) + 3.50 (granola) = 20.00
+    precoVendaSugerido: 20.00,
     margem: 426.5,
     ativo: true,
     complementos: mockCombinadoComplementos.filter(c => c.combinadoId === '3'),
@@ -1185,6 +1191,98 @@ export const mockCardapio: ItemCardapio[] = [
     createdAt: new Date('2023-01-01'),
     updatedAt: new Date('2023-01-01'),
   },
+  // Itens individuais de insumos no cardápio
+  {
+    id: '7',
+    nome: 'Granola Artesanal (porção)',
+    descricao: 'Granola artesanal crocante 30g',
+    categoriaId: '3', // Cereais e Grãos
+    tipo: 'INSUMO',
+    insumoId: '5', // Granola
+    custoAtual: 0.75,
+    precoAtual: 3.50,
+    margemAtual: 366.7,
+    sku: 'GRN-ART-30G',
+    ativo: true,
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '8',
+    nome: 'Banana Fatiada (porção)',
+    descricao: 'Banana prata fatiada fresca 80g',
+    categoriaId: '2', // Frutas Frescas
+    tipo: 'INSUMO',
+    insumoId: '3', // Banana
+    custoAtual: 0.56,
+    precoAtual: 2.50,
+    margemAtual: 346.4,
+    sku: 'BAN-FAT-80G',
+    ativo: true,
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '9',
+    nome: 'Morango Fatiado (porção)',
+    descricao: 'Morango fresco fatiado 60g',
+    categoriaId: '2', // Frutas Frescas
+    tipo: 'INSUMO',
+    insumoId: '4', // Morango
+    custoAtual: 1.20,
+    precoAtual: 4.50,
+    margemAtual: 275.0,
+    sku: 'MOR-FAT-60G',
+    ativo: true,
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '10',
+    nome: 'Castanha-do-Pará (porção)',
+    descricao: 'Castanha-do-Pará premium 15g',
+    categoriaId: '4', // Castanhas e Nuts
+    tipo: 'INSUMO',
+    insumoId: '6', // Castanha-do-Pará
+    custoAtual: 1.20,
+    precoAtual: 5.50,
+    margemAtual: 358.3,
+    sku: 'CAS-PAR-15G',
+    ativo: true,
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  // Receitas no cardápio
+  {
+    id: '11',
+    nome: 'Calda de Chocolate Premium',
+    descricao: 'Calda de chocolate belga cremosa',
+    categoriaId: '5', // Caldas e Xaropes
+    tipo: 'RECEITA',
+    receitaId: '1', // Calda de Chocolate
+    custoAtual: 0.89,
+    precoAtual: 3.90,
+    margemAtual: 338.2,
+    sku: 'CAL-CHO-PREM',
+    ativo: true,
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '12',
+    nome: 'Mix de Frutas Vermelhas',
+    descricao: 'Mix especial com morango, mirtilo e framboesa',
+    categoriaId: '2', // Frutas Frescas
+    tipo: 'RECEITA',
+    receitaId: '2', // Mix Frutas Vermelhas
+    custoAtual: 1.45,
+    precoAtual: 6.50,
+    margemAtual: 348.3,
+    sku: 'MIX-FRU-VER',
+    ativo: true,
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
 ];
 
 // Add references to mock data
@@ -1229,5 +1327,11 @@ mockCardapio.forEach(item => {
   }
   if (item.combinadoId) {
     item.combinado = mockCombinados.find(c => c.id === item.combinadoId);
+  }
+  if (item.insumoId) {
+    item.insumo = mockInsumos.find(i => i.id === item.insumoId);
+  }
+  if (item.receitaId) {
+    item.receita = mockReceitas.find(r => r.id === item.receitaId);
   }
 });

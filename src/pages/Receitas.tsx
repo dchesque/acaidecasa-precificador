@@ -1,10 +1,11 @@
 "use client"
-import { useState } from "react";
+import React, { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -18,8 +19,8 @@ import {
 import { ReceitaModal } from "@/components/modals/ReceitaModal";
 import { useAppContext } from "@/contexts/AppContext";
 import { Receita } from "@/types/database";
-import { formatarMoeda, formatarCustoPorUnidade } from "@/utils/calculations";
-import { Plus, ChefHat, Clock, Calculator, Edit, Trash2, Search, Users, Eye } from "lucide-react";
+import { formatarMoeda, formatarCustoPorUnidade, formatarPorcentagem } from "@/utils/calculations";
+import { Plus, ChefHat, Clock, Calculator, Edit, Trash2, Search, Users, Eye, Settings, Package, ChevronLeft, ChevronRight, Coffee, Utensils, ShoppingCart, Grid3X3, GripVertical, Cherry, Cake, Apple, Banana, Cookie, Pizza, Salad, Sandwich, IceCream, Milk, Wine, Zap, Heart, Star, Flame, Sparkles, Crown, Gift, Target, Palette, Tag, MenuSquare, DollarSign, TrendingUp, BarChart3, AlertTriangle, X } from "lucide-react";
 
 const Receitas = () => {
   const { state, dispatch } = useAppContext();
@@ -30,6 +31,166 @@ const Receitas = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [viewMode, setViewMode] = useState<"complete" | "by-category">("by-category");
+  const [categoriesModalOpen, setCategoriesModalOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryIcon, setNewCategoryIcon] = useState("ChefHat");
+  const [newCategoryColor, setNewCategoryColor] = useState("#8B5CF6");
+  const [editingCategory, setEditingCategory] = useState<string | null>(null);
+  const [editCategoryName, setEditCategoryName] = useState("");
+  const [editCategoryIcon, setEditCategoryIcon] = useState("ChefHat");
+  const [editCategoryColor, setEditCategoryColor] = useState("#8B5CF6");
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [iconScrollIndex, setIconScrollIndex] = useState(0);
+  const [colorScrollIndex, setColorScrollIndex] = useState(0);
+
+  // Configuração de ícones disponíveis para receitas (adaptado do Cardapio)
+  const availableIcons = [
+    { name: "ChefHat", icon: ChefHat },
+    { name: "Coffee", icon: Coffee },
+    { name: "Cherry", icon: Cherry },
+    { name: "Cake", icon: Cake },
+    { name: "Package", icon: Package },
+    { name: "ShoppingCart", icon: ShoppingCart },
+    { name: "Apple", icon: Apple },
+    { name: "Banana", icon: Banana },
+    { name: "Cookie", icon: Cookie },
+    { name: "Pizza", icon: Pizza },
+    { name: "Salad", icon: Salad },
+    { name: "Sandwich", icon: Sandwich },
+    { name: "IceCream", icon: IceCream },
+    { name: "Milk", icon: Milk },
+    { name: "Wine", icon: Wine },
+    { name: "Utensils", icon: Utensils },
+    { name: "Heart", icon: Heart },
+    { name: "Star", icon: Star },
+    { name: "Flame", icon: Flame },
+    { name: "Sparkles", icon: Sparkles },
+    { name: "Crown", icon: Crown },
+    { name: "Gift", icon: Gift },
+    { name: "Target", icon: Target },
+  ];
+
+  const availableColors = [
+    "#8B5CF6", "#EC4899", "#10B981", "#F59E0B", "#EF4444", "#3B82F6", "#8B5A2B",
+    "#06B6D4", "#84CC16", "#F97316", "#E11D48", "#7C3AED", "#059669", "#DC2626",
+    "#2563EB", "#7C2D12", "#BE123C", "#9333EA", "#0D9488", "#EA580C", "#1D4ED8",
+    "#92400E", "#BE185D", "#6366F1", "#047857", "#C2410C", "#1E40AF", "#A16207"
+  ];
+
+  // Configurações de visualização
+  const iconsPerView = 5;
+  const colorsPerView = 8;
+
+  // Visualizações calculadas
+  const visibleIcons = availableIcons.slice(iconScrollIndex, iconScrollIndex + iconsPerView);
+  const visibleColors = availableColors.slice(colorScrollIndex, colorScrollIndex + colorsPerView);
+
+  // Funções para gerenciamento de categorias inline (copiado do Cardapio)
+  const handleCreateCategory = () => {
+    if (!newCategoryName.trim()) return;
+
+    // Verificar se já existe uma categoria com esse nome
+    const categoryExists = state.categorias.some(cat =>
+      cat.nome.toLowerCase() === newCategoryName.trim().toLowerCase()
+    );
+
+    if (categoryExists) {
+      console.log("❌ Já existe uma categoria com esse nome:", newCategoryName.trim());
+      return;
+    }
+
+    const iconComponent = availableIcons.find(icon => icon.name === newCategoryIcon)?.icon || ChefHat;
+
+    const newCategory = {
+      id: `categoria-receita-${Date.now()}`,
+      nome: newCategoryName.trim(),
+      descricao: `Categoria de receitas: ${newCategoryName.trim()}`,
+      cor: newCategoryColor,
+      ativo: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    dispatch({ type: 'ADD_CATEGORIA', payload: newCategory });
+
+    // Reset form
+    setNewCategoryName("");
+    setNewCategoryIcon("ChefHat");
+    setNewCategoryColor("#8B5CF6");
+
+    // Feedback visual de sucesso
+    console.log("✅ Categoria de receita criada com sucesso:", newCategory.nome);
+  };
+
+  const handleEditCategory = (categoryId: string) => {
+    const categoria = state.categorias.find(cat => cat.id === categoryId);
+    if (categoria) {
+      setEditingCategory(categoryId);
+      setEditCategoryName(categoria.nome);
+      setEditCategoryIcon("ChefHat");
+      setEditCategoryColor(categoria.cor || "#8B5CF6");
+    }
+  };
+
+  const handleUpdateCategory = () => {
+    if (!editingCategory || !editCategoryName.trim()) return;
+
+    const iconComponent = availableIcons.find(icon => icon.name === editCategoryIcon)?.icon || ChefHat;
+
+    const updatedCategory = {
+      id: editingCategory,
+      nome: editCategoryName.trim(),
+      descricao: `Categoria de receitas: ${editCategoryName.trim()}`,
+      cor: editCategoryColor,
+      ativo: true,
+      updatedAt: new Date(),
+    };
+
+    dispatch({ type: 'UPDATE_CATEGORIA', payload: updatedCategory });
+
+    console.log("✅ Categoria de receita editada com sucesso:", editCategoryName.trim());
+
+    setEditingCategory(null);
+    setEditCategoryName("");
+    setEditCategoryIcon("ChefHat");
+    setEditCategoryColor("#8B5CF6");
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCategory(null);
+    setEditCategoryName("");
+    setEditCategoryIcon("ChefHat");
+    setEditCategoryColor("#8B5CF6");
+  };
+
+  const handleDeleteCategory = (categoryId: string) => {
+    const categoria = state.categorias.find(cat => cat.id === categoryId);
+    if (window.confirm(`Tem certeza que deseja excluir a categoria "${categoria?.nome}"?`)) {
+      dispatch({ type: 'DELETE_CATEGORIA', payload: categoryId });
+      console.log("🗑️ Categoria de receita excluída:", categoria?.nome);
+    }
+  };
+
+  // Handlers para navegação de ícones e cores
+  const handlePrevIcons = () => {
+    setIconScrollIndex(prev => Math.max(0, prev - iconsPerView));
+  };
+
+  const handleNextIcons = () => {
+    setIconScrollIndex(prev =>
+      Math.min(availableIcons.length - iconsPerView, prev + iconsPerView)
+    );
+  };
+
+  const handlePrevColors = () => {
+    setColorScrollIndex(prev => Math.max(0, prev - colorsPerView));
+  };
+
+  const handleNextColors = () => {
+    setColorScrollIndex(prev =>
+      Math.min(availableColors.length - colorsPerView, prev + colorsPerView)
+    );
+  };
 
   // Dados mockados temporários para desenvolvimento - Consistentes com Cardápio e Insumos
   const receitasMock = [
@@ -599,6 +760,11 @@ const Receitas = () => {
     }
   };
 
+  // Usando definições do topo (availableColors e availableIcons já declarados)
+
+
+  // Usando funções do topo (sem duplicação)
+
   // Component to render a table row for a receita
   const ReceitaTableRow = ({ receita, showCategory = true }: { receita: Receita; showCategory?: boolean }) => {
     return (
@@ -700,10 +866,21 @@ const Receitas = () => {
               Gestão de receitas e análise de custos para precificação
             </p>
           </div>
-          <Button onClick={handleNewReceita} className="flex items-center gap-2">
-            <Plus className="w-4 h-4" />
-            Nova Receita
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setCategoriesModalOpen(true)}
+              className="flex items-center gap-2"
+              title="Gerenciar categorias de receitas"
+            >
+              <Settings className="w-4 h-4" />
+              Gerenciar Categorias
+            </Button>
+            <Button onClick={handleNewReceita} className="flex items-center gap-2">
+              <Plus className="w-4 h-4" />
+              Nova Receita
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -761,12 +938,7 @@ const Receitas = () => {
           </Card>
         </div>
 
-        <Tabs defaultValue="lista" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="lista">Lista de Receitas</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="lista" className="space-y-4">
+        <div className="space-y-4">
             {/* Filtros */}
             <Card>
               <CardHeader>
@@ -869,7 +1041,7 @@ const Receitas = () => {
                   </TableHeader>
                   <TableBody>
                     {receitasByCategory.map((group, groupIndex) => (
-                      <>
+                      <React.Fragment key={`group-${group.categoria.id}`}>
                         {/* Category header row */}
                         <TableRow key={`category-${group.categoria.id}`} className="bg-muted/50">
                           <TableCell colSpan={8} className="font-semibold py-4">
@@ -903,7 +1075,7 @@ const Receitas = () => {
                             </TableCell>
                           </TableRow>
                         )}
-                      </>
+                      </React.Fragment>
                     ))}
                     {receitasByCategory.length === 0 && (
                       <TableRow>
@@ -916,15 +1088,14 @@ const Receitas = () => {
                 </Table>
               </Card>
             )}
-          </TabsContent>
-
-        </Tabs>
+        </div>
       </div>
 
       <ReceitaModal
         open={modalOpen}
         onOpenChange={setModalOpen}
         receita={editingReceita}
+        onOpenCategoriesModal={() => setCategoriesModalOpen(true)}
       />
 
       {/* Modal de Visualização Aprimorado */}
@@ -1038,7 +1209,7 @@ const Receitas = () => {
                       </div>
                       <div className="text-center p-4 bg-blue-50 rounded-lg">
                         <div className="text-2xl font-bold text-blue-800">
-                          {((viewingReceita.custoTotal / (viewingReceita.rendimento / 100)) || 0).toFixed(1)}%
+                          {formatarPorcentagem((viewingReceita.custoTotal / (viewingReceita.rendimento / 100)) || 0)}
                         </div>
                         <div className="text-sm text-blue-600">Custo por 100g</div>
                       </div>
@@ -1111,7 +1282,7 @@ const Receitas = () => {
                                   <div className="text-right">
                                     <div className="text-sm text-gray-600">% do Total</div>
                                     <div className="font-semibold text-blue-700">
-                                      {percentualCusto.toFixed(1)}%
+                                      {formatarPorcentagem(percentualCusto)}
                                     </div>
                                   </div>
                                 </div>
@@ -1232,6 +1403,309 @@ const Receitas = () => {
                 Editar Receita
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Gerenciamento de Categorias - Padrão Cardápio */}
+      <Dialog open={categoriesModalOpen} onOpenChange={setCategoriesModalOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Gerenciar Categorias</DialogTitle>
+            <DialogDescription>
+              Crie novas categorias, edite existentes e organize a ordem de exibição
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Seção de Nova Categoria */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Plus className="w-5 h-5" />
+                  Nova Categoria
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="category-name">Nome da Categoria</Label>
+                  <Input
+                    id="category-name"
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    placeholder="Ex: Sobremesas Premium"
+                  />
+                </div>
+
+                <div>
+                  <Label>Ícone</Label>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-10 w-8 p-0"
+                      onClick={handlePrevIcons}
+                      disabled={iconScrollIndex === 0}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <div className="grid grid-cols-5 gap-2 flex-1">
+                      {visibleIcons.map((iconData) => {
+                        const IconComponent = iconData.icon;
+                        return (
+                          <Button
+                            key={iconData.name}
+                            variant={newCategoryIcon === iconData.name ? "default" : "outline"}
+                            size="sm"
+                            className="h-10 w-10 p-0"
+                            onClick={() => setNewCategoryIcon(iconData.name)}
+                          >
+                            <IconComponent className="w-4 h-4" />
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-10 w-8 p-0"
+                      onClick={handleNextIcons}
+                      disabled={iconScrollIndex >= availableIcons.length - iconsPerView}
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Cor</Label>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={handlePrevColors}
+                      disabled={colorScrollIndex === 0}
+                    >
+                      <ChevronLeft className="w-3 h-3" />
+                    </Button>
+                    <div className="grid grid-cols-8 gap-2 flex-1">
+                      {visibleColors.map((color) => (
+                        <Button
+                          key={color}
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8 p-0 border-2"
+                          style={{
+                            backgroundColor: color,
+                            borderColor: newCategoryColor === color ? "#000" : "#e5e7eb"
+                          }}
+                          onClick={() => setNewCategoryColor(color)}
+                        />
+                      ))}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={handleNextColors}
+                      disabled={colorScrollIndex >= availableColors.length - colorsPerView}
+                    >
+                      <ChevronRight className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleCreateCategory}
+                  disabled={!newCategoryName.trim()}
+                  className="w-full"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Criar Categoria
+                </Button>
+
+                {/* Feedback visual */}
+                {newCategoryName.trim() && (
+                  <div className="text-xs text-muted-foreground mt-2 p-2 bg-muted rounded">
+                    Preview: <span style={{ color: newCategoryColor }}>●</span> {newCategoryName.trim()}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Seção de Categorias Existentes */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Settings className="w-5 h-5" />
+                  Categorias Existentes
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {editingCategory && (
+                  <div className="p-4 border rounded-lg bg-muted/20">
+                    <h4 className="font-medium mb-3">Editando Categoria</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <Label htmlFor="edit-category-name">Nome</Label>
+                        <Input
+                          id="edit-category-name"
+                          value={editCategoryName}
+                          onChange={(e) => setEditCategoryName(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label>Ícone</Label>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 w-6 p-0"
+                            onClick={handlePrevIcons}
+                            disabled={iconScrollIndex === 0}
+                          >
+                            <ChevronLeft className="w-3 h-3" />
+                          </Button>
+                          <div className="grid grid-cols-5 gap-2 flex-1">
+                            {visibleIcons.map((iconData) => {
+                              const IconComponent = iconData.icon;
+                              return (
+                                <Button
+                                  key={iconData.name}
+                                  variant={editCategoryIcon === iconData.name ? "default" : "outline"}
+                                  size="sm"
+                                  className="h-8 w-8 p-0"
+                                  onClick={() => setEditCategoryIcon(iconData.name)}
+                                >
+                                  <IconComponent className="w-3 h-3" />
+                                </Button>
+                              );
+                            })}
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 w-6 p-0"
+                            onClick={handleNextIcons}
+                            disabled={iconScrollIndex >= availableIcons.length - iconsPerView}
+                          >
+                            <ChevronRight className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div>
+                        <Label>Cor</Label>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={handlePrevColors}
+                            disabled={colorScrollIndex === 0}
+                          >
+                            <ChevronLeft className="w-3 h-3" />
+                          </Button>
+                          <div className="grid grid-cols-8 gap-2 flex-1">
+                            {visibleColors.map((color) => (
+                              <Button
+                                key={color}
+                                variant="outline"
+                                size="sm"
+                                className="h-6 w-6 p-0 border-2"
+                                style={{
+                                  backgroundColor: color,
+                                  borderColor: editCategoryColor === color ? "#000" : "#e5e7eb"
+                                }}
+                                onClick={() => setEditCategoryColor(color)}
+                              />
+                            ))}
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={handleNextColors}
+                            disabled={colorScrollIndex >= availableColors.length - colorsPerView}
+                          >
+                            <ChevronRight className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={handleUpdateCategory}
+                          size="sm"
+                          disabled={!editCategoryName.trim()}
+                        >
+                          <Settings className="w-3 h-3 mr-1" />
+                          Salvar
+                        </Button>
+                        <Button variant="outline" onClick={handleCancelEdit} size="sm">
+                          <X className="w-3 h-3 mr-1" />
+                          Cancelar
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  {state.categorias.map((categoria, index) => {
+                    const IconComponent = ChefHat; // Fallback icon
+                    const isEditing = editingCategory === categoria.id;
+
+                    return (
+                      <div
+                        key={categoria.id}
+                        className={`flex items-center gap-3 p-2 border rounded-lg transition-all ${
+                          isEditing ? 'bg-primary/10 border-primary/30' : 'hover:bg-muted/50'
+                        }`}
+                      >
+                        <div className="cursor-grab hover:cursor-grabbing">
+                          <GripVertical className="w-4 h-4 text-muted-foreground" />
+                        </div>
+                        <div
+                          className="w-6 h-6 rounded-full flex items-center justify-center text-white"
+                          style={{ backgroundColor: categoria.cor || "#8B5CF6" }}
+                        >
+                          <IconComponent className="w-3 h-3" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">{categoria.nome}</p>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0"
+                            onClick={() => handleEditCategory(categoria.id)}
+                            disabled={isEditing}
+                          >
+                            <Edit className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                            onClick={() => handleDeleteCategory(categoria.id)}
+                            disabled={isEditing}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button variant="outline" onClick={() => setCategoriesModalOpen(false)}>
+              Fechar
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
