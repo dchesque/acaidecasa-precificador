@@ -62,8 +62,7 @@ import {
   Info,
   FileText,
   Search,
-  Link,
-  AlertTriangle
+  Link
 } from "lucide-react";
 
 const Cardapio = () => {
@@ -204,10 +203,10 @@ const Cardapio = () => {
       cor: "#8B5CF6",
       corBg: "#F3E8FF",
       itens: [
-        { id: "001", nome: "Açaí 300ml", preco: 12.90, custo: 5.80, margem: 122.4, disponivel: true, tipo: "receita", fornecedor: null },
-        { id: "002", nome: "Açaí 500ml", preco: 18.90, custo: 8.50, margem: 122.4, disponivel: true, tipo: "receita", fornecedor: null },
-        { id: "003", nome: "Açaí 1L", preco: 32.90, custo: 15.20, margem: 116.4, disponivel: true, tipo: "receita", fornecedor: null },
-        { id: "011", nome: "Açaí com Granola 400ml", preco: 15.90, custo: 7.90, margem: 101.3, disponivel: true, tipo: "receita", fornecedor: null }
+        { id: "001", nome: "Açaí 300ml", preco: 12.90, custo: 5.80, margem: 122.4, disponivel: true, tipo: "receita", fornecedor: null, itemReferencia: "REC001", rendimento: "300ml", unidade: "ml", descricao: "Açaí tradicional cremoso", observacoes: "Servir bem gelado" },
+        { id: "002", nome: "Açaí 500ml", preco: 18.90, custo: 8.50, margem: 122.4, disponivel: true, tipo: "receita", fornecedor: null, itemReferencia: "REC001", rendimento: "500ml", unidade: "ml", descricao: "Açaí tradicional cremoso tamanho grande" },
+        { id: "003", nome: "Açaí 1L", preco: 32.90, custo: 15.20, margem: 116.4, disponivel: true, tipo: "receita", fornecedor: null, itemReferencia: "REC001", rendimento: "1000ml", unidade: "ml", descricao: "Açaí tradicional cremoso para compartilhar" },
+        { id: "011", nome: "Açaí com Granola 400ml", preco: 15.90, custo: 7.90, margem: 101.3, disponivel: true, tipo: "receita", fornecedor: null, itemReferencia: "REC001", rendimento: "400ml", unidade: "ml", descricao: "Açaí com granola crocante" }
       ]
     },
     {
@@ -218,10 +217,10 @@ const Cardapio = () => {
       cor: "#EC4899",
       corBg: "#FCE7F3",
       itens: [
-        { id: "004", nome: "Açaí Gourmet 300ml", preco: 16.90, custo: 7.20, margem: 134.7, disponivel: true, tipo: "receita", fornecedor: null },
-        { id: "005", nome: "Açaí Gourmet 500ml", preco: 24.90, custo: 11.50, margem: 116.5, disponivel: true, tipo: "receita", fornecedor: null },
-        { id: "012", nome: "Açaí Orgânico 300ml", preco: 19.90, custo: 9.50, margem: 109.5, disponivel: true, tipo: "receita", fornecedor: "Açaí Orgânico Ltda" },
-        { id: "013", nome: "Açaí com Frutas Vermelhas", preco: 22.90, custo: 12.80, margem: 78.9, disponivel: false, tipo: "receita", fornecedor: null }
+        { id: "004", nome: "Açaí Gourmet 300ml", preco: 16.90, custo: 7.20, margem: 134.7, disponivel: true, tipo: "receita", fornecedor: null, itemReferencia: "REC001", rendimento: "300ml", unidade: "ml", descricao: "Açaí premium com ingredientes gourmet", observacoes: "Produto premium" },
+        { id: "005", nome: "Açaí Gourmet 500ml", preco: 24.90, custo: 11.50, margem: 116.5, disponivel: true, tipo: "receita", fornecedor: null, itemReferencia: "REC001", rendimento: "500ml", unidade: "ml", descricao: "Açaí premium tamanho grande" },
+        { id: "012", nome: "Açaí Orgânico 300ml", preco: 19.90, custo: 9.50, margem: 109.5, disponivel: true, tipo: "receita", fornecedor: "Açaí Orgânico Ltda", itemReferencia: "REC001", rendimento: "300ml", unidade: "ml", descricao: "Açaí 100% orgânico certificado" },
+        { id: "013", nome: "Açaí com Frutas Vermelhas", preco: 22.90, custo: 12.80, margem: 78.9, disponivel: false, tipo: "receita", fornecedor: null, itemReferencia: "REC002", rendimento: "350ml", unidade: "ml", descricao: "Açaí com mix de frutas vermelhas", observacoes: "Temporariamente indisponível" }
       ]
     },
     {
@@ -232,10 +231,10 @@ const Cardapio = () => {
       cor: "#10B981",
       corBg: "#D1FAE5",
       itens: [
-        { id: "006", nome: "Açaí Completo 500ml", preco: 22.90, custo: 10.75, margem: 113.0, disponivel: true, tipo: "combinado", fornecedor: null },
-        { id: "007", nome: "Açaí Fitness 300ml", preco: 18.50, custo: 8.20, margem: 125.6, disponivel: true, tipo: "combinado", fornecedor: null },
-        { id: "008", nome: "Açaí Kids 200ml", preco: 12.90, custo: 5.90, margem: 118.6, disponivel: false, tipo: "combinado", fornecedor: null },
-        { id: "014", nome: "Super Açaí 700ml", preco: 28.90, custo: 14.20, margem: 103.5, disponivel: true, tipo: "combinado", fornecedor: null }
+        { id: "006", nome: "Açaí Completo 500ml", preco: 22.90, custo: 10.75, margem: 113.0, disponivel: true, tipo: "combinado", fornecedor: null, itemReferencia: "COM001", rendimento: "500ml", unidade: "ml", descricao: "Açaí completo com todos os acompanhamentos", observacoes: "Nosso mais vendido" },
+        { id: "007", nome: "Açaí Fitness 300ml", preco: 18.50, custo: 8.20, margem: 125.6, disponivel: true, tipo: "combinado", fornecedor: null, itemReferencia: "COM002", rendimento: "300ml", unidade: "ml", descricao: "Açaí fitness com ingredientes saudáveis" },
+        { id: "008", nome: "Açaí Kids 200ml", preco: 12.90, custo: 5.90, margem: 118.6, disponivel: false, tipo: "combinado", fornecedor: null, itemReferencia: "COM001", rendimento: "200ml", unidade: "ml", descricao: "Açaí especial para crianças", observacoes: "Temporariamente indisponível" },
+        { id: "014", nome: "Super Açaí 700ml", preco: 28.90, custo: 14.20, margem: 103.5, disponivel: true, tipo: "combinado", fornecedor: null, itemReferencia: "COM001", rendimento: "700ml", unidade: "ml", descricao: "Super açaí com porção extra" }
       ]
     },
     {
@@ -246,10 +245,10 @@ const Cardapio = () => {
       cor: "#F59E0B",
       corBg: "#FEF3C7",
       itens: [
-        { id: "009", nome: "Torta de Açaí", preco: 8.90, custo: 3.50, margem: 154.3, disponivel: true, tipo: "receita", fornecedor: null },
-        { id: "010", nome: "Sorvete de Açaí", preco: 6.90, custo: 2.80, margem: 146.4, disponivel: true, tipo: "receita", fornecedor: "Gelatos & Cia" },
-        { id: "015", nome: "Mousse de Açaí", preco: 7.50, custo: 4.20, margem: 78.6, disponivel: true, tipo: "receita", fornecedor: null },
-        { id: "016", nome: "Paleta de Açaí", preco: 5.90, custo: 6.50, margem: -9.2, disponivel: true, tipo: "receita", fornecedor: "Paletas Artesanais" }
+        { id: "009", nome: "Torta de Açaí", preco: 8.90, custo: 3.50, margem: 154.3, disponivel: true, tipo: "receita", fornecedor: null, itemReferencia: "REC001", rendimento: "1 fatia", unidade: "fatia", descricao: "Deliciosa torta gelada de açaí" },
+        { id: "010", nome: "Sorvete de Açaí", preco: 6.90, custo: 2.80, margem: 146.4, disponivel: true, tipo: "receita", fornecedor: "Gelatos & Cia", itemReferencia: "REC001", rendimento: "100ml", unidade: "ml", descricao: "Sorvete cremoso de açaí artesanal" },
+        { id: "015", nome: "Mousse de Açaí", preco: 7.50, custo: 4.20, margem: 78.6, disponivel: true, tipo: "receita", fornecedor: null, itemReferencia: "REC001", rendimento: "150ml", unidade: "ml", descricao: "Mousse aerado de açaí" },
+        { id: "016", nome: "Paleta de Açaí", preco: 5.90, custo: 6.50, margem: -9.2, disponivel: true, tipo: "receita", fornecedor: "Paletas Artesanais", itemReferencia: "REC001", rendimento: "1 unidade", unidade: "un", descricao: "Paleta gelada de açaí natural", observacoes: "Margem negativa - revisar preço" }
       ]
     },
     {
@@ -260,11 +259,25 @@ const Cardapio = () => {
       cor: "#3B82F6",
       corBg: "#DBEAFE",
       itens: [
-        { id: "017", nome: "Smoothie de Açaí 400ml", preco: 14.90, custo: 6.80, margem: 119.1, disponivel: true, tipo: "receita", fornecedor: null },
-        { id: "018", nome: "Suco de Açaí 300ml", preco: 9.90, custo: 4.20, margem: 135.7, disponivel: true, tipo: "receita", fornecedor: null },
-        { id: "019", nome: "Água Saborizada Açaí", preco: 4.50, custo: 1.80, margem: 150.0, disponivel: true, tipo: "receita", fornecedor: "AquaSabor" },
-        { id: "020", nome: "Vitamina de Açaí 500ml", preco: 12.90, custo: 5.50, margem: 134.5, disponivel: true, tipo: "receita", fornecedor: null },
-        { id: "021", nome: "Frappé de Açaí 350ml", preco: 16.90, custo: 7.80, margem: 116.7, disponivel: false, tipo: "receita", fornecedor: null }
+        { id: "017", nome: "Smoothie de Açaí 400ml", preco: 14.90, custo: 6.80, margem: 119.1, disponivel: true, tipo: "receita", fornecedor: null, itemReferencia: "REC002", rendimento: "400ml", unidade: "ml", descricao: "Smoothie cremoso e nutritivo" },
+        { id: "018", nome: "Suco de Açaí 300ml", preco: 9.90, custo: 4.20, margem: 135.7, disponivel: true, tipo: "receita", fornecedor: null, itemReferencia: "REC002", rendimento: "300ml", unidade: "ml", descricao: "Suco natural de açaí puro" },
+        { id: "019", nome: "Água Saborizada Açaí", preco: 4.50, custo: 1.80, margem: 150.0, disponivel: true, tipo: "receita", fornecedor: "AquaSabor", itemReferencia: "REC002", rendimento: "500ml", unidade: "ml", descricao: "Água mineral com sabor de açaí" },
+        { id: "020", nome: "Vitamina de Açaí 500ml", preco: 12.90, custo: 5.50, margem: 134.5, disponivel: true, tipo: "receita", fornecedor: null, itemReferencia: "REC002", rendimento: "500ml", unidade: "ml", descricao: "Vitamina energizante com açaí" },
+        { id: "021", nome: "Frappé de Açaí 350ml", preco: 16.90, custo: 7.80, margem: 116.7, disponivel: false, tipo: "receita", fornecedor: null, itemReferencia: "REC002", rendimento: "350ml", unidade: "ml", descricao: "Frappé gelado com gelo e açaí", observacoes: "Disponível apenas no verão" }
+      ]
+    },
+    {
+      id: "insumos-bases",
+      nome: "Insumos & Bases",
+      descricao: "Ingredientes e bases para produção",
+      icon: Package,
+      cor: "#6B7280",
+      corBg: "#F9FAFB",
+      itens: [
+        { id: "I001", nome: "Açaí Premium (1kg)", preco: 12.50, custo: 12.50, margem: 0, disponivel: true, tipo: "insumo", fornecedor: "Amazônia Açaí Ltda", itemReferencia: "INS001", unidade: "kg", descricao: "Açaí premium congelado" },
+        { id: "I002", nome: "Banana Prata (1kg)", preco: 3.20, custo: 3.20, margem: 0, disponivel: true, tipo: "insumo", fornecedor: "Frutas do Vale", itemReferencia: "INS002", unidade: "kg", descricao: "Banana prata fresca selecionada" },
+        { id: "CB01", nome: "Base 300ml Premium", preco: 4.50, custo: 4.50, margem: 0, disponivel: true, tipo: "copo-base", fornecedor: null, itemReferencia: "CB001", unidade: "un", descricao: "Base pronta de 300ml" },
+        { id: "CB02", nome: "Base 500ml Tradicional", preco: 6.20, custo: 6.20, margem: 0, disponivel: true, tipo: "copo-base", fornecedor: null, itemReferencia: "CB002", unidade: "un", descricao: "Base pronta de 500ml" }
       ]
     }
   ];
@@ -643,6 +656,24 @@ const Cardapio = () => {
         fornecedorPadrao: "Cereais & Grãos",
         descricao: "Aveia em flocos finos",
         unidade: "g"
+      },
+      {
+        id: "INS006",
+        nome: "Morango",
+        custo: 0.0065, // R$ 0.0065 por grama (R$ 6.50/kg convertido)
+        fornecedorPadrao: "Frutas Frescas",
+        descricao: "Morango fresco selecionado",
+        unidade: "g",
+        disponivel: true
+      },
+      {
+        id: "INS007",
+        nome: "Castanha-do-Pará",
+        custo: 0.0320, // R$ 0.032 por grama (R$ 32.00/kg convertido)
+        fornecedorPadrao: "Nuts & Castanhas",
+        descricao: "Castanha-do-Pará premium",
+        unidade: "g",
+        disponivel: true
       }
     ],
     "copo-base": [
@@ -695,6 +726,41 @@ const Cardapio = () => {
             },
             quantidade: "70g",
             custo: 1.12
+          }
+        ]
+      },
+      {
+        id: "CB003",
+        nome: "Copo 700ml Família",
+        custo: 8.90,
+        descricao: "Base familiar de 700ml",
+        composicao: [
+          {
+            insumo: {
+              id: "INS001",
+              nome: "Açaí Premium",
+              fornecedorPadrao: "Amazônia Açaí Ltda"
+            },
+            quantidade: "500g",
+            custo: 15.00
+          },
+          {
+            insumo: {
+              id: "INS002",
+              nome: "Banana Prata",
+              fornecedorPadrao: "Frutas do Vale"
+            },
+            quantidade: "100g",
+            custo: 1.60
+          },
+          {
+            insumo: {
+              id: "INS006",
+              nome: "Morango",
+              fornecedorPadrao: "Frutas Frescas"
+            },
+            quantidade: "50g",
+            custo: 0.80
           }
         ]
       }
@@ -760,6 +826,50 @@ const Cardapio = () => {
             custo: 1.80
           }
         ]
+      },
+      {
+        id: "COM003",
+        nome: "Açaí Premium",
+        custo: 18.50,
+        descricao: "Açaí premium com castanhas e frutas",
+        composicao: [
+          {
+            insumo: {
+              id: "CB002",
+              nome: "Copo 500ml Tradicional",
+              fornecedorPadrao: "Produção Própria"
+            },
+            quantidade: "1 und",
+            custo: 6.20
+          },
+          {
+            insumo: {
+              id: "INS006",
+              nome: "Morango",
+              fornecedorPadrao: "Frutas Frescas"
+            },
+            quantidade: "40g",
+            custo: 2.60
+          },
+          {
+            insumo: {
+              id: "INS007",
+              nome: "Castanha-do-Pará",
+              fornecedorPadrao: "Nuts & Castanhas"
+            },
+            quantidade: "15g",
+            custo: 4.80
+          },
+          {
+            insumo: {
+              id: "INS003",
+              nome: "Granola Artesanal",
+              fornecedorPadrao: "Cereais & Grãos"
+            },
+            quantidade: "25g",
+            custo: 2.22
+          }
+        ]
       }
     ],
     receita: [
@@ -780,20 +890,23 @@ const Cardapio = () => {
         descricao: "Smoothie verde nutritivo",
         rendimento: "500g",
         unidade: "g"
+      },
+      {
+        id: "REC003",
+        nome: "Base Açaí Gourmet",
+        custo: 0.0220, // R$ 0.022 por grama (R$ 22.00/kg convertido)
+        fornecedorPadrao: "Produção Própria",
+        descricao: "Base premium de açaí com frutas selecionadas",
+        rendimento: "1000g",
+        unidade: "g",
+        ingredientes: ["Açaí Premium 70%", "Banana Prata 20%", "Morango 10%"],
+        tempoPreparo: "15 minutos",
+        temperaturaArmazenamento: "-18°C"
       }
     ]
   };
 
-  const filteredCategorias = managedCategorias
-    .map(categoria => ({
-      ...categoria,
-      itens: categoria.itens.filter(item => {
-        const matchesSearch = item.nome.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesDisponivel = !apenasDisponiveis || item.disponivel;
-        return matchesSearch && matchesDisponivel;
-      })
-    }))
-    .filter(categoria => categoria.itens.length > 0);
+  const filteredCategorias = managedCategorias;
 
   return (
     <Layout>
@@ -2021,9 +2134,6 @@ const Cardapio = () => {
               <Trash2 className="w-4 h-4" />
             </Button>
           </div>
-        </div>
-      )}
-    </div>
         </DialogContent>
       </Dialog>
 
