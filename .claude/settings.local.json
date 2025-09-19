@@ -34,7 +34,9 @@
       "Bash(timeout:*)",
       "Bash(move src/pages/Cardapio.backup.tsx src/pages/Cardapio.backup.tsx.disabled)",
       "Bash(move src/pages/Cardapio.backup2.tsx src/pages/Cardapio.backup2.tsx.disabled)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "mcp__ide__executeCode",
+      "Bash(move src/pages/Combinados.backup.tsx src/pages/Combinados.backup.tsx.disabled)"
     ],
     "deny": [],
     "ask": []

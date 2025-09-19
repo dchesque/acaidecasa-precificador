@@ -14,7 +14,7 @@ interface BaseModalProps {
   description?: string;
   children: ReactNode;
   footer?: ReactNode;
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "sm" | "md" | "lg" | "xl" | "2xl";
 }
 
 export const BaseModal = ({
@@ -31,12 +31,13 @@ export const BaseModal = ({
     md: "max-w-lg",
     lg: "max-w-2xl",
     xl: "max-w-4xl",
+    "2xl": "max-w-6xl",
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`${sizeClasses[size]} max-h-[90vh] overflow-y-auto`}>
-        <DialogHeader>
+      <DialogContent className={`${sizeClasses[size]} max-h-[90vh] overflow-hidden`}>
+        <DialogHeader className="px-6 pt-6">
           <DialogTitle className="text-xl font-semibold">{title}</DialogTitle>
           {description && (
             <DialogDescription className="text-muted-foreground">
@@ -45,12 +46,12 @@ export const BaseModal = ({
           )}
         </DialogHeader>
         
-        <div className="py-4">
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
           {children}
         </div>
         
         {footer && (
-          <div className="flex justify-end gap-2 pt-4 border-t">
+          <div className="flex justify-end gap-2 px-6 pb-6 pt-4 border-t">
             {footer}
           </div>
         )}

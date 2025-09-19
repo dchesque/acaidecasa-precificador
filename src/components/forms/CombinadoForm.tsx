@@ -59,7 +59,7 @@ export const CombinadoForm = ({
   onCancel,
   isLoading = false,
 }: CombinadoFormProps) => {
-  const { categorias, coposBase, insumos, receitas, cardapio, insumoFornecedores, getPrecoVendaItem } = useAppContext();
+  const { state, dispatch, categorias, coposBase, insumos, receitas, cardapio, insumoFornecedores, getPrecoVendaItem } = useAppContext();
   const [categoriaModalOpen, setCategoriaModalOpen] = React.useState(false);
 
   // Estados para modal de categorias (padrão cardápio)
@@ -257,10 +257,10 @@ export const CombinadoForm = ({
     );
   };
 
-  const categorias = state.categorias.filter(c => c.ativo);
-  const coposBase = state.coposBase.filter(c => c.ativo);
-  const insumos = state.insumos.filter(i => i.ativo);
-  const receitas = state.receitas.filter(r => r.ativo);
+  const categoriasAtivas = categorias.filter(c => c.ativo);
+  const coposBaseAtivos = coposBase.filter(c => c.ativo);
+  const insumosAtivos = insumos.filter(i => i.ativo);
+  const receitasAtivas = receitas.filter(r => r.ativo);
 
   // Component for searchable select
   const SearchableSelect = ({
@@ -391,12 +391,14 @@ export const CombinadoForm = ({
       if (comp.tipo === 'INSUMO' && comp.insumoId && comp.quantidade > 0) {
         const precoVenda = getPrecoVendaItem('INSUMO', comp.insumoId);
         if (precoVenda) {
-          return total + (precoVenda * comp.quantidade);
+          // Preço de venda é unitário por complemento, não por quantidade
+          return total + precoVenda;
         }
       } else if (comp.tipo === 'RECEITA' && comp.receitaId && comp.quantidade > 0) {
         const precoVenda = getPrecoVendaItem('RECEITA', comp.receitaId);
         if (precoVenda) {
-          return total + (precoVenda * comp.quantidade);
+          // Preço de venda é unitário por complemento, não por quantidade
+          return total + precoVenda;
         }
       }
       return total;
@@ -456,7 +458,7 @@ export const CombinadoForm = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {categorias.map((categoria) => (
+                        {categoriasAtivas.map((categoria) => (
                           <SelectItem key={categoria.id} value={categoria.id}>
                             {categoria.nome}
                           </SelectItem>
@@ -517,7 +519,7 @@ export const CombinadoForm = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {coposBase.map((copoBase) => (
+                      {coposBaseAtivos.map((copoBase) => (
                         <SelectItem key={copoBase.id} value={copoBase.id}>
                           {copoBase.nome} ({formatarMoeda(copoBase.custoTotal)})
                         </SelectItem>
@@ -529,9 +531,29 @@ export const CombinadoForm = ({
               )}
             />
 
-            <div className="mt-3 p-3 bg-muted rounded-lg">
-              <div className="text-sm text-muted-foreground">Custo do Copo Base</div>
-              <div className="font-semibold">{formatarMoeda(custoCopoBase)}</div>
+            <div className="mt-3 p-3 bg-muted rounded-lg space-y-2">
+              <div className="flex justify-between items-center">
+                <div>
+                  <div className="text-sm text-muted-foreground">Custo do Copo Base</div>
+                  <div className="font-semibold text-destructive">{formatarMoeda(custoCopoBase)}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm text-muted-foreground">Preço de Venda</div>
+                  <div className="flex items-center gap-1">
+                    {precoVendaCopoBase !== null ? (
+                      <>
+                        <div className="font-semibold text-green-600">{formatarMoeda(precoVendaCopoBase)}</div>
+                        <span className="text-green-600 cursor-help" title="Disponível no cardápio">✓</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-muted-foreground text-sm">Não disponível</span>
+                        <span className="text-red-500 cursor-help" title="Não encontrado no cardápio">✗</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -562,14 +584,11 @@ export const CombinadoForm = ({
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Item</TableHead>
-                      <TableHead className="text-right">Quantidade</TableHead>
-                      <TableHead className="text-right">Custo Unit.</TableHead>
-                      <TableHead className="text-right">Preço Venda Unit.</TableHead>
-                      <TableHead className="text-right">Custo Total</TableHead>
-                      <TableHead className="text-right">Preço Venda Total</TableHead>
-                      <TableHead className="text-center">Ações</TableHead>
+                      <TableHead className="w-auto">Item</TableHead>
+                      <TableHead className="text-center w-24">Quantidade</TableHead>
+                      <TableHead className="text-right w-32">Custo Total</TableHead>
+                      <TableHead className="text-right w-36">Preço de Venda</TableHead>
+                      <TableHead className="text-center w-20">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -589,7 +608,7 @@ export const CombinadoForm = ({
                           custoUnitario = calcularCustoPorGrama(insumo, insumoFornecedores);
                           custoTotalItem = custoUnitario * (complemento.quantidade || 0);
                           precoVendaUnitario = getPrecoVendaItem('INSUMO', complemento.insumoId);
-                          precoVendaTotalItem = precoVendaUnitario ? precoVendaUnitario * (complemento.quantidade || 0) : 0;
+                          precoVendaTotalItem = precoVendaUnitario ? precoVendaUnitario : 0; // Preço unitário, não multiplicado
                           unidade = insumo.unidadeMedida?.sigla || "g";
                           itemInfo = insumo;
                           temPrecoCardapio = precoVendaUnitario !== null;
@@ -600,7 +619,7 @@ export const CombinadoForm = ({
                           custoUnitario = receita.custoPorGrama;
                           custoTotalItem = custoUnitario * (complemento.quantidade || 0);
                           precoVendaUnitario = getPrecoVendaItem('RECEITA', complemento.receitaId);
-                          precoVendaTotalItem = precoVendaUnitario ? precoVendaUnitario * (complemento.quantidade || 0) : 0;
+                          precoVendaTotalItem = precoVendaUnitario ? precoVendaUnitario : 0; // Preço unitário, não multiplicado
                           unidade = "g";
                           itemInfo = receita;
                           temPrecoCardapio = precoVendaUnitario !== null;
@@ -610,99 +629,98 @@ export const CombinadoForm = ({
 
                       return (
                         <TableRow key={field.id}>
-                          <TableCell>
-                            <FormField
-                              control={form.control}
-                              name={`complementos.${index}.tipo`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <Select onValueChange={field.onChange} value={field.value}>
-                                    <FormControl>
-                                      <SelectTrigger className="w-[120px]">
-                                        <SelectValue placeholder="Tipo" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      <SelectItem value="INSUMO">Insumo</SelectItem>
-                                      <SelectItem value="RECEITA">Receita</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </TableCell>
-
-                          <TableCell>
-                            {complemento?.tipo === 'INSUMO' ? (
+                          {/* Item - inclui tipo e seleção */}
+                          <TableCell className="py-3 align-middle">
+                            <div className="flex gap-2 items-center">
                               <FormField
                                 control={form.control}
-                                name={`complementos.${index}.insumoId`}
+                                name={`complementos.${index}.tipo`}
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormControl>
-                                      <SearchableSelect
-                                        value={field.value ?? ""}
-                                        onValueChange={field.onChange}
-                                        placeholder="Selecione um insumo"
-                                        options={insumos}
-                                        renderOption={(insumo) => {
-                                          const custoPorGrama = calcularCustoPorGrama(insumo, insumoFornecedores);
-                                          const precoVenda = getPrecoVendaItem('INSUMO', insumo.id);
-                                          return {
-                                            value: insumo.id,
-                                            label: insumo.nome,
-                                            details: `Custo: ${formatarCustoPorUnidade(custoPorGrama)}/g${precoVenda ? ` | Venda: ${formatarMoeda(precoVenda)}` : ''}`
-                                          };
-                                        }}
-                                      />
-                                    </FormControl>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger className="w-24 h-8 text-xs">
+                                          <SelectValue placeholder="Tipo" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        <SelectItem value="INSUMO">Insumo</SelectItem>
+                                        <SelectItem value="RECEITA">Receita</SelectItem>
+                                      </SelectContent>
+                                    </Select>
                                     <FormMessage />
                                   </FormItem>
                                 )}
                               />
-                            ) : (
-                              <FormField
-                                control={form.control}
-                                name={`complementos.${index}.receitaId`}
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormControl>
-                                      <SearchableSelect
-                                        value={field.value ?? ""}
-                                        onValueChange={field.onChange}
-                                        placeholder="Selecione uma receita"
-                                        options={receitas}
-                                        renderOption={(receita) => ({
-                                          value: receita.id,
-                                          label: receita.nome,
-                                          details: `Custo: ${formatarCustoPorUnidade(receita.custoPorGrama)}/g`
-                                        })}
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
+                              <div className="flex-1 min-w-0">
+                                {complemento?.tipo === 'INSUMO' ? (
+                                  <FormField
+                                    control={form.control}
+                                    name={`complementos.${index}.insumoId`}
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormControl>
+                                          <SearchableSelect
+                                            value={field.value ?? ""}
+                                            onValueChange={field.onChange}
+                                            placeholder="Selecionar insumo"
+                                            options={insumos}
+                                            renderOption={(insumo) => ({
+                                              value: insumo.id,
+                                              label: insumo.nome,
+                                              details: `${formatarCustoPorUnidade(calcularCustoPorGrama(insumo, insumoFornecedores))}/g`
+                                            })}
+                                          />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                ) : (
+                                  <FormField
+                                    control={form.control}
+                                    name={`complementos.${index}.receitaId`}
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormControl>
+                                          <SearchableSelect
+                                            value={field.value ?? ""}
+                                            onValueChange={field.onChange}
+                                            placeholder="Selecionar receita"
+                                            options={receitas}
+                                            renderOption={(receita) => ({
+                                              value: receita.id,
+                                              label: receita.nome,
+                                              details: `${formatarCustoPorUnidade(receita.custoPorGrama)}/g`
+                                            })}
+                                          />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
                                 )}
-                              />
-                            )}
+                              </div>
+                            </div>
                           </TableCell>
 
-                          <TableCell>
+                          {/* Quantidade */}
+                          <TableCell className="text-center py-3 align-middle">
                             <FormField
                               control={form.control}
                               name={`complementos.${index}.quantidade`}
                               render={({ field }) => (
                                 <FormItem>
-                                  <div className="flex items-center gap-2">
+                                  <div className="flex items-center justify-center gap-1">
                                     <FormControl>
                                       <Input
                                         type="number"
                                         min="0"
-                                        step="0.1"
+                                        step="1"
                                         placeholder="0"
-                                        className="w-20 text-right"
+                                        className="w-16 h-8 text-center text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                         {...field}
-                                        onChange={(e) => field.onChange(Number(e.target.value))}
+                                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                                       />
                                     </FormControl>
                                     <span className="text-xs text-muted-foreground">{unidade}</span>
@@ -713,50 +731,57 @@ export const CombinadoForm = ({
                             />
                           </TableCell>
 
-                          <TableCell className="text-right text-sm">
-                            {custoUnitario > 0 ? formatarCustoPorUnidade(custoUnitario) : "-"}
+                          {/* Custo Total */}
+                          <TableCell className="text-right py-3 align-middle">
+                            <div className="text-sm font-medium text-destructive">
+                              {custoTotalItem > 0 ? formatarCustoPorUnidade(custoTotalItem) : "-"}
+                            </div>
                           </TableCell>
 
-                          <TableCell className="text-right text-sm">
-                            {precoVendaUnitario !== null ? (
-                              <div className="flex items-center justify-end gap-1">
-                                <span className="text-green-600 font-medium">
-                                  {formatarMoeda(precoVendaUnitario)}
-                                </span>
-                                {temPrecoCardapio && (
-                                  <span className="text-xs text-green-600" title="Disponível no cardápio">
-                                    📋
+                          {/* Preço de Venda */}
+                          <TableCell className="text-right py-3 align-middle">
+                            <div className="text-sm font-medium">
+                              {precoVendaUnitario !== null ? (
+                                <div className="flex items-center justify-end gap-1">
+                                  <div className="text-green-600 font-medium">{formatarMoeda(precoVendaUnitario)}</div>
+                                  {temPrecoCardapio ? (
+                                    <span
+                                      className="text-green-600 cursor-help"
+                                      title="Disponível no cardápio para venda individual"
+                                    >
+                                      ✓
+                                    </span>
+                                  ) : (
+                                    <span
+                                      className="text-red-500 cursor-help"
+                                      title="Não disponível no cardápio para venda individual"
+                                    >
+                                      ✗
+                                    </span>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="flex items-center justify-end gap-1">
+                                  <span className="text-muted-foreground text-xs">Não disponível</span>
+                                  <span
+                                    className="text-red-500 cursor-help"
+                                    title="Item não encontrado no cardápio"
+                                  >
+                                    ✗
                                   </span>
-                                )}
-                              </div>
-                            ) : (
-                              <span className="text-muted-foreground text-xs">Não no cardápio</span>
-                            )}
+                                </div>
+                              )}
+                            </div>
                           </TableCell>
 
-                          <TableCell className="text-right font-medium">
-                            {custoTotalItem > 0 ? (
-                              <span className="text-destructive">{formatarCustoPorUnidade(custoTotalItem)}</span>
-                            ) : (
-                              "-"
-                            )}
-                          </TableCell>
-
-                          <TableCell className="text-right font-medium">
-                            {precoVendaTotalItem > 0 ? (
-                              <span className="text-green-600">{formatarMoeda(precoVendaTotalItem)}</span>
-                            ) : (
-                              "-"
-                            )}
-                          </TableCell>
-
-                          <TableCell className="text-center">
+                          {/* Ações */}
+                          <TableCell className="text-center py-3 align-middle">
                             <Button
                               type="button"
                               variant="ghost"
                               size="sm"
                               onClick={() => remove(index)}
-                              className="h-8 w-8 p-0"
+                              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -1117,7 +1142,7 @@ export const CombinadoForm = ({
                 )}
 
                 <div className="space-y-2">
-                  {categorias.map((categoria) => {
+                  {categoriasAtivas.map((categoria) => {
                     const isEditing = editingCategory === categoria.id;
 
                     return (

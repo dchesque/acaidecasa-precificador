@@ -309,8 +309,8 @@ export const calcularPrecoVendaCombinado = (
       }
 
       if (precoItem !== null) {
-        const subtotal = precoItem * complemento.quantidade;
-        precoComplementos += subtotal;
+        // Preço de venda é unitário (não multiplicado pela quantidade)
+        precoComplementos += precoItem;
         itensComPreco += 1;
 
         // Create complement with sales price info

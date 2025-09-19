@@ -60,7 +60,7 @@ import {
 import { Label } from "@/components/ui/label";
 
 const Combinados = () => {
-  const { combinados, categorias, cardapio, getPrecoVendaItem, deleteCombinado } = useAppContext();
+  const { state, dispatch, combinados, categorias, cardapio, getPrecoVendaItem, deleteCombinado } = useAppContext();
   const [modalOpen, setModalOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [editingCombinado, setEditingCombinado] = useState<Combinado | undefined>();
@@ -785,8 +785,9 @@ const Combinados = () => {
                               <TableHead>Custo Copo Base</TableHead>
                               <TableHead>Custo Complementos</TableHead>
                               <TableHead>Custo Total</TableHead>
-                              <TableHead className="text-center">Ações</TableHead>
+                              <TableHead>Preço Venda Total</TableHead>
                               <TableHead className="text-center">Status</TableHead>
+                              <TableHead className="text-center">Ações</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>

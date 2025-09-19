@@ -1054,7 +1054,7 @@ const Cardapio = () => {
                                 </span>
                               </div>
                               <div className="text-sm font-bold text-green-600">
-                                {item.formatarPorcentagem(margem)}
+                                {formatarPorcentagem(item.margem)}
                               </div>
                             </div>
                           ))}
@@ -1570,7 +1570,7 @@ const Cardapio = () => {
                           </TableCell>
                           <TableCell className="text-center py-3">
                             <span className="font-medium text-sm text-green-600">
-                              {item.formatarPorcentagem(margem)}
+                              {formatarPorcentagem(item.margem)}
                             </span>
                           </TableCell>
                           <TableCell className="text-center py-3">

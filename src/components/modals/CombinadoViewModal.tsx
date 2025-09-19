@@ -184,7 +184,7 @@ export const CombinadoViewModal = ({
                         const itemNome = comp.tipo === 'INSUMO'
                           ? comp.insumo?.nome
                           : comp.receita?.nome;
-                        const subtotal = comp.precoVenda ? comp.precoVenda * comp.quantidade : 0;
+                        const subtotal = comp.precoVenda ? comp.precoVenda : 0; // Preço unitário, não multiplicado por quantidade
 
                         return (
                           <TableRow key={index}>

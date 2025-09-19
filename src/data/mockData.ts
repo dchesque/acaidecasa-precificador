@@ -1215,8 +1215,8 @@ export const mockCardapio: ItemCardapio[] = [
     tipo: 'INSUMO',
     insumoId: '3', // Banana
     custoAtual: 0.56,
-    precoAtual: 2.50,
-    margemAtual: 346.4,
+    precoAtual: 2.50, // Preço unitário do complemento
+    margemAtual: 400.0, // ((0.035 * 80) - 0.56) / 0.56 * 100
     sku: 'BAN-FAT-80G',
     ativo: true,
     createdAt: new Date('2023-01-01'),
@@ -1230,8 +1230,8 @@ export const mockCardapio: ItemCardapio[] = [
     tipo: 'INSUMO',
     insumoId: '4', // Morango
     custoAtual: 1.20,
-    precoAtual: 4.50,
-    margemAtual: 275.0,
+    precoAtual: 4.50, // Preço unitário do complemento
+    margemAtual: 233.3, // ((0.08 * 50) - 1.20) / 1.20 * 100
     sku: 'MOR-FAT-60G',
     ativo: true,
     createdAt: new Date('2023-01-01'),
@@ -1279,6 +1279,66 @@ export const mockCardapio: ItemCardapio[] = [
     precoAtual: 6.50,
     margemAtual: 348.3,
     sku: 'MIX-FRU-VER',
+    ativo: true,
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '13',
+    nome: 'Granola Premium',
+    descricao: 'Granola premium crocante',
+    categoriaId: '3', // Granolas e Cereais
+    tipo: 'INSUMO',
+    insumoId: '6',
+    custoAtual: 0.011 * 30, // R$ 0.011/g * 30g = R$ 0.33
+    precoAtual: 3.50, // Preço unitário do complemento
+    margemAtual: 818.2, // ((0.10 * 30) - 0.33) / 0.33 * 100
+    sku: 'GRA-PREM',
+    ativo: true,
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '14',
+    nome: 'Mel Natural',
+    descricao: 'Mel puro natural',
+    categoriaId: '5', // Caldas e Xaropes
+    tipo: 'INSUMO',
+    insumoId: '10',
+    custoAtual: 0.0233 * 20, // R$ 0.0233/g * 20g = R$ 0.47
+    precoAtual: 2.00, // Preço unitário do complemento
+    margemAtual: 410.6, // ((0.12 * 20) - 0.47) / 0.47 * 100
+    sku: 'MEL-NAT',
+    ativo: true,
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '15',
+    nome: 'Castanha-do-Pará',
+    descricao: 'Castanha-do-Pará selecionada',
+    categoriaId: '3', // Granolas e Cereais
+    tipo: 'INSUMO',
+    insumoId: '8',
+    custoAtual: 0.0156 * 25, // R$ 0.0156/g * 25g = R$ 0.39
+    precoAtual: 5.50, // Preço unitário do complemento
+    margemAtual: 1484.6, // ((0.25 * 25) - 0.39) / 0.39 * 100
+    sku: 'CAS-PAR',
+    ativo: true,
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2023-01-01'),
+  },
+  {
+    id: '16',
+    nome: 'Coco Ralado',
+    descricao: 'Coco ralado fresco',
+    categoriaId: '3', // Granolas e Cereais
+    tipo: 'INSUMO',
+    insumoId: '16',
+    custoAtual: 0.025 * 20, // R$ 0.025/g * 20g = R$ 0.50
+    precoAtual: 3.00, // Preço unitário do complemento
+    margemAtual: 500.0, // ((0.15 * 20) - 0.50) / 0.50 * 100
+    sku: 'COC-RAL',
     ativo: true,
     createdAt: new Date('2023-01-01'),
     updatedAt: new Date('2023-01-01'),

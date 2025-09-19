@@ -170,7 +170,7 @@ export const CombinadoModal = ({
           ? "Edite as informações do combinado" 
           : "Crie um novo combinado com copo base e complementos"
       }
-      size="xl"
+      size="2xl"
     >
       <CombinadoForm
         combinado={combinado}
