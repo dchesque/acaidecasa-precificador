@@ -24,6 +24,12 @@ import {
   DashboardVendas
 } from '@/types/analise-vendas';
 import {
+  CustoOperacional,
+  DashboardGestaoEstado,
+  DashboardGestaoMetricas,
+  PeriodoDashboard
+} from '@/types/financeiro';
+import {
   mockCategorias,
   mockUnidadesMedida,
   mockFornecedores,
@@ -41,6 +47,9 @@ import {
   mockVendasSystemInfo,
   mockDashboardVendas
 } from '@/data/mockVendasData';
+import {
+  mockCustosOperacionais
+} from '@/data/mockFinanceiroData';
 
 // App State Interface
 interface AppState {
@@ -70,6 +79,9 @@ interface AppState {
     filtros: FiltrosVendas;
     dashboardData?: DashboardVendas;
   };
+  // Financial state
+  custosOperacionais: CustoOperacional[];
+  dashboardGestao: DashboardGestaoEstado;
   loading: boolean;
   error: string | null;
 }
@@ -130,7 +142,15 @@ type AppAction =
   | { type: 'UPDATE_SYSTEM_INFO'; payload: VendasSystemInfo }
   | { type: 'SET_VENDAS_FILTROS'; payload: FiltrosVendas }
   | { type: 'RESOLVE_PRODUTO_MATCH'; payload: { vendaId: string; itemCardapioId: string } }
-  | { type: 'UPDATE_DASHBOARD_VENDAS'; payload: DashboardVendas };
+  | { type: 'UPDATE_DASHBOARD_VENDAS'; payload: DashboardVendas }
+  // Financial actions
+  | { type: 'SET_CUSTOS_OPERACIONAIS'; payload: CustoOperacional[] }
+  | { type: 'ADD_CUSTO_OPERACIONAL'; payload: CustoOperacional }
+  | { type: 'UPDATE_CUSTO_OPERACIONAL'; payload: CustoOperacional }
+  | { type: 'DELETE_CUSTO_OPERACIONAL'; payload: string }
+  | { type: 'SET_DASHBOARD_GESTAO_PERIODO'; payload: PeriodoDashboard }
+  | { type: 'UPDATE_DASHBOARD_GESTAO_METRICAS'; payload: DashboardGestaoMetricas }
+  | { type: 'SET_DASHBOARD_GESTAO_LOADING'; payload: boolean };
 
 // Initial State
 const initialState: AppState = {
@@ -170,6 +190,16 @@ const initialState: AppState = {
       orderDirection: 'desc'
     },
     dashboardData: mockDashboardVendas
+  },
+  // Financial initial state
+  custosOperacionais: mockCustosOperacionais,
+  dashboardGestao: {
+    periodo: {
+      inicio: new Date(new Date().getFullYear(), 0, 1), // Janeiro do ano atual
+      fim: new Date()
+    },
+    loading: false,
+    alertas: []
   },
   loading: false,
   error: null,
@@ -476,6 +506,60 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
         }
       };
 
+    // Financial cases
+    case 'SET_CUSTOS_OPERACIONAIS':
+      return {
+        ...state,
+        custosOperacionais: action.payload
+      };
+
+    case 'ADD_CUSTO_OPERACIONAL':
+      return {
+        ...state,
+        custosOperacionais: [...state.custosOperacionais, action.payload]
+      };
+
+    case 'UPDATE_CUSTO_OPERACIONAL':
+      return {
+        ...state,
+        custosOperacionais: state.custosOperacionais.map(custo =>
+          custo.id === action.payload.id ? action.payload : custo
+        )
+      };
+
+    case 'DELETE_CUSTO_OPERACIONAL':
+      return {
+        ...state,
+        custosOperacionais: state.custosOperacionais.filter(custo => custo.id !== action.payload)
+      };
+
+    case 'SET_DASHBOARD_GESTAO_PERIODO':
+      return {
+        ...state,
+        dashboardGestao: {
+          ...state.dashboardGestao,
+          periodo: action.payload
+        }
+      };
+
+    case 'UPDATE_DASHBOARD_GESTAO_METRICAS':
+      return {
+        ...state,
+        dashboardGestao: {
+          ...state.dashboardGestao,
+          metricas: action.payload
+        }
+      };
+
+    case 'SET_DASHBOARD_GESTAO_LOADING':
+      return {
+        ...state,
+        dashboardGestao: {
+          ...state.dashboardGestao,
+          loading: action.payload
+        }
+      };
+
     default:
       return state;
   }
@@ -517,6 +601,10 @@ interface AppContextValue {
     filtros: FiltrosVendas;
     dashboardData?: DashboardVendas;
   };
+
+  // Financial getters
+  custosOperacionais: CustoOperacional[];
+  dashboardGestao: DashboardGestaoEstado;
 
   // Auth actions
   setUser: (user: User | null) => void;
@@ -560,6 +648,15 @@ interface AppContextValue {
   setVendasFiltros: (filtros: FiltrosVendas) => void;
   resolveProdutoMatch: (vendaId: string, itemCardapioId: string) => void;
   updateDashboardVendas: (data: DashboardVendas) => void;
+
+  // Financial actions
+  setCustosOperacionais: (custos: CustoOperacional[]) => void;
+  addCustoOperacional: (custo: CustoOperacional) => void;
+  updateCustoOperacional: (custo: CustoOperacional) => void;
+  deleteCustoOperacional: (id: string) => void;
+  setDashboardGestaoPeriodo: (periodo: PeriodoDashboard) => void;
+  updateDashboardGestaoMetricas: (metricas: DashboardGestaoMetricas) => void;
+  setDashboardGestaoLoading: (loading: boolean) => void;
 
   // Price helper functions
   getPrecoVendaItem: (tipo: 'INSUMO' | 'RECEITA' | 'COPO_BASE', itemId: string) => number | null;
@@ -671,6 +768,15 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const resolveProdutoMatch = (vendaId: string, itemCardapioId: string) => dispatch({ type: 'RESOLVE_PRODUTO_MATCH', payload: { vendaId, itemCardapioId } });
   const updateDashboardVendas = (data: DashboardVendas) => dispatch({ type: 'UPDATE_DASHBOARD_VENDAS', payload: data });
 
+  // Financial action functions
+  const setCustosOperacionais = (custos: CustoOperacional[]) => dispatch({ type: 'SET_CUSTOS_OPERACIONAIS', payload: custos });
+  const addCustoOperacional = (custo: CustoOperacional) => dispatch({ type: 'ADD_CUSTO_OPERACIONAL', payload: custo });
+  const updateCustoOperacional = (custo: CustoOperacional) => dispatch({ type: 'UPDATE_CUSTO_OPERACIONAL', payload: custo });
+  const deleteCustoOperacional = (id: string) => dispatch({ type: 'DELETE_CUSTO_OPERACIONAL', payload: id });
+  const setDashboardGestaoPeriodo = (periodo: PeriodoDashboard) => dispatch({ type: 'SET_DASHBOARD_GESTAO_PERIODO', payload: periodo });
+  const updateDashboardGestaoMetricas = (metricas: DashboardGestaoMetricas) => dispatch({ type: 'UPDATE_DASHBOARD_GESTAO_METRICAS', payload: metricas });
+  const setDashboardGestaoLoading = (loading: boolean) => dispatch({ type: 'SET_DASHBOARD_GESTAO_LOADING', payload: loading });
+
   // Price helper functions
   const getPrecoVendaItem = (tipo: 'INSUMO' | 'RECEITA' | 'COPO_BASE', itemId: string): number | null => {
     const itemCardapio = state.cardapio.find(item => {
@@ -719,6 +825,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     // Vendas getters
     vendasAnalise: state.vendasAnalise,
 
+    // Financial getters
+    custosOperacionais: state.custosOperacionais,
+    dashboardGestao: state.dashboardGestao,
+
     // Auth actions
     setUser,
     setSession,
@@ -761,6 +871,15 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setVendasFiltros,
     resolveProdutoMatch,
     updateDashboardVendas,
+
+    // Financial actions
+    setCustosOperacionais,
+    addCustoOperacional,
+    updateCustoOperacional,
+    deleteCustoOperacional,
+    setDashboardGestaoPeriodo,
+    updateDashboardGestaoMetricas,
+    setDashboardGestaoLoading,
 
     // Price helper functions
     getPrecoVendaItem,

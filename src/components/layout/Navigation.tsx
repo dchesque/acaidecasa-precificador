@@ -28,7 +28,9 @@ import {
   LogOut,
   ChevronUp,
   GlassWater,
-  TrendingUp
+  TrendingUp,
+  Calculator,
+  BarChart3
 } from "lucide-react";
 
 export const Navigation = () => {
@@ -145,6 +147,22 @@ export const Navigation = () => {
           label="Análise de Vendas"
           isCollapsed={isCollapsed}
           color="text-green-500"
+        />
+
+        <NavItem
+          href="/custos-operacionais"
+          icon={<Calculator className="h-5 w-5" />}
+          label="Custos Operacionais"
+          isCollapsed={isCollapsed}
+          color="text-red-400"
+        />
+
+        <NavItem
+          href="/dashboard-gestao"
+          icon={<BarChart3 className="h-5 w-5" />}
+          label="Dashboard Gestão"
+          isCollapsed={isCollapsed}
+          color="text-emerald-400"
         />
       </nav>
 

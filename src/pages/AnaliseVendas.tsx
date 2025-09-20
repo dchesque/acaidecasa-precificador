@@ -4,8 +4,11 @@ import React, { useState } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useRouter } from 'next/navigation';
 import {
   TrendingUp,
   Upload,
@@ -13,7 +16,9 @@ import {
   Download,
   AlertTriangle,
   BarChart3,
-  Table as TableIcon
+  Table as TableIcon,
+  Calculator,
+  ExternalLink
 } from 'lucide-react';
 import { useAnaliseVendas } from '@/hooks/useAnaliseVendas';
 import { VendasSystemStatus } from '@/components/analise-vendas/VendasSystemStatus';
@@ -23,6 +28,8 @@ import { VendasFilters } from '@/components/analise-vendas/VendasFilters';
 import { VendasImportModal } from '@/components/modals/VendasImportModal';
 import { VendasDetailModal } from '@/components/modals/VendasDetailModal';
 import { VendaRegistrada, ResumoImportacao } from '@/types/analise-vendas';
+import { useAppContext } from '@/contexts/AppContext';
+import { formatarMoeda } from '@/utils/calculosFinanceiros';
 import { toast } from 'sonner';
 
 export default function AnaliseVendas() {
@@ -43,10 +50,50 @@ export default function AnaliseVendas() {
     limparFiltros
   } = useAnaliseVendas();
 
+  const { custosOperacionais } = useAppContext();
+  const router = useRouter();
+
   const [modalImportacao, setModalImportacao] = useState(false);
   const [modalMatch, setModalMatch] = useState(false);
   const [modalDetalhes, setModalDetalhes] = useState(false);
   const [vendaSelecionada, setVendaSelecionada] = useState<VendaRegistrada | null>(null);
+
+  // Verificar se há custos operacionais para o período atual
+  const verificarCustosOperacionaisPeriodo = () => {
+    if (!filtros.periodo.inicio || !filtros.periodo.fim) return [];
+
+    const mesAtual = filtros.periodo.inicio.getMonth() + 1;
+    const anoAtual = filtros.periodo.inicio.getFullYear();
+    const mesFim = filtros.periodo.fim.getMonth() + 1;
+    const anoFim = filtros.periodo.fim.getFullYear();
+
+    let custosPeriodo = [];
+    for (let ano = anoAtual; ano <= anoFim; ano++) {
+      const mesInicioAno = ano === anoAtual ? mesAtual : 1;
+      const mesFimAno = ano === anoFim ? mesFim : 12;
+
+      for (let mes = mesInicioAno; mes <= mesFimAno; mes++) {
+        const custo = custosOperacionais.find(c => c.mes === mes && c.ano === ano);
+        if (custo) {
+          custosPeriodo.push(custo);
+        }
+      }
+    }
+
+    return custosPeriodo;
+  };
+
+  const custosEncontrados = verificarCustosOperacionaisPeriodo();
+  const totalCustosOperacionais = custosEncontrados.reduce((total, custo) => total + custo.valor, 0);
+
+  const handleNavegacaoDashboardGestao = () => {
+    const params = new URLSearchParams();
+    if (filtros.periodo.inicio && filtros.periodo.fim) {
+      params.set('inicio', filtros.periodo.inicio.toISOString());
+      params.set('fim', filtros.periodo.fim.toISOString());
+    }
+    router.push(`/dashboard-gestao?${params.toString()}`);
+  };
 
   const handleImportComplete = async (vendas: VendaRegistrada[], resumo: ResumoImportacao) => {
     const sucesso = await confirmarImportacao(resumo.arquivo, vendas, resumo);
@@ -163,6 +210,94 @@ export default function AnaliseVendas() {
 
         {/* Dashboard KPIs */}
         <VendasDashboard dashboard={dashboardData} loading={loading} />
+
+        {/* Integração Dashboard Gestão */}
+        <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-indigo-50">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Calculator className="h-5 w-5 text-purple-600" />
+                <div>
+                  <CardTitle className="text-purple-900">Dashboard de Gestão</CardTitle>
+                  <p className="text-sm text-purple-700 mt-1">
+                    Analise o lucro líquido considerando os custos operacionais
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={handleNavegacaoDashboardGestao}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Ver Dashboard
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-gray-700">Lucro Bruto (Período)</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {dashboardData ? formatarMoeda(dashboardData.lucroBrutoReal) : '-'}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-gray-700">Custos Operacionais</p>
+                  {custosEncontrados.length > 0 ? (
+                    <Badge variant="default" className="bg-green-100 text-green-800">
+                      {custosEncontrados.length} mês{custosEncontrados.length > 1 ? 'es' : ''}
+                    </Badge>
+                  ) : (
+                    <Badge variant="destructive">
+                      Não cadastrado
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-2xl font-bold text-orange-600">
+                  {custosEncontrados.length > 0 ? formatarMoeda(totalCustosOperacionais) : '-'}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-gray-700">Lucro Líquido (Estimado)</p>
+                <p className={`text-2xl font-bold ${
+                  custosEncontrados.length > 0 && dashboardData
+                    ? (dashboardData.lucroBrutoReal - totalCustosOperacionais) >= 0
+                      ? 'text-green-600'
+                      : 'text-red-600'
+                    : 'text-gray-400'
+                }`}>
+                  {custosEncontrados.length > 0 && dashboardData
+                    ? formatarMoeda(dashboardData.lucroBrutoReal - totalCustosOperacionais)
+                    : 'Cadastre custos'
+                  }
+                </p>
+              </div>
+            </div>
+
+            {custosEncontrados.length === 0 && (
+              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                  <p className="text-sm text-yellow-800">
+                    Para uma análise completa do lucro líquido, cadastre os custos operacionais do período.
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-2 border-yellow-300 text-yellow-700 hover:bg-yellow-100"
+                  onClick={() => router.push('/custos-operacionais')}
+                >
+                  <Calculator className="h-3 w-3 mr-1" />
+                  Cadastrar Custos
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Filters */}
         <VendasFilters
