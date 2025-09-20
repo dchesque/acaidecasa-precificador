@@ -1,8 +1,8 @@
 # **Documento de Requisitos de Produto (PRD): Açaí De Casa Precificador**
 
-# Versão: 1.4
+# Versão: 1.6
 
-Data: 17/09/2025
+Data: 20/09/2025
 
 Autor: Driano Chesque
 
@@ -58,14 +58,13 @@ A aplicação será composta pelos seguintes módulos (páginas), com funcionali
 
 Página para gerenciar as configurações globais da aplicação.
 
-- **Status Atual (Protótipo frontend - set/2025):** Interface e layout concluídos com cards e formulários estáticos; integração com o AppContext e persistência real ainda pendentes.
+- **Status Atual (Protótipo frontend - set/2025):** A interface do formulário está completa, permitindo a edição de dados da empresa e parâmetros de precificação. A lógica de salvamento está simulada e pronta para ser conectada ao backend.
 
 - **Markup Padrão:** Campo para definir o percentual de markup padrão a ser sugerido no cardápio (ex: 100%, 150%).
 - **Unidades de Medida:** Definir formatos e unidades padrão (padrão: grama (g), moeda (R$)).
 - **Categorias por Módulo:** Sistema de categorias independentes para cada módulo:
     - **Categorias de Fornecedores:** (ex: "Distribuidor", "Atacadista", "Produtor Local")
-    - **Categorias de Insumos:** (ex: "Frutas", "Chocolates", "Laticínios", "Granolas")
-    - **Categorias de Embalagens:** (ex: "Copos", "Tampas", "Talheres", "Sacolas")
+    - **Categorias de Insumos:** (ex: "Frutas", "Chocolates", "Laticínios", "Granolas", "Embalagens")
     - **Categorias de Receitas:** (ex: "Cremes", "Mousses", "Caldas")
     - **Categorias de Copos Base:** (ex: "Tradicional", "Zero Açúcar", "Premium")
     - **Categorias de Combinados:** (ex: "Clássicos", "Especiais", "Fitness")
@@ -73,9 +72,9 @@ Página para gerenciar as configurações globais da aplicação.
 
 ### **4.2. Módulo: Fornecedores**
 
-Página para cadastrar e gerenciar todos os fornecedores de insumos e embalagens.
+Página para cadastrar e gerenciar todos os fornecedores de insumos.
 
-- **Status Atual (Protótipo frontend - set/2025):** Listagem, métricas, filtros e CRUD via modais implementados; integração com mock data e serviço Supabase opcional, aguardando backend definitivo.
+- **Status Atual (Protótipo frontend - set/2025):** Funcionalidade completa a nível de UI. Listagem, métricas, filtros e CRUD via modais estão implementados e integrados com o `AppContext`. O serviço para Supabase (`fornecedoresService.ts`) está criado e pronto para ser ativado.
 
 - **Funcionalidades:**
     - CRUD (Criar, Ler, Atualizar, Deletar) de Fornecedores via modal.
@@ -89,34 +88,15 @@ Página para cadastrar e gerenciar todos os fornecedores de insumos e embalagens
     - **Implementado no protótipo:** Busca com destaque, filtros por categoria, cartões de métricas e modal de visualização com insumos vinculados; suporte à integração com Supabase via serviço dedicado.
 - **Histórico de Preços:** Ao visualizar um fornecedor, deve haver uma seção que lista todos os insumos vinculados a ele e um histórico de alterações de preço para cada insumo (data da alteração, preço bruto antigo, preço bruto novo, preço com desconto antigo, preço com desconto novo).
 
-### **4.3. Módulo: Embalagens**
+### **4.3. Módulo: Insumos**
 
-Página para cadastrar todas as embalagens utilizadas.
+Página para cadastrar todos os ingredientes e produtos comprados (incluindo embalagens).
 
-- **Status Atual (Protótipo frontend - set/2025):** Não implementado no código atual; funcionalidades abaixo permanecem planejadas para etapas posteriores.
-
-- **Funcionalidades:**
-    - CRUD de Embalagens via modal.
-    - Campos: Nome da Embalagem (ex: "Copo Isopor 500ml"), Categoria.
-    - **Integração:**
-        - Cada embalagem deve ser vinculada a um **Fornecedor Principal** (com botão "+" para cadastro rápido).
-        - **Fornecedor Alternativo** (opcional): Campo para vincular um segundo fornecedor com seus próprios preços.
-    - **Precificação Dupla (para cada fornecedor):**
-        - **Preço Bruto por Unidade:** (ex: R$ 0,50)
-        - **Preço com Desconto por Unidade:** (ex: R$ 0,45)
-        - **Quantidade da Compra:** Campo numérico para quantidade de unidades compradas.
-    - **Cálculo Automático:** Sistema calcula e exibe o custo unitário baseado no preço bruto do fornecedor principal.
-    - **Visualização:** Tabela com colunas: Nome, Categoria, Fornecedor Principal, Fornecedor Alt., Preço Bruto/Un, Preço c/ Desc/Un, Qtd Compra, Ações.
-
-### **4.4. Módulo: Insumos**
-
-Página para cadastrar todos os ingredientes e produtos comprados.
-
-- **Status Atual (Protótipo frontend - set/2025):** Interface concluída com filtros por categoria/fornecedor, agrupamento por categoria e modais de cadastro/visualização integrados ao AppContext e utilitários de cálculo.
+- **Status Atual (Protótipo frontend - set/2025):** Funcionalidade completa a nível de UI. A interface possui filtros por categoria/fornecedor, visualização completa ou agrupada, e modais de CRUD totalmente integrados ao `AppContext` e aos utilitários de cálculo.
 
 - **Funcionalidades:**
     - CRUD de Insumos via modal.
-    - Campos: Nome do Insumo (ex: "Leite em Pó Ninho"), Categoria.
+    - Campos: Nome do Insumo (ex: "Leite em Pó Ninho", "Copo 500ml"), Categoria.
     - **Integração:**
         - Cada insumo deve ser vinculado a um **Fornecedor Principal** (com botão "+" para cadastro rápido).
         - **Fornecedor Alternativo** (opcional): Campo para vincular um segundo fornecedor com seus próprios preços.
@@ -133,27 +113,25 @@ Página para cadastrar todos os ingredientes e produtos comprados.
     - **Visualização:** Tabela com colunas: Nome, Categoria, Fornecedor Principal, Forn. Alt., Tipo Medida, Preço Bruto, Preço c/ Desc, Quantidade, Custo/g ou Custo/un, Ações.
     - **Implementado no protótipo:** Alternância entre visão completa e agrupada por categoria, modal de detalhes com análise de custos por fornecedor e painel lateral com dados consolidados.
 
-### **4.5. Módulo: Copos Base**
+### **4.4. Módulo: Copos Base**
 
 Página para criar os copos "base" que o cliente montará.
 
-- **Status Atual (Protótipo frontend - set/2025):** Fluxo de cadastro, métricas, filtros e visualização detalhada implementados; cálculos de custo utilizam os utilitários compartilhados; persistência real ainda pendente.
+- **Status Atual (Protótipo frontend - set/2025):** Funcionalidade completa a nível de UI. O fluxo de CRUD, métricas, filtros e visualização detalhada estão implementados e integrados ao `AppContext`. Os cálculos de custo utilizam os utilitários compartilhados.
 
 - **Funcionalidades:**
     - CRUD de Copos Base via modal.
     - Campos: Nome do Copo (ex: "Copo Açaí Tradicional 500ml"), Categoria.
-    - **Composição:** O usuário deve poder adicionar:
-        - O **insumo principal** (ex: Açaí Tradicional) e a quantidade em gramas (ex: 450g).
-        - As **embalagens** associadas (ex: 1x Copo Isopor 500ml, 1x Tampa Bolha 500ml, 1x Colher).
-    - **Cálculo de Custo:** O sistema deve calcular e exibir o **custo total do copo base** somando o custo dos insumos (baseado no preço bruto) e das embalagens (baseado no preço bruto).
+    - **Composição:** O usuário deve poder adicionar o **insumo principal** (ex: Açaí Tradicional) e a quantidade em gramas (ex: 450g), além de outros insumos como embalagens (copo, tampa, etc.).
+    - **Cálculo de Custo:** O sistema deve calcular e exibir o **custo total do copo base** somando o custo de todos os insumos (baseado no preço bruto).
     - **Visualização:** Tabela com colunas: Nome, Categoria, Custo Total, Margem Estimada, Ações.
-    - **Implementado no protótipo:** Cartões de métricas, filtros por categoria, visão agrupada e modal de detalhes exibindo embalagens e custos individualizados.
+    - **Implementado no protótipo:** Cartões de métricas, filtros por categoria, visão agrupada e modal de detalhes exibindo insumos e custos individualizados.
 
-### **4.6. Módulo: Receitas**
+### **4.5. Módulo: Receitas**
 
 Página para cadastrar produções internas, como cremes e mousses.
 
-- **Status Atual (Protótipo frontend - set/2025):** Cadastro e exibição concluídos com agrupamento por categoria, modal detalhado, cálculo automático de custo total e por grama via utilitários compartilhados.
+- **Status Atual (Protótipo frontend - set/2025):** Funcionalidade completa a nível de UI. O CRUD, a exibição com agrupamento por categoria, o modal de visualização detalhada e os cálculos automáticos de custo estão implementados e integrados ao `AppContext`.
 
 - **Funcionalidades:**
     - CRUD de Receitas via modal.
@@ -169,11 +147,11 @@ Página para cadastrar produções internas, como cremes e mousses.
     - **Visualização:** Tabela com colunas: Nome, Categoria, Tempo Preparo, Validade, Rendimento (g), Custo/g, Custo Total Receita, Ações.
     - **Implementado no protótipo:** Abas para visão completa ou agrupada por categoria, modal de visualização detalhada com resumo de ingredientes e custos, além de indicadores de rendimento.
 
-### **4.7. Módulo: Combinados**
+### **4.6. Módulo: Combinados**
 
 Página para cadastrar copos pré-montados com complementos.
 
-- **Status Atual (Protótipo frontend - set/2025):** Fluxo completo implementado com seleção de copo base, complementos dinâmicos, cálculo de custos e métricas; integração ao AppContext e cálculos centralizados.
+- **Status Atual (Protótipo frontend - set/2025):** Funcionalidade completa a nível de UI. O fluxo de CRUD, com seleção de copo base, adição de complementos, cálculos de custo e métricas, está totalmente implementado e integrado ao `AppContext`.
 
 - **Funcionalidades:**
     - CRUD de Combinados via modal.
@@ -186,11 +164,11 @@ Página para cadastrar copos pré-montados com complementos.
     - **Visualização:** Tabela com colunas: Nome, Categoria, Custo Total, Preço Venda Atual (se houver), Margem, Ações.
     - **Implementado no protótipo:** Tabela dinâmica com filtros, visão agrupada, cards de métricas e modal de detalhes; cálculos automáticos de custo total e margens, com alertas integrados.
 
-### **4.8. Módulo: Cardápio**
+### **4.7. Módulo: Cardápio**
 
 A página principal onde o empresário montará o cardápio final para venda.
 
-- **Status Atual (Protótipo frontend - set/2025):** Interface avançada concluída com categorias customizáveis, filtros, simulação de preços e exportação; atualmente utiliza dados mockados locais e ainda não está conectada aos cadastros do AppContext.
+- **Status Atual (Protótipo frontend - set/2025):** Interface avançada concluída com gerenciamento de categorias, filtros, simulação de preços e exportação para PDF. Atualmente opera com dados mockados, sendo a principal pendência a conexão com os dados dinâmicos do `AppContext`.
 
 - **Funcionalidades:**
     - Permitir a criação de categorias de cardápio (ex: "Monte seu Açaí", "Complementos", "Nossos Combinados", "Bebidas").
@@ -217,7 +195,7 @@ A página principal onde o empresário montará o cardápio final para venda.
 - **Visualização:** Tabela organizada por categoria com colunas: Código (SKU), Item, Custo (Bruto), Preço Sugerido, Preço Atual, Novo Preço, Margem Atual (%), Margem Nova (%), Alertas, Ações.
 
 
-### **4.9. Módulo: Dashboard**
+### **4.8. Módulo: Dashboard**
 
 Tela inicial com visão executiva do sistema.
 
@@ -228,15 +206,29 @@ Tela inicial com visão executiva do sistema.
     - Widget de alertas integrado ao `AlertBadge`, com suporte a marcação como lido.
     - Resumo de contagens por módulo e lista de itens recentes do cardápio.
 
-### **4.10. Módulo: Minha Conta**
+### **4.9. Módulo: Minha Conta**
 
 Área para gerenciamento do perfil do usuário administrador.
 
-- **Status Atual (Protótipo frontend - set/2025):** Interface concluída com formulários de edição e feedback via toasts; integrações com backend e autenticação ainda pendentes.
+- **Status Atual (Protótipo frontend - set/2025):** Interface concluída com formulários para edição de dados pessoais e alteração de senha. As interações de UI, como upload de avatar e feedback com toasts, estão implementadas. A persistência dos dados aguarda a integração final com o backend.
 - **Funcionalidades Implementadas:**
     - Edição inline de dados pessoais, contato e endereço com bloqueio/desbloqueio controlado.
     - Abas de informações pessoais e segurança, com ações simuladas (alteração de senha).
     - Avatar com ação de upload (placeholder) e histórico de data de cadastro.
+
+### **4.10. Módulo: Análise de Vendas (Novo)**
+
+Página dedicada à importação e análise de dados de vendas para reconciliação com o cardápio.
+
+- **Status Atual (Protótipo frontend - set/2025):** Funcionalidade completa a nível de UI. Permite a importação de planilhas (CSV/Excel), exibe um dashboard com KPIs de vendas, uma tabela detalhada com filtros, e uma aba para análise de divergências. A exportação para PDF está funcional. A lógica de processamento e reconciliação está implementada no hook `useAnaliseVendas`, aguardando apenas a conexão com dados reais do cardápio.
+
+- **Funcionalidades:**
+    - **Importação de Vendas:** Modal para upload de arquivos CSV/Excel com mapeamento de colunas.
+    - **Dashboard de Vendas:** Exibe KPIs como Faturamento Real, Lucro Bruto Real, Margem Média Real e Total de Divergências.
+    - **Tabela de Vendas:** Lista todas as vendas importadas com filtros por período, status da análise (OK, Divergência, Prejuízo) e busca por produto.
+    - **Análise de Divergências:** Uma aba dedicada mostra produtos vendidos que não foram encontrados no cardápio e vendas com margens problemáticas.
+    - **Detalhes da Venda:** Modal que exibe uma análise comparativa completa de uma venda específica, mostrando o preço vendido vs. o custo e preço esperados.
+    - **Exportação:** Gera um relatório em PDF com os principais indicadores e uma tabela das vendas filtradas.
 
 ## **5. Recursos Adicionais de Interface**
 
@@ -314,11 +306,11 @@ Tela inicial com visão executiva do sistema.
 
 ## **8. Pendências Prioritárias do Protótipo**
 
-- Implementar o módulo de Embalagens (UI + cálculos + integração com fornecedores).
-- Conectar o Cardápio ao AppContext, consumindo dados reais de copos base, receitas, combinados e insumos.
-- Persistir configurações, cardápio e cadastros via Supabase ou API dedicada, substituindo dados mockados.
-- Implementar autenticação real e fluxo de logout integrado ao backend.
-- Adicionar testes e validações adicionais nos formulários (validação assíncrona, estados de erro e loading gerais).
+- **Finalizar Integração com Backend:** Concluir a integração de todos os módulos (Configurações, Insumos, Receitas, etc.) com o Supabase, substituindo os dados mockados pela persistência real.
+- **Conectar Módulos ao `AppContext`:** Garantir que os módulos de Cardápio e Análise de Vendas consumam e interajam com os dados dinâmicos do `AppContext` em vez de mocks locais.
+- **Autenticação Real:** Implementar o fluxo completo de autenticação (login, logout, recuperação de senha) utilizando o Supabase Auth.
+- **Finalizar Análise de Vendas:** Implementar a funcionalidade de vincular produtos não encontrados e aprimorar os gráficos de análise.
+- **Testes e Validações:** Adicionar testes unitários e de integração, além de refinar as validações nos formulários (e.g., validação assíncrona, estados de erro e loading).
 
 
 # Schema Prisma
@@ -372,18 +364,6 @@ createdAt DateTime  @default(now())
 updatedAt DateTime  @updatedAt
 
 insumos   Insumo[]
-}
-
-model CategoriaEmbalagem {
-id         String      @id @default(uuid())
-nome       String      @unique
-descricao  String?
-ativo      Boolean     @default(true)
-ordem      Int         @default(0)
-createdAt  DateTime    @default(now())
-updatedAt  DateTime    @updatedAt
-
-embalagens Embalagem[]
 }
 
 model CategoriaReceita {
@@ -454,11 +434,9 @@ categoria       CategoriaFornecedor?  @relation(fields: [categoriaId], reference
 
 // Relacionamentos como fornecedor principal
 insumosPrincipal    Insumo[]         @relation("FornecedorPrincipal")
-embalagensPrincipal Embalagem[]      @relation("FornecedorPrincipal")
 
 // Relacionamentos como fornecedor alternativo
 insumosAlternativo    Insumo[]       @relation("FornecedorAlternativo")
-embalagensAlternativo Embalagem[]    @relation("FornecedorAlternativo")
 
 // Histórico de preços
 historicoPrecos HistoricoPreco[]
@@ -524,47 +502,6 @@ itensCardapio           ItemCardapio[]
 @@index([nome])
 }
 
-// ============================================
-// EMBALAGENS
-// ============================================
-
-model Embalagem {
-id                      String              @id @default(uuid())
-nome                    String
-categoriaId             String?
-
-// Fornecedor Principal
-fornecedorPrincipalId   String?
-precoBrutoPorUnidade    Float               // Preço bruto por unidade
-precoComDescontoPorUn   Float?              // Preço com desconto por unidade
-quantidadeCompra        Int                 // Quantidade de unidades compradas
-
-// Fornecedor Alternativo
-fornecedorAlternativoId String?
-precoBrutoPorUnidadeAlt Float?              // Preço bruto alternativo
-precoComDescontoPorUnAlt Float?             // Preço com desconto alternativo
-quantidadeCompraAlt     Int?                // Quantidade alternativa
-
-// Custo calculado (baseado no fornecedor principal)
-custoPorUnidade         Float               // Calculado automaticamente
-
-ativo                   Boolean             @default(true)
-observacoes             String?
-createdAt               DateTime            @default(now())
-updatedAt               DateTime            @updatedAt
-
-categoria               CategoriaEmbalagem?    @relation(fields: [categoriaId], references: [id])
-fornecedorPrincipal     Fornecedor?           @relation("FornecedorPrincipal", fields: [fornecedorPrincipalId], references: [id])
-fornecedorAlternativo   Fornecedor?           @relation("FornecedorAlternativo", fields: [fornecedorAlternativoId], references: [id])
-
-// Uso em copos base
-embalagensCopoBase      EmbalagemCopoBase[]
-
-// Histórico de preços
-historicoPrecos         HistoricoPreco[]
-
-@@index([nome])
-}
 
 // ============================================
 // RECEITAS
@@ -636,8 +573,8 @@ updatedAt           DateTime            @updatedAt
 categoria           CategoriaCopoBase?  @relation(fields: [categoriaId], references: [id])
 insumoPrincipal     Insumo             @relation(fields: [insumoPrincipalId], references: [id])
 
-// Embalagens associadas
-embalagens          EmbalagemCopoBase[]
+// Insumos adicionais (incluindo embalagens)
+insumos             CopoBaseInsumo[]
 
 // Uso em combinados
 combinados          Combinado[]
@@ -648,19 +585,19 @@ itensCardapio       ItemCardapio[]
 @@index([nome])
 }
 
-model EmbalagemCopoBase {
+model CopoBaseInsumo {
 id            String     @id @default(uuid())
 copoBaseId    String
-embalagemId   String
-quantidade    Int        @default(1) // Quantidade de unidades desta embalagem
-custoCalculado Float     // Custo desta embalagem no copo
+insumoId      String
+quantidade    Int        @default(1) // Quantidade de unidades ou gramas
+custoCalculado Float     // Custo deste insumo no copo
 createdAt     DateTime   @default(now())
 updatedAt     DateTime   @updatedAt
 
 copoBase      CopoBase   @relation(fields: [copoBaseId], references: [id], onDelete: Cascade)
-embalagem     Embalagem  @relation(fields: [embalagemId], references: [id])
+insumo        Insumo     @relation(fields: [insumoId], references: [id])
 
-@@unique([copoBaseId, embalagemId])
+@@unique([copoBaseId, insumoId])
 }
 
 // ============================================
@@ -778,7 +715,6 @@ combinado           Combinado?          @relation(fields: [combinadoId], referen
 
 enum TipoHistoricoPreco {
 INSUMO
-EMBALAGEM
 }
 
 model HistoricoPreco {
@@ -786,7 +722,6 @@ id                    String              @id @default(uuid())
 tipo                  TipoHistoricoPreco
 fornecedorId          String
 insumoId              String?
-embalagemId           String?
 
 // Valores anteriores
 precoBrutoAnterior    Float?
@@ -804,11 +739,9 @@ createdAt             DateTime            @default(now())
 
 fornecedor            Fornecedor          @relation(fields: [fornecedorId], references: [id])
 insumo                Insumo?             @relation(fields: [insumoId], references: [id])
-embalagem             Embalagem?          @relation(fields: [embalagemId], references: [id])
 
 @@index([fornecedorId, dataAlteracao])
 @@index([insumoId, dataAlteracao])
-@@index([embalagemId, dataAlteracao])
 }
 
 # Flowchart Marmaid
@@ -819,6 +752,7 @@ graph TD
     classDef process fill:#D1FAE5,stroke:#10B981,stroke-width:1px,color:#1F2937
     classDef output fill:#FEF9C3,stroke:#F59E0B,stroke-width:1px,color:#1F2937
     classDef final_goal fill:#C7D2FE,stroke:#4C1D95,stroke-width:2px,color:#1F2937
+    classDef analysis fill:#E0F2FE,stroke:#0284C7,stroke-width:2px,color:#1F2937
 
     Start[Início da Jornada do Usuário] --> S0
     
@@ -827,7 +761,7 @@ graph TD
         S0 --> S2[Define Unidades de Medida Padrão]
         S0 --> S3[Gerencia Categorias para cada Módulo]
         S3 --> S3_1[CRUD Categorias de Fornecedores]
-        S3 --> S3_2[CRUD Categorias de Insumos e Embalagens]
+        S3 --> S3_2[CRUD Categorias de Insumos]
         S3 --> S3_3[CRUD Categorias de Receitas, Copos e Combinados]
     end
     
@@ -845,18 +779,11 @@ graph TD
         I1_Modal --> I1_Calc[Sistema Calcula Custo/g ou Custo/un]
         I1_Calc --> I1_Save[Salva Insumo na Tabela com Custo Calculado]
         
-        F1_Save --> E1_Page[Acessa Página de Embalagens]
-        E1_Page --> E1_Action{Ação: CRUD}
-        E1_Action -->|Criar/Editar| E1_Modal[Modal: Cadastro de Embalagem<br/>Nome, Categoria<br/>Fornecedor Principal e Alternativo<br/>Preços Bruto e com Desconto]
-        E1_Modal --> E1_Calc[Sistema Calcula Custo por Unidade]
-        E1_Calc --> E1_Save[Salva Embalagem na Tabela com Custo Calculado]
-        
         I1_Modal -.->|Clica no + ao lado de Fornecedor| F1_Modal
-        E1_Modal -.->|Clica no + ao lado de Fornecedor| F1_Modal
     end
     
     I1_Save --> R1_Page
-    E1_Save --> CB1_Page
+    I1_Save --> CB1_Page
 
     subgraph Composicao[3. Composição de Produtos]
         R1_Page[Acessa Página de Receitas] --> R1_Action{Ação: CRUD}
@@ -869,8 +796,8 @@ graph TD
         CB1_Page[Acessa Página de Copos Base] --> CB1_Action{Ação: CRUD}
         CB1_Action -->|Criar/Editar| CB1_Modal[Modal: Cadastro de Copo Base]
         CB1_Modal --> CB1_Comp_I{Adiciona Insumo Principal<br/>e sua quantidade em g}
-        CB1_Comp_I --> CB1_Comp_E{Adiciona Embalagens associadas<br/>copo, tampa, talher}
-        CB1_Comp_E --> CB1_Calc[Sistema Soma Custos Totais<br/>dos Insumos e Embalagens]
+        CB1_Comp_I --> CB1_Comp_E{Adiciona outros Insumos<br/>(copo, tampa, etc)}
+        CB1_Comp_E --> CB1_Calc[Sistema Soma Custos Totais<br/>de todos os Insumos]
         CB1_Calc --> CB1_Save[Salva Copo Base com Custo Total na Tabela]
 
         CB1_Save --> C1_Page[Acessa Página de Combinados]
@@ -880,7 +807,6 @@ graph TD
         C1_Modal --> C1_Comp_CB{Seleciona um Copo Base já cadastrado}
         C1_Comp_CB --> C1_Comp_Adc{Adiciona Complementos<br/>Insumos ou Receitas e suas quantidades}
         C1_Comp_Adc --> C1_Calc[Sistema Soma Custo do Copo Base<br/>com Custo dos Complementos]
-        C1_Calc --> C1_PriceCheck{Verifica Preço de Venda<br/>do Cardápio Atual}
         C1_PriceCheck --> C1_Save[Salva Combinado com Custo Total<br/>e Preço Venda Atual se houver]
     end
     
@@ -903,17 +829,40 @@ graph TD
         M8_ShowAlert_Error --> M9_End
         M8_ShowAlert_Warn --> M9_End
     end
+
+    M9_End --> AV1_Page
+
+    subgraph AnaliseVendas[5. Análise de Vendas]
+        AV1_Page[Acessa Página de Análise de Vendas] --> AV2_Action{Ação do Usuário}
+        AV2_Action -->|Importar| AV2_Modal[Modal: Importar Planilha de Vendas]
+        AV2_Modal --> AV3_Process[Sistema Processa Arquivo e Reconcilia com Cardápio]
+        AV3_Process --> AV4_Dashboard[Exibe Dashboard com KPIs de Vendas Reais]
+        AV4_Dashboard --> AV5_Table[Mostra Tabela de Vendas com Status de Análise]
+        AV5_Table --> AV6_Divergencias{Analisa Divergências}
+        AV6_Divergencias -->|Vendas com Prejuízo| AV7_Alert[Alerta de Prejuízo]
+        AV6_Divergencias -->|Produtos não Encontrados| AV8_Match[Interface para Vincular Produtos]
+        AV2_Action -->|Exportar| AV9_Export[Gera Relatório PDF das Vendas]
+    end
     
     class S0,S1,S2,S3,S3_1,S3_2,S3_3 page
-    class F1_Page,E1_Page,I1_Page page
+    class F1_Page,I1_Page page
     class R1_Page,CB1_Page,C1_Page page
-    class F1_Modal,F1_View,E1_Modal,I1_Modal modal
+    class F1_Modal,F1_View,I1_Modal modal
     class R1_Modal,CB1_Modal,C1_Modal modal
-    class E1_Calc,I1_Calc process
+    class I1_Calc process
     class R1_Calc,CB1_Calc,C1_Calc,C1_PriceCheck process
     class M4_Data,M6_Analysis,M3_SKU process
-    class F1_Save,E1_Save,I1_Save output
+    F1_Save --> I1_Page
+    I1_Save --> R1_Page & C1_Page
+    R1_Save --> C1_Page
+    CB1_Save --> C1_Page
+    C1_Calc --> C1_PriceCheck
+    class F1_Save,I1_Save output
     class R1_Save,CB1_Save,C1_Save output
     class M8_ShowAlert_Error,M8_ShowAlert_Warn output
     class M1_Page,M1_Cat,M2_Action,M9_End final_goal
     class M2_ChooseType,M5_Input,M7_Alerts modal
+    class AV1_Page,AV4_Dashboard,AV5_Table,AV9_Export analysis
+    class AV2_Modal,AV8_Match modal
+    class AV3_Process process
+    class AV7_Alert output
