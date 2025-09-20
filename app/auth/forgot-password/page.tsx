@@ -1,0 +1,41 @@
+"use client"
+
+import { useState } from "react"
+import { AuthForm } from "@/components/auth/AuthForm"
+import { supabase, isSupabaseConfigured } from "@/lib/supabase/client"
+
+export default function ForgotPasswordPage() {
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleForgotPassword = async (data: { email: string }) => {
+    setIsLoading(true)
+
+    try {
+      if (isSupabaseConfigured() && supabase) {
+        const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
+          redirectTo: `${window.location.origin}/auth/reset-password`,
+        })
+
+        if (error) {
+          throw error
+        }
+      } else {
+        console.log("Supabase não configurado - simulando recuperação de senha:", data)
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+    } catch (error) {
+      console.error("Erro na recuperação de senha:", error)
+      throw error
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <AuthForm
+      mode="forgot-password"
+      onForgotPassword={handleForgotPassword}
+      isLoading={isLoading}
+    />
+  )
+}

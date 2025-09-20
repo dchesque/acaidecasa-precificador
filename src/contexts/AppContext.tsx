@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
+import { User, Session } from '@supabase/supabase-js';
 import {
   Configuracao,
   Categoria,
@@ -26,6 +27,11 @@ import {
 
 // App State Interface
 interface AppState {
+  // Auth state
+  user: User | null;
+  session: Session | null;
+  authLoading: boolean;
+  // App data
   configuracao: Configuracao | null;
   categorias: Categoria[];
   unidadesMedida: UnidadeMedida[];
@@ -42,9 +48,12 @@ interface AppState {
 }
 
 // Action Types
-type AppAction = 
+type AppAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
+  | { type: 'SET_AUTH_LOADING'; payload: boolean }
+  | { type: 'SET_USER'; payload: User | null }
+  | { type: 'SET_SESSION'; payload: Session | null }
   | { type: 'SET_CONFIGURACAO'; payload: Configuracao }
   | { type: 'SET_CATEGORIAS'; payload: Categoria[] }
   | { type: 'ADD_CATEGORIA'; payload: Categoria }
@@ -88,6 +97,11 @@ type AppAction =
 
 // Initial State
 const initialState: AppState = {
+  // Auth state
+  user: null,
+  session: null,
+  authLoading: true,
+  // App data
   configuracao: null,
   categorias: mockCategorias,
   unidadesMedida: mockUnidadesMedida,
@@ -108,9 +122,18 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
   switch (action.type) {
     case 'SET_LOADING':
       return { ...state, loading: action.payload };
-    
+
     case 'SET_ERROR':
       return { ...state, error: action.payload };
+
+    case 'SET_AUTH_LOADING':
+      return { ...state, authLoading: action.payload };
+
+    case 'SET_USER':
+      return { ...state, user: action.payload };
+
+    case 'SET_SESSION':
+      return { ...state, session: action.payload };
     
     case 'SET_CONFIGURACAO':
       return { ...state, configuracao: action.payload };
@@ -320,6 +343,12 @@ interface AppContextValue {
   state: AppState;
   dispatch: React.Dispatch<AppAction>;
 
+  // Auth getters
+  user: User | null;
+  session: Session | null;
+  authLoading: boolean;
+  isAuthenticated: boolean;
+
   // Data getters
   configuracao: Configuracao | null;
   categorias: Categoria[];
@@ -332,6 +361,11 @@ interface AppContextValue {
   combinados: Combinado[];
   cardapio: ItemCardapio[];
   alertas: Alerta[];
+
+  // Auth actions
+  setUser: (user: User | null) => void;
+  setSession: (session: Session | null) => void;
+  setAuthLoading: (loading: boolean) => void;
 
   // Action functions
   addCategoria: (categoria: Categoria) => void;
@@ -365,6 +399,11 @@ const AppContext = createContext<AppContextValue | null>(null);
 // Provider
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
+
+  // Auth action functions
+  const setUser = (user: User | null) => dispatch({ type: 'SET_USER', payload: user });
+  const setSession = (session: Session | null) => dispatch({ type: 'SET_SESSION', payload: session });
+  const setAuthLoading = (loading: boolean) => dispatch({ type: 'SET_AUTH_LOADING', payload: loading });
 
   // Action functions
   const addCategoria = (categoria: Categoria) => dispatch({ type: 'ADD_CATEGORIA', payload: categoria });
@@ -418,6 +457,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     state,
     dispatch,
 
+    // Auth getters
+    user: state.user,
+    session: state.session,
+    authLoading: state.authLoading,
+    isAuthenticated: !!state.user,
+
     // Data getters
     configuracao: state.configuracao,
     categorias: state.categorias,
@@ -430,6 +475,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     combinados: state.combinados,
     cardapio: state.cardapio,
     alertas: state.alertas,
+
+    // Auth actions
+    setUser,
+    setSession,
+    setAuthLoading,
 
     // Action functions
     addCategoria,
