@@ -36,7 +36,8 @@
       "Bash(move src/pages/Cardapio.backup2.tsx src/pages/Cardapio.backup2.tsx.disabled)",
       "Bash(rm:*)",
       "mcp__ide__executeCode",
-      "Bash(move src/pages/Combinados.backup.tsx src/pages/Combinados.backup.tsx.disabled)"
+      "Bash(move src/pages/Combinados.backup.tsx src/pages/Combinados.backup.tsx.disabled)",
+      "Bash(del /S /Q .next)"
     ],
     "deny": [],
     "ask": []
