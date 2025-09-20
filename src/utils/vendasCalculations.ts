@@ -198,15 +198,20 @@ export const formatarPercentual = (valor: number): string => {
 
 export const formatarData = (data: Date | string): string => {
   const d = typeof data === 'string' ? new Date(data) : data;
-  return new Intl.DateTimeFormat('pt-BR').format(d);
+  const dia = d.getDate().toString().padStart(2, '0');
+  const mes = (d.getMonth() + 1).toString().padStart(2, '0');
+  const ano = d.getFullYear();
+  return `${dia}/${mes}/${ano}`;
 };
 
 export const formatarDataHora = (data: Date | string): string => {
   const d = typeof data === 'string' ? new Date(data) : data;
-  return new Intl.DateTimeFormat('pt-BR', {
-    dateStyle: 'short',
-    timeStyle: 'short'
-  }).format(d);
+  const dia = d.getDate().toString().padStart(2, '0');
+  const mes = (d.getMonth() + 1).toString().padStart(2, '0');
+  const ano = d.getFullYear();
+  const hora = d.getHours().toString().padStart(2, '0');
+  const minuto = d.getMinutes().toString().padStart(2, '0');
+  return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
 };
 
 export const calcularHashArquivo = async (file: File): Promise<string> => {

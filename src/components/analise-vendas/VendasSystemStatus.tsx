@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Database, Calendar, Upload, AlertCircle } from 'lucide-react';
 
 interface VendasSystemStatusProps {
@@ -8,6 +8,11 @@ interface VendasSystemStatusProps {
 }
 
 export function VendasSystemStatus({ systemInfo }: VendasSystemStatusProps) {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
   const formatarTempoDecorrido = (data: any) => {
     if (!data) return 'Nunca';
 
@@ -72,7 +77,11 @@ export function VendasSystemStatus({ systemInfo }: VendasSystemStatusProps) {
               <div>
                 <span className="text-gray-600">Dados disponíveis:</span>
                 <div className="font-medium text-gray-900">
-                  {formatarData(systemInfo.primeiraVenda)} até {formatarData(systemInfo.ultimaVenda)}
+                  {isClient ? (
+                    `${formatarData(systemInfo.primeiraVenda)} até ${formatarData(systemInfo.ultimaVenda)}`
+                  ) : (
+                    'Carregando...'
+                  )}
                 </div>
               </div>
             </div>
@@ -92,7 +101,7 @@ export function VendasSystemStatus({ systemInfo }: VendasSystemStatusProps) {
               <div>
                 <span className="text-gray-600">Última importação:</span>
                 <div className="font-medium text-gray-900">
-                  {formatarTempoDecorrido(systemInfo.ultimaImportacao)}
+                  {isClient ? formatarTempoDecorrido(systemInfo.ultimaImportacao) : 'Carregando...'}
                 </div>
               </div>
             </div>

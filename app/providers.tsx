@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { AppProvider } from "@/contexts/AppContext"
 import { ThemeProvider } from "next-themes"
+import { SuspenseBoundary } from "@/components/layout/SuspenseBoundary"
 
 const queryClient = new QueryClient()
 
@@ -20,7 +21,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       >
         <AppProvider>
           <TooltipProvider>
-            {children}
+            <SuspenseBoundary>
+              {children}
+            </SuspenseBoundary>
             <Toaster />
             <Sonner />
           </TooltipProvider>

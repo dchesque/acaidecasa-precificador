@@ -5,12 +5,13 @@ import {
   DashboardVendas
 } from '@/types/analise-vendas';
 
-// Função auxiliar para gerar ID único
-const generateId = () => Math.random().toString(36).substring(2, 9);
+// Função auxiliar para gerar ID único determinístico
+const generateId = (seed: number) => `id-${seed.toString(36).padStart(7, '0')}`;
 
-// Função para gerar data aleatória dentro de um período
-const randomDate = (start: Date, end: Date) => {
-  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+// Função para gerar data determinística dentro de um período
+const seededDate = (start: Date, end: Date, seed: number) => {
+  const seededRandom = (seed % 1000) / 1000; // Normalizar para 0-1
+  return new Date(start.getTime() + seededRandom * (end.getTime() - start.getTime()));
 };
 
 // Mapeamento de produtos do cardápio para vendas
@@ -80,19 +81,21 @@ const gerarVendas = (): VendaRegistrada[] => {
 
   // Janeiro 2024
   for (let i = 0; i < 520; i++) {
-    const produto = produtosCardapio[Math.floor(Math.random() * produtosCardapio.length)];
-    const quantidade = Math.floor(Math.random() * 3) + 1;
+    const produto = produtosCardapio[i % produtosCardapio.length];
+    const quantidade = (i % 3) + 1;
 
     // Aplicar variação de preço (simular divergências)
     let precoUnitarioVendido = produto.preco;
-    const chance = Math.random();
+    const chance = (i % 100) / 100; // Determinístico baseado no índice
 
     if (chance < 0.1) {
       // 10% de chance de vender com desconto (divergência)
-      precoUnitarioVendido = produto.preco * (0.85 + Math.random() * 0.1);
+      const variation = 0.85 + ((i % 10) / 100); // 0.85 a 0.95
+      precoUnitarioVendido = produto.preco * variation;
     } else if (chance < 0.12) {
       // 2% de chance de vender abaixo do custo (prejuízo)
-      precoUnitarioVendido = produto.custo * (0.9 + Math.random() * 0.1);
+      const variation = 0.9 + ((i % 10) / 100); // 0.9 a 1.0
+      precoUnitarioVendido = produto.custo * variation;
     }
 
     const precoTotal = precoUnitarioVendido * quantidade;
@@ -109,10 +112,10 @@ const gerarVendas = (): VendaRegistrada[] => {
     else if (Math.abs(divergenciaPercent) > 5) statusAnalise = 'divergencia';
 
     vendas.push({
-      id: generateId(),
+      id: generateId(i),
       importacaoId: 'imp-001',
       vendaErpId: `ERP-JAN-${String(i + 1).padStart(4, '0')}`,
-      dataVenda: randomDate(new Date('2024-01-01'), new Date('2024-01-31')),
+      dataVenda: seededDate(new Date('2024-01-01'), new Date('2024-01-31'), i),
       produtoErpId: produto.sku,
       produtoNome: produto.nome,
       quantidade,
@@ -130,22 +133,24 @@ const gerarVendas = (): VendaRegistrada[] => {
       divergenciaValor: Number(divergenciaValor.toFixed(2)),
       divergenciaPercentual: Number(divergenciaPercent.toFixed(2)),
       statusAnalise,
-      vendedor: vendedores[Math.floor(Math.random() * vendedores.length)]
+      vendedor: vendedores[i % vendedores.length]
     });
   }
 
   // Fevereiro 2024
   for (let i = 0; i < 478; i++) {
-    const produto = produtosCardapio[Math.floor(Math.random() * produtosCardapio.length)];
-    const quantidade = Math.floor(Math.random() * 3) + 1;
+    const produto = produtosCardapio[i % produtosCardapio.length];
+    const quantidade = (i % 3) + 1;
 
     let precoUnitarioVendido = produto.preco;
-    const chance = Math.random();
+    const chance = (i % 100) / 100;
 
     if (chance < 0.08) {
-      precoUnitarioVendido = produto.preco * (0.87 + Math.random() * 0.1);
+      const variation = 0.87 + ((i % 10) / 100);
+      precoUnitarioVendido = produto.preco * variation;
     } else if (chance < 0.09) {
-      precoUnitarioVendido = produto.custo * (0.95 + Math.random() * 0.05);
+      const variation = 0.95 + ((i % 5) / 100);
+      precoUnitarioVendido = produto.custo * variation;
     }
 
     const precoTotal = precoUnitarioVendido * quantidade;
@@ -162,10 +167,10 @@ const gerarVendas = (): VendaRegistrada[] => {
     else if (Math.abs(divergenciaPercent) > 5) statusAnalise = 'divergencia';
 
     vendas.push({
-      id: generateId(),
+      id: generateId(i + 520),
       importacaoId: 'imp-002',
       vendaErpId: `ERP-FEV-${String(i + 1).padStart(4, '0')}`,
-      dataVenda: randomDate(new Date('2024-02-01'), new Date('2024-02-29')),
+      dataVenda: seededDate(new Date('2024-02-01'), new Date('2024-02-29'), i + 520),
       produtoErpId: produto.sku,
       produtoNome: produto.nome,
       quantidade,
@@ -183,22 +188,24 @@ const gerarVendas = (): VendaRegistrada[] => {
       divergenciaValor: Number(divergenciaValor.toFixed(2)),
       divergenciaPercentual: Number(divergenciaPercent.toFixed(2)),
       statusAnalise,
-      vendedor: vendedores[Math.floor(Math.random() * vendedores.length)]
+      vendedor: vendedores[i % vendedores.length]
     });
   }
 
   // Março 2024
   for (let i = 0; i < 562; i++) {
-    const produto = produtosCardapio[Math.floor(Math.random() * produtosCardapio.length)];
-    const quantidade = Math.floor(Math.random() * 3) + 1;
+    const produto = produtosCardapio[i % produtosCardapio.length];
+    const quantidade = (i % 3) + 1;
 
     let precoUnitarioVendido = produto.preco;
-    const chance = Math.random();
+    const chance = (i % 100) / 100;
 
     if (chance < 0.12) {
-      precoUnitarioVendido = produto.preco * (0.85 + Math.random() * 0.12);
+      const variation = 0.85 + ((i % 12) / 100);
+      precoUnitarioVendido = produto.preco * variation;
     } else if (chance < 0.15) {
-      precoUnitarioVendido = produto.custo * (0.92 + Math.random() * 0.08);
+      const variation = 0.92 + ((i % 8) / 100);
+      precoUnitarioVendido = produto.custo * variation;
     }
 
     const precoTotal = precoUnitarioVendido * quantidade;
@@ -215,10 +222,10 @@ const gerarVendas = (): VendaRegistrada[] => {
     else if (Math.abs(divergenciaPercent) > 5) statusAnalise = 'divergencia';
 
     vendas.push({
-      id: generateId(),
+      id: generateId(i + 998),
       importacaoId: 'imp-003',
       vendaErpId: `ERP-MAR-${String(i + 1).padStart(4, '0')}`,
-      dataVenda: randomDate(new Date('2024-03-01'), new Date('2024-03-31')),
+      dataVenda: seededDate(new Date('2024-03-01'), new Date('2024-03-31'), i + 998),
       produtoErpId: produto.sku,
       produtoNome: produto.nome,
       quantidade,
@@ -236,22 +243,24 @@ const gerarVendas = (): VendaRegistrada[] => {
       divergenciaValor: Number(divergenciaValor.toFixed(2)),
       divergenciaPercentual: Number(divergenciaPercent.toFixed(2)),
       statusAnalise,
-      vendedor: vendedores[Math.floor(Math.random() * vendedores.length)]
+      vendedor: vendedores[i % vendedores.length]
     });
   }
 
   // Adicionar algumas vendas sem match
   for (let i = 0; i < 15; i++) {
+    const quantidade = (i % 3) + 1;
+    const precoUnitario = 10 + (i % 20);
     vendas.push({
-      id: generateId(),
-      importacaoId: mockImportacoes[Math.floor(Math.random() * 3)].id,
+      id: generateId(i + 1560),
+      importacaoId: mockImportacoes[i % 3].id,
       vendaErpId: `ERP-UNK-${String(i + 1).padStart(4, '0')}`,
-      dataVenda: randomDate(new Date('2024-01-01'), new Date('2024-03-31')),
+      dataVenda: seededDate(new Date('2024-01-01'), new Date('2024-03-31'), i + 1560),
       produtoErpId: `PROD-DESCONHECIDO-${i + 1}`,
       produtoNome: `Produto Não Mapeado ${i + 1}`,
-      quantidade: Math.floor(Math.random() * 3) + 1,
-      precoUnitarioVendido: 10 + Math.random() * 20,
-      precoTotalVendido: (10 + Math.random() * 20) * (Math.floor(Math.random() * 3) + 1),
+      quantidade,
+      precoUnitarioVendido: precoUnitario,
+      precoTotalVendido: precoUnitario * quantidade,
       statusMatch: 'not_found',
       custoCalculado: 0,
       precoCardapio: 0,
@@ -262,7 +271,7 @@ const gerarVendas = (): VendaRegistrada[] => {
       divergenciaValor: 0,
       divergenciaPercentual: 0,
       statusAnalise: 'divergencia',
-      vendedor: vendedores[Math.floor(Math.random() * vendedores.length)]
+      vendedor: vendedores[i % vendedores.length]
     });
   }
 
