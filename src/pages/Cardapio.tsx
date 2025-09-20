@@ -66,8 +66,10 @@ import {
   Link,
   Building2
 } from "lucide-react";
+import { useAppContext } from "@/contexts/AppContext";
 
 const Cardapio = () => {
+  const { state } = useAppContext();
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -1259,7 +1261,8 @@ const Cardapio = () => {
                             {mostrarCustos && <TableHead className="w-[10%] text-center py-3 text-xs font-medium text-muted-foreground">Custo</TableHead>}
                             <TableHead className="w-[10%] text-center py-3 text-xs font-medium text-muted-foreground">Preço</TableHead>
                             <TableHead className="w-[10%] text-center py-3 text-xs font-medium text-muted-foreground">Margem</TableHead>
-                            <TableHead className="w-[15%] text-center py-3 text-xs font-medium text-muted-foreground">Simulação</TableHead>
+                            <TableHead className="w-[8%] text-center py-3 text-xs font-medium text-muted-foreground">Meta</TableHead>
+                            <TableHead className="w-[12%] text-center py-3 text-xs font-medium text-muted-foreground">Simulação</TableHead>
                             <TableHead className="w-[15%] text-center py-3 text-xs font-medium text-muted-foreground">Ações</TableHead>
                             <TableHead className="w-[5%] text-center py-3 text-xs font-medium text-muted-foreground">Status</TableHead>
                           </TableRow>
@@ -1359,8 +1362,26 @@ const Cardapio = () => {
                                 </TableCell>
                                 <TableCell className="text-center py-3">
                                   <span className="font-medium text-sm text-green-600">
-                                    {item.formatarPorcentagem(margem)}
+                                    {formatarPorcentagem(item.margem)}
                                   </span>
+                                </TableCell>
+                                <TableCell className="text-center py-3">
+                                  {(() => {
+                                    const metaMargem = state.configuracao?.markupPadrao || 30;
+                                    const atingiuMeta = item.margem >= metaMargem;
+                                    return (
+                                      <div className="flex items-center justify-center gap-1">
+                                        {atingiuMeta ? (
+                                          <Check className="w-4 h-4 text-green-600" />
+                                        ) : (
+                                          <X className="w-4 h-4 text-red-600" />
+                                        )}
+                                        <span className={`text-xs font-medium ${atingiuMeta ? 'text-green-600' : 'text-red-600'}`}>
+                                          {atingiuMeta ? 'OK' : 'Baixa'}
+                                        </span>
+                                      </div>
+                                    );
+                                  })()}
                                 </TableCell>
                                 <TableCell className="text-center py-3">
                                   <div className="flex items-center gap-2 justify-center">
@@ -1483,7 +1504,8 @@ const Cardapio = () => {
                         {mostrarCustos && <TableHead className="w-[10%] text-center py-3 text-xs font-medium text-muted-foreground">Custo</TableHead>}
                         <TableHead className="w-[10%] text-center py-3 text-xs font-medium text-muted-foreground">Preço</TableHead>
                         <TableHead className="w-[10%] text-center py-3 text-xs font-medium text-muted-foreground">Margem</TableHead>
-                        <TableHead className="w-[15%] text-center py-3 text-xs font-medium text-muted-foreground">Simulação</TableHead>
+                        <TableHead className="w-[8%] text-center py-3 text-xs font-medium text-muted-foreground">Meta</TableHead>
+                        <TableHead className="w-[12%] text-center py-3 text-xs font-medium text-muted-foreground">Simulação</TableHead>
                         <TableHead className="w-[15%] text-center py-3 text-xs font-medium text-muted-foreground">Ações</TableHead>
                         <TableHead className="w-[15%] text-center py-3 text-xs font-medium text-muted-foreground">Status</TableHead>
                       </TableRow>
@@ -1572,6 +1594,24 @@ const Cardapio = () => {
                             <span className="font-medium text-sm text-green-600">
                               {formatarPorcentagem(item.margem)}
                             </span>
+                          </TableCell>
+                          <TableCell className="text-center py-3">
+                            {(() => {
+                              const metaMargem = state.configuracao?.markupPadrao || 30;
+                              const atingiuMeta = item.margem >= metaMargem;
+                              return (
+                                <div className="flex items-center justify-center gap-1">
+                                  {atingiuMeta ? (
+                                    <Check className="w-4 h-4 text-green-600" />
+                                  ) : (
+                                    <X className="w-4 h-4 text-red-600" />
+                                  )}
+                                  <span className={`text-xs font-medium ${atingiuMeta ? 'text-green-600' : 'text-red-600'}`}>
+                                    {atingiuMeta ? 'OK' : 'Baixa'}
+                                  </span>
+                                </div>
+                              );
+                            })()}
                           </TableCell>
                           <TableCell className="text-center py-3">
                             <div className="flex items-center gap-2 justify-center">

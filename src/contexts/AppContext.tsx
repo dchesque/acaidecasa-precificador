@@ -13,6 +13,7 @@ import {
   ItemCardapio,
   Alerta
 } from '@/types/database';
+import { UserProfile } from '@/types/user';
 import {
   mockCategorias,
   mockUnidadesMedida,
@@ -22,7 +23,8 @@ import {
   mockReceitas,
   mockCoposBase,
   mockCombinados,
-  mockCardapio
+  mockCardapio,
+  mockUserProfile
 } from '@/data/mockData';
 
 // App State Interface
@@ -31,6 +33,8 @@ interface AppState {
   user: User | null;
   session: Session | null;
   authLoading: boolean;
+  // User profile
+  userProfile: UserProfile | null;
   // App data
   configuracao: Configuracao | null;
   categorias: Categoria[];
@@ -54,6 +58,9 @@ type AppAction =
   | { type: 'SET_AUTH_LOADING'; payload: boolean }
   | { type: 'SET_USER'; payload: User | null }
   | { type: 'SET_SESSION'; payload: Session | null }
+  | { type: 'SET_USER_PROFILE'; payload: UserProfile | null }
+  | { type: 'UPDATE_USER_PROFILE'; payload: Partial<UserProfile> }
+  | { type: 'UPDATE_USER_AVATAR'; payload: string }
   | { type: 'SET_CONFIGURACAO'; payload: Configuracao }
   | { type: 'SET_CATEGORIAS'; payload: Categoria[] }
   | { type: 'ADD_CATEGORIA'; payload: Categoria }
@@ -101,6 +108,8 @@ const initialState: AppState = {
   user: null,
   session: null,
   authLoading: true,
+  // User profile
+  userProfile: null,
   // App data
   configuracao: null,
   categorias: mockCategorias,
@@ -134,7 +143,30 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
 
     case 'SET_SESSION':
       return { ...state, session: action.payload };
-    
+
+    case 'SET_USER_PROFILE':
+      return { ...state, userProfile: action.payload };
+
+    case 'UPDATE_USER_PROFILE':
+      return {
+        ...state,
+        userProfile: state.userProfile ? {
+          ...state.userProfile,
+          ...action.payload,
+          updatedAt: new Date()
+        } : null
+      };
+
+    case 'UPDATE_USER_AVATAR':
+      return {
+        ...state,
+        userProfile: state.userProfile ? {
+          ...state.userProfile,
+          avatar: action.payload,
+          updatedAt: new Date()
+        } : null
+      };
+
     case 'SET_CONFIGURACAO':
       return { ...state, configuracao: action.payload };
     
@@ -349,6 +381,9 @@ interface AppContextValue {
   authLoading: boolean;
   isAuthenticated: boolean;
 
+  // User profile getters
+  userProfile: UserProfile | null;
+
   // Data getters
   configuracao: Configuracao | null;
   categorias: Categoria[];
@@ -366,6 +401,13 @@ interface AppContextValue {
   setUser: (user: User | null) => void;
   setSession: (session: Session | null) => void;
   setAuthLoading: (loading: boolean) => void;
+
+  // User profile actions
+  setUserProfile: (profile: UserProfile | null) => void;
+  updateUserProfile: (updates: Partial<UserProfile>) => void;
+  updateUserAvatar: (avatar: string) => void;
+  getUserProfile: () => UserProfile | null;
+  saveUserProfileToStorage: (profile: UserProfile) => void;
 
   // Action functions
   addCategoria: (categoria: Categoria) => void;
@@ -400,10 +442,68 @@ const AppContext = createContext<AppContextValue | null>(null);
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
+  // Load user profile from localStorage on mount
+  useEffect(() => {
+    const savedProfile = localStorage.getItem('userProfile');
+    if (savedProfile) {
+      try {
+        const profile = JSON.parse(savedProfile);
+        dispatch({ type: 'SET_USER_PROFILE', payload: { ...profile, updatedAt: new Date(profile.updatedAt) } });
+      } catch (error) {
+        console.error('Error loading user profile from localStorage:', error);
+      }
+    } else {
+      // Load mock data if no profile exists
+      dispatch({ type: 'SET_USER_PROFILE', payload: mockUserProfile });
+    }
+  }, []);
+
   // Auth action functions
   const setUser = (user: User | null) => dispatch({ type: 'SET_USER', payload: user });
   const setSession = (session: Session | null) => dispatch({ type: 'SET_SESSION', payload: session });
   const setAuthLoading = (loading: boolean) => dispatch({ type: 'SET_AUTH_LOADING', payload: loading });
+
+  // User profile action functions
+  const setUserProfile = (profile: UserProfile | null) => {
+    dispatch({ type: 'SET_USER_PROFILE', payload: profile });
+    if (profile) {
+      saveUserProfileToStorage(profile);
+    }
+  };
+
+  const updateUserProfile = (updates: Partial<UserProfile>) => {
+    dispatch({ type: 'UPDATE_USER_PROFILE', payload: updates });
+    // Save to localStorage after update
+    setTimeout(() => {
+      if (state.userProfile) {
+        const updatedProfile = { ...state.userProfile, ...updates, updatedAt: new Date() };
+        saveUserProfileToStorage(updatedProfile);
+      }
+    }, 0);
+  };
+
+  const updateUserAvatar = (avatar: string) => {
+    dispatch({ type: 'UPDATE_USER_AVATAR', payload: avatar });
+    // Save to localStorage after update
+    setTimeout(() => {
+      if (state.userProfile) {
+        const updatedProfile = { ...state.userProfile, avatar, updatedAt: new Date() };
+        saveUserProfileToStorage(updatedProfile);
+      }
+    }, 0);
+  };
+
+  const getUserProfile = (): UserProfile | null => {
+    return state.userProfile;
+  };
+
+  const saveUserProfileToStorage = (profile: UserProfile) => {
+    try {
+      localStorage.setItem('userProfile', JSON.stringify(profile));
+    } catch (error) {
+      console.error('Error saving user profile to localStorage:', error);
+    }
+  };
 
   // Action functions
   const addCategoria = (categoria: Categoria) => dispatch({ type: 'ADD_CATEGORIA', payload: categoria });
@@ -463,6 +563,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     authLoading: state.authLoading,
     isAuthenticated: !!state.user,
 
+    // User profile getters
+    userProfile: state.userProfile,
+
     // Data getters
     configuracao: state.configuracao,
     categorias: state.categorias,
@@ -480,6 +583,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setUser,
     setSession,
     setAuthLoading,
+
+    // User profile actions
+    setUserProfile,
+    updateUserProfile,
+    updateUserAvatar,
+    getUserProfile,
+    saveUserProfileToStorage,
 
     // Action functions
     addCategoria,

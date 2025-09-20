@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAppContext } from "@/contexts/AppContext";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NavItem } from "./NavItem";
 import {
   DropdownMenu,
@@ -32,7 +34,19 @@ export const Navigation = () => {
   const pathname = usePathname();
   const router = useRouter();
   const isMobile = useIsMobile();
+  const { userProfile } = useAppContext();
   const [isCollapsed, setIsCollapsed] = useState(isMobile);
+
+  // Get user initials for avatar fallback
+  const getUserInitials = (nome: string) => {
+    if (!nome) return "AC";
+    return nome
+      .split(' ')
+      .map(part => part.charAt(0))
+      .join('')
+      .substring(0, 2)
+      .toUpperCase();
+  };
 
   useEffect(() => {
     setIsCollapsed(isMobile);
@@ -130,12 +144,21 @@ export const Navigation = () => {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <div className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-slate-800 cursor-pointer transition-colors group">
-              <UserCircle className="h-8 w-8 text-gray-400" />
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={userProfile?.avatar || undefined} />
+                <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-sm font-semibold">
+                  {getUserInitials(userProfile?.nome || "")}
+                </AvatarFallback>
+              </Avatar>
               {!isCollapsed && (
                 <>
                   <div className="flex-1">
-                    <p className="text-sm text-white font-medium">Admin</p>
-                    <p className="text-xs text-gray-400">admin@acaidecasa.com</p>
+                    <p className="text-sm text-white font-medium">
+                      {userProfile?.nome || "Usuário"}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {userProfile?.email || "usuario@acaidecasa.com"}
+                    </p>
                   </div>
                   <ChevronUp className="h-4 w-4 text-gray-400 group-hover:text-gray-200 transition-colors" />
                 </>

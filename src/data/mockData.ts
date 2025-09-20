@@ -14,6 +14,23 @@ import {
   CombinadoComplemento,
   ItemCardapio
 } from '@/types/database';
+import { UserProfile } from '@/types/user';
+
+// User Profile
+export const mockUserProfile: UserProfile = {
+  id: '1',
+  nome: 'João Silva',
+  email: 'joao@acaidecasa.com',
+  telefone: '(11) 99999-9999',
+  avatar: null,
+  empresa: {
+    nome: 'Açaí do João',
+    nomeFantasia: 'João Açaí',
+    telefone: '(11) 3333-3333',
+    endereco: 'Rua das Palmeiras, 100 - Centro - São Paulo/SP'
+  },
+  updatedAt: new Date()
+};
 
 // Configuration
 export const mockConfiguracao: Configuracao = {

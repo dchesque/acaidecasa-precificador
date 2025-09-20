@@ -202,23 +202,29 @@ export const useCalculations = () => {
       }
     });
 
-    const alertasPersistentes = state.alertas.filter(
+    // Get current alerts to preserve read status
+    const alertasAtuais = state.alertas;
+    const alertasPersistentes = alertasAtuais.filter(
       (alerta) => alerta.tipo !== 'PREJUIZO' && alerta.tipo !== 'MARGEM_BAIXA'
     );
 
     const alertasAtualizados = novosAlertas.map((alerta) => {
-      const existente = state.alertas.find((item) => item.id === alerta.id);
+      const existente = alertasAtuais.find((item) => item.id === alerta.id);
       if (existente) {
         return { ...alerta, lido: existente.lido };
       }
       return alerta;
     });
 
-    dispatch({
-      type: 'SET_ALERTAS',
-      payload: [...alertasPersistentes, ...alertasAtualizados],
-    });
-  }, [state.coposBase, state.combinados, state.alertas, dispatch]);
+    // Only update if alerts actually changed
+    const novosAlertasCompletos = [...alertasPersistentes, ...alertasAtualizados];
+    if (JSON.stringify(novosAlertasCompletos) !== JSON.stringify(alertasAtuais)) {
+      dispatch({
+        type: 'SET_ALERTAS',
+        payload: novosAlertasCompletos,
+      });
+    }
+  }, [state.coposBase, state.combinados, dispatch]);
 
   return {
     recalcularInsumo,

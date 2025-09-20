@@ -47,12 +47,12 @@ const Dashboard = () => {
     dispatch({ type: 'SET_CARDAPIO', payload: mockCardapio });
   }, [dispatch]);
 
-  // Check for alerts when data changes
+  // Check for alerts when data changes (without dependency on verificarAlertas to avoid infinite loop)
   useEffect(() => {
     if (state.coposBase.length > 0 || state.combinados.length > 0) {
       verificarAlertas();
     }
-  }, [state.coposBase, state.combinados, verificarAlertas]);
+  }, [state.coposBase, state.combinados]); // Removed verificarAlertas from deps to break circular dependency
 
   const stats = {
     totalItens: state.cardapio.filter(item => item.ativo).length,
