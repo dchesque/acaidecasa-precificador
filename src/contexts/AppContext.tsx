@@ -15,6 +15,13 @@ import {
 } from '@/types/database';
 import { UserProfile } from '@/types/user';
 import {
+  ImportacaoVendas,
+  VendaRegistrada,
+  VendasSystemInfo,
+  FiltrosVendas,
+  DashboardVendas
+} from '@/types/analise-vendas';
+import {
   mockCategorias,
   mockUnidadesMedida,
   mockFornecedores,
@@ -26,6 +33,12 @@ import {
   mockCardapio,
   mockUserProfile
 } from '@/data/mockData';
+import {
+  mockImportacoes,
+  mockVendasRegistradas,
+  mockVendasSystemInfo,
+  mockDashboardVendas
+} from '@/data/mockVendasData';
 
 // App State Interface
 interface AppState {
@@ -47,6 +60,14 @@ interface AppState {
   combinados: Combinado[];
   cardapio: ItemCardapio[];
   alertas: Alerta[];
+  // Vendas state
+  vendasAnalise: {
+    importacoes: ImportacaoVendas[];
+    vendasRegistradas: VendaRegistrada[];
+    systemInfo: VendasSystemInfo;
+    filtros: FiltrosVendas;
+    dashboardData?: DashboardVendas;
+  };
   loading: boolean;
   error: string | null;
 }
@@ -100,7 +121,14 @@ type AppAction =
   | { type: 'DELETE_ITEM_CARDAPIO'; payload: string }
   | { type: 'SET_ALERTAS'; payload: Alerta[] }
   | { type: 'ADD_ALERTA'; payload: Alerta }
-  | { type: 'MARK_ALERTA_READ'; payload: string };
+  | { type: 'MARK_ALERTA_READ'; payload: string }
+  // Vendas actions
+  | { type: 'INIT_IMPORTACAO'; payload: ImportacaoVendas }
+  | { type: 'ADD_VENDAS_REGISTRADAS'; payload: VendaRegistrada[] }
+  | { type: 'UPDATE_SYSTEM_INFO'; payload: VendasSystemInfo }
+  | { type: 'SET_VENDAS_FILTROS'; payload: FiltrosVendas }
+  | { type: 'RESOLVE_PRODUTO_MATCH'; payload: { vendaId: string; itemCardapioId: string } }
+  | { type: 'UPDATE_DASHBOARD_VENDAS'; payload: DashboardVendas };
 
 // Initial State
 const initialState: AppState = {
@@ -122,6 +150,25 @@ const initialState: AppState = {
   combinados: mockCombinados,
   cardapio: mockCardapio,
   alertas: [],
+  // Vendas initial state
+  vendasAnalise: {
+    importacoes: mockImportacoes,
+    vendasRegistradas: mockVendasRegistradas,
+    systemInfo: mockVendasSystemInfo,
+    filtros: {
+      periodo: {
+        inicio: new Date('2024-01-01'),
+        fim: new Date('2024-03-31')
+      },
+      produto: '',
+      statusAnalise: 'todos',
+      statusMatch: 'todos',
+      vendedor: '',
+      orderBy: 'data',
+      orderDirection: 'desc'
+    },
+    dashboardData: mockDashboardVendas
+  },
   loading: false,
   error: null,
 };
@@ -363,7 +410,70 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
           alerta.id === action.payload ? { ...alerta, lido: true } : alerta
         ),
       };
-    
+
+    // Vendas cases
+    case 'INIT_IMPORTACAO':
+      return {
+        ...state,
+        vendasAnalise: {
+          ...state.vendasAnalise,
+          importacoes: [...state.vendasAnalise.importacoes, action.payload]
+        }
+      };
+
+    case 'ADD_VENDAS_REGISTRADAS':
+      return {
+        ...state,
+        vendasAnalise: {
+          ...state.vendasAnalise,
+          vendasRegistradas: [...state.vendasAnalise.vendasRegistradas, ...action.payload]
+        }
+      };
+
+    case 'UPDATE_SYSTEM_INFO':
+      return {
+        ...state,
+        vendasAnalise: {
+          ...state.vendasAnalise,
+          systemInfo: action.payload
+        }
+      };
+
+    case 'SET_VENDAS_FILTROS':
+      return {
+        ...state,
+        vendasAnalise: {
+          ...state.vendasAnalise,
+          filtros: action.payload
+        }
+      };
+
+    case 'RESOLVE_PRODUTO_MATCH':
+      return {
+        ...state,
+        vendasAnalise: {
+          ...state.vendasAnalise,
+          vendasRegistradas: state.vendasAnalise.vendasRegistradas.map(venda =>
+            venda.id === action.payload.vendaId
+              ? {
+                  ...venda,
+                  itemCardapioId: action.payload.itemCardapioId,
+                  statusMatch: 'manual' as const
+                }
+              : venda
+          )
+        }
+      };
+
+    case 'UPDATE_DASHBOARD_VENDAS':
+      return {
+        ...state,
+        vendasAnalise: {
+          ...state.vendasAnalise,
+          dashboardData: action.payload
+        }
+      };
+
     default:
       return state;
   }
@@ -396,6 +506,15 @@ interface AppContextValue {
   combinados: Combinado[];
   cardapio: ItemCardapio[];
   alertas: Alerta[];
+
+  // Vendas getters
+  vendasAnalise: {
+    importacoes: ImportacaoVendas[];
+    vendasRegistradas: VendaRegistrada[];
+    systemInfo: VendasSystemInfo;
+    filtros: FiltrosVendas;
+    dashboardData?: DashboardVendas;
+  };
 
   // Auth actions
   setUser: (user: User | null) => void;
@@ -431,6 +550,14 @@ interface AppContextValue {
   addItemCardapio: (item: ItemCardapio) => void;
   updateItemCardapio: (item: ItemCardapio) => void;
   deleteItemCardapio: (id: string) => void;
+
+  // Vendas actions
+  initImportacao: (importacao: ImportacaoVendas) => void;
+  addVendasRegistradas: (vendas: VendaRegistrada[]) => void;
+  updateSystemInfo: (info: VendasSystemInfo) => void;
+  setVendasFiltros: (filtros: FiltrosVendas) => void;
+  resolveProdutoMatch: (vendaId: string, itemCardapioId: string) => void;
+  updateDashboardVendas: (data: DashboardVendas) => void;
 
   // Price helper functions
   getPrecoVendaItem: (tipo: 'INSUMO' | 'RECEITA' | 'COPO_BASE', itemId: string) => number | null;
@@ -534,6 +661,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const updateItemCardapio = (item: ItemCardapio) => dispatch({ type: 'UPDATE_ITEM_CARDAPIO', payload: item });
   const deleteItemCardapio = (id: string) => dispatch({ type: 'DELETE_ITEM_CARDAPIO', payload: id });
 
+  // Vendas action functions
+  const initImportacao = (importacao: ImportacaoVendas) => dispatch({ type: 'INIT_IMPORTACAO', payload: importacao });
+  const addVendasRegistradas = (vendas: VendaRegistrada[]) => dispatch({ type: 'ADD_VENDAS_REGISTRADAS', payload: vendas });
+  const updateSystemInfo = (info: VendasSystemInfo) => dispatch({ type: 'UPDATE_SYSTEM_INFO', payload: info });
+  const setVendasFiltros = (filtros: FiltrosVendas) => dispatch({ type: 'SET_VENDAS_FILTROS', payload: filtros });
+  const resolveProdutoMatch = (vendaId: string, itemCardapioId: string) => dispatch({ type: 'RESOLVE_PRODUTO_MATCH', payload: { vendaId, itemCardapioId } });
+  const updateDashboardVendas = (data: DashboardVendas) => dispatch({ type: 'UPDATE_DASHBOARD_VENDAS', payload: data });
+
   // Price helper functions
   const getPrecoVendaItem = (tipo: 'INSUMO' | 'RECEITA' | 'COPO_BASE', itemId: string): number | null => {
     const itemCardapio = state.cardapio.find(item => {
@@ -579,6 +714,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     cardapio: state.cardapio,
     alertas: state.alertas,
 
+    // Vendas getters
+    vendasAnalise: state.vendasAnalise,
+
     // Auth actions
     setUser,
     setSession,
@@ -613,6 +751,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     addItemCardapio,
     updateItemCardapio,
     deleteItemCardapio,
+
+    // Vendas actions
+    initImportacao,
+    addVendasRegistradas,
+    updateSystemInfo,
+    setVendasFiltros,
+    resolveProdutoMatch,
+    updateDashboardVendas,
 
     // Price helper functions
     getPrecoVendaItem,

@@ -27,7 +27,8 @@ import {
   User,
   LogOut,
   ChevronUp,
-  GlassWater
+  GlassWater,
+  TrendingUp
 } from "lucide-react";
 
 export const Navigation = () => {
@@ -136,6 +137,14 @@ export const Navigation = () => {
           label="Fornecedores"
           isCollapsed={isCollapsed}
           color="text-indigo-400"
+        />
+
+        <NavItem
+          href="/analise-vendas"
+          icon={<TrendingUp className="h-5 w-5" />}
+          label="Análise de Vendas"
+          isCollapsed={isCollapsed}
+          color="text-green-500"
         />
       </nav>
 
