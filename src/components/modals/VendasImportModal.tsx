@@ -19,9 +19,12 @@ import {
   DollarSign
 } from 'lucide-react';
 import { ResumoImportacao, VendaRegistrada } from '@/types/analise-vendas';
+import { PeriodoImportacao } from '@/types/periodo';
 import { formatarMoeda, formatarData, validarArquivoVendas } from '@/utils/vendasCalculations';
 import { analiseVendasService } from '@/services/analiseVendasService';
 import { useAppContext } from '@/contexts/AppContext';
+import { PeriodSelector } from '@/components/common/PeriodSelector';
+import { dataEstaNoPeriodo, formatarPeriodoDisplay } from '@/utils/periodoUtils';
 import { toast } from 'sonner';
 
 interface VendasImportModalProps {
@@ -30,7 +33,7 @@ interface VendasImportModalProps {
   onImportComplete: (vendas: VendaRegistrada[], resumo: ResumoImportacao) => void;
 }
 
-type ImportStep = 'upload' | 'processing' | 'preview' | 'importing' | 'complete';
+type ImportStep = 'period' | 'upload' | 'processing' | 'preview' | 'importing' | 'complete';
 
 export const VendasImportModal: React.FC<VendasImportModalProps> = ({
   isOpen,
@@ -38,14 +41,24 @@ export const VendasImportModal: React.FC<VendasImportModalProps> = ({
   onImportComplete
 }) => {
   const { cardapio, vendasAnalise } = useAppContext();
-  const [step, setStep] = useState<ImportStep>('upload');
+  const [step, setStep] = useState<ImportStep>('period');
+  const [periodoSelecionado, setPeriodoSelecionado] = useState<PeriodoImportacao | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [resumo, setResumo] = useState<ResumoImportacao | null>(null);
   const [vendas, setVendas] = useState<VendaRegistrada[]>([]);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [validacaoPeriodo, setValidacaoPeriodo] = useState<{
+    datasForaPeriodo: number;
+    alertas: string[];
+  } | null>(null);
 
   const processarArquivo = useCallback(async (arquivo: File) => {
+    if (!periodoSelecionado) {
+      setError('Selecione um período antes de processar o arquivo');
+      return;
+    }
+
     try {
       setStep('processing');
       setProgress(20);
@@ -60,29 +73,53 @@ export const VendasImportModal: React.FC<VendasImportModalProps> = ({
       clearInterval(intervalId);
       setProgress(100);
 
+      // Validar se as vendas estão dentro do período selecionado
+      const vendasForaPeriodo = vendas.filter(venda =>
+        !dataEstaNoPeriodo(venda.dataVenda, periodoSelecionado)
+      );
+
+      const alertas: string[] = [];
+      if (vendasForaPeriodo.length > 0) {
+        alertas.push(
+          `${vendasForaPeriodo.length} vendas estão fora do período selecionado (${formatarPeriodoDisplay(periodoSelecionado)})`
+        );
+      }
+
+      setValidacaoPeriodo({
+        datasForaPeriodo: vendasForaPeriodo.length,
+        alertas
+      });
+
       const vendasExistentes = vendasAnalise.vendasRegistradas || [];
       const vendasJaRegistradas = vendas.filter(venda =>
         vendasExistentes.some(existente =>
-          existente.data === venda.data &&
-          existente.produto === venda.produto &&
-          existente.valor === venda.valor
+          existente.dataVenda.getTime() === venda.dataVenda.getTime() &&
+          existente.produtoNome === venda.produtoNome &&
+          existente.precoTotalVendido === venda.precoTotalVendido
         )
       );
 
       const vendasNovas = vendas.filter(venda =>
         !vendasExistentes.some(existente =>
-          existente.data === venda.data &&
-          existente.produto === venda.produto &&
-          existente.valor === venda.valor
+          existente.dataVenda.getTime() === venda.dataVenda.getTime() &&
+          existente.produtoNome === venda.produtoNome &&
+          existente.precoTotalVendido === venda.precoTotalVendido
         )
       );
 
       setVendas(vendasNovas);
       setResumo({
+        arquivo: arquivo.name,
+        periodo: {
+          inicio: periodoSelecionado.dataInicio,
+          fim: periodoSelecionado.dataFim
+        },
+        periodoImportacao: periodoSelecionado,
         totalRegistros: vendas.length,
         registrosNovos: vendasNovas.length,
         registrosDuplicados: vendasJaRegistradas.length,
-        arquivo: arquivo.name
+        produtosSemMatch: [],
+        valorTotalNovo: vendasNovas.reduce((acc, venda) => acc + venda.precoTotalVendido, 0)
       });
       setStep('preview');
     } catch (error) {
@@ -90,7 +127,7 @@ export const VendasImportModal: React.FC<VendasImportModalProps> = ({
       setError(error instanceof Error ? error.message : 'Erro ao processar arquivo');
       setStep('upload');
     }
-  }, [cardapio, vendasAnalise.vendasRegistradas]);
+  }, [cardapio, vendasAnalise.vendasRegistradas, periodoSelecionado]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const arquivo = acceptedFiles[0];
@@ -148,21 +185,107 @@ export const VendasImportModal: React.FC<VendasImportModalProps> = ({
     }
   };
 
+  const handlePeriodSelect = (periodo: PeriodoImportacao) => {
+    setPeriodoSelecionado(periodo);
+  };
+
+  const handlePeriodConfirm = () => {
+    if (periodoSelecionado) {
+      setStep('upload');
+    }
+  };
+
+  const handleBackToPeriod = () => {
+    setStep('period');
+    setFile(null);
+    setError(null);
+    setValidacaoPeriodo(null);
+  };
+
   const handleClose = () => {
-    setStep('upload');
+    setStep('period');
+    setPeriodoSelecionado(null);
     setFile(null);
     setResumo(null);
     setVendas([]);
     setProgress(0);
     setError(null);
+    setValidacaoPeriodo(null);
     onClose();
   };
 
   const renderContent = () => {
     switch (step) {
+      case 'period':
+        return (
+          <div className="space-y-4">
+            <Alert>
+              <Calendar className="h-4 w-4" />
+              <AlertDescription>
+                Selecione o período das vendas que você deseja importar.
+                Recomendamos usar períodos mensais completos para melhor análise.
+              </AlertDescription>
+            </Alert>
+
+            <PeriodSelector
+              tipo="vendas"
+              onPeriodSelect={handlePeriodSelect}
+              periodoAtual={periodoSelecionado || undefined}
+              showAdvancedMode={true}
+            />
+
+            {periodoSelecionado && (
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <h4 className="font-medium text-green-900 mb-2">Período Selecionado</h4>
+                <p className="text-sm text-green-700">
+                  {formatarPeriodoDisplay(periodoSelecionado)}
+                </p>
+                <p className="text-xs text-green-600 mt-1">
+                  {periodoSelecionado.dataInicio.toLocaleDateString('pt-BR')} - {periodoSelecionado.dataFim.toLocaleDateString('pt-BR')}
+                  ({periodoSelecionado.diasTotais} dias)
+                </p>
+              </div>
+            )}
+
+            <div className="flex justify-end space-x-3">
+              <Button variant="outline" onClick={handleClose}>
+                Cancelar
+              </Button>
+              <Button
+                onClick={handlePeriodConfirm}
+                disabled={!periodoSelecionado}
+              >
+                Continuar
+              </Button>
+            </div>
+          </div>
+        );
+
       case 'upload':
         return (
           <div className="space-y-4">
+            {/* Mostrar período selecionado */}
+            {periodoSelecionado && (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-blue-600" />
+                    <div>
+                      <p className="text-sm font-medium text-blue-900">
+                        Período: {formatarPeriodoDisplay(periodoSelecionado)}
+                      </p>
+                      <p className="text-xs text-blue-700">
+                        {periodoSelecionado.dataInicio.toLocaleDateString('pt-BR')} - {periodoSelecionado.dataFim.toLocaleDateString('pt-BR')}
+                      </p>
+                    </div>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={handleBackToPeriod}>
+                    Alterar
+                  </Button>
+                </div>
+              </div>
+            )}
+
             <div
               {...getRootProps()}
               className={`
@@ -200,10 +323,14 @@ export const VendasImportModal: React.FC<VendasImportModalProps> = ({
                 <li>• Colunas opcionais: vendedor, produto_id (SKU)</li>
                 <li>• Datas no formato DD/MM/AAAA ou AAAA-MM-DD</li>
                 <li>• Valores decimais com ponto ou vírgula</li>
+                <li>• <strong>Certifique-se que as datas estão no período selecionado</strong></li>
               </ul>
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={handleBackToPeriod}>
+                ← Voltar
+              </Button>
               <Button variant="outline" size="sm">
                 <Download className="h-4 w-4 mr-2" />
                 Baixar modelo
@@ -242,6 +369,21 @@ export const VendasImportModal: React.FC<VendasImportModalProps> = ({
       case 'preview':
         return resumo ? (
           <div className="space-y-6">
+            {/* Validações de Período */}
+            {validacaoPeriodo && validacaoPeriodo.alertas.length > 0 && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <div className="space-y-1">
+                    <strong>Atenção:</strong>
+                    {validacaoPeriodo.alertas.map((alerta, index) => (
+                      <p key={index} className="text-sm">• {alerta}</p>
+                    ))}
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
+
             <div className="bg-gray-50 rounded-lg p-4">
               <h3 className="text-sm font-semibold text-gray-900 mb-3">
                 Resumo da Importação
@@ -368,6 +510,25 @@ export const VendasImportModal: React.FC<VendasImportModalProps> = ({
     }
   };
 
+  const getModalTitle = () => {
+    switch (step) {
+      case 'period':
+        return 'Importar Vendas - Seleção de Período';
+      case 'upload':
+        return 'Importar Vendas - Upload do Arquivo';
+      case 'processing':
+        return 'Importar Vendas - Processando';
+      case 'preview':
+        return 'Importar Vendas - Preview';
+      case 'importing':
+        return 'Importar Vendas - Importando';
+      case 'complete':
+        return 'Importar Vendas - Concluído';
+      default:
+        return 'Importar Vendas';
+    }
+  };
+
   return (
     <BaseModal
       open={isOpen}
@@ -376,7 +537,7 @@ export const VendasImportModal: React.FC<VendasImportModalProps> = ({
           handleClose();
         }
       }}
-      title="Importar Vendas"
+      title={getModalTitle()}
       size="lg"
     >
       {renderContent()}

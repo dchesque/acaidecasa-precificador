@@ -18,7 +18,8 @@ import {
   BarChart3,
   Table as TableIcon,
   Calculator,
-  ExternalLink
+  ExternalLink,
+  Calendar
 } from 'lucide-react';
 import { useAnaliseVendas } from '@/hooks/useAnaliseVendas';
 import { VendasSystemStatus } from '@/components/analise-vendas/VendasSystemStatus';
@@ -28,8 +29,11 @@ import { VendasFilters } from '@/components/analise-vendas/VendasFilters';
 import { VendasImportModal } from '@/components/modals/VendasImportModal';
 import { VendasDetailModal } from '@/components/modals/VendasDetailModal';
 import { VendaRegistrada, ResumoImportacao } from '@/types/analise-vendas';
+import { PeriodoImportacao } from '@/types/periodo';
+import { PeriodConsistencyAlert, SimplePeriodAlert } from '@/components/common/PeriodConsistencyAlert';
 import { useAppContext } from '@/contexts/AppContext';
 import { formatarMoeda } from '@/utils/calculosFinanceiros';
+import { formatarPeriodoDisplay, obterStatusPeriodo, sugerirMelhorPeriodo } from '@/utils/periodoUtils';
 import { toast } from 'sonner';
 
 export default function AnaliseVendas() {
@@ -50,41 +54,73 @@ export default function AnaliseVendas() {
     limparFiltros
   } = useAnaliseVendas();
 
-  const { custosOperacionais } = useAppContext();
+  const {
+    custosOperacionais,
+    periodoAtualGestao,
+    statusPeriodos,
+    setPeriodoGestao,
+    updateStatusPeriodo
+  } = useAppContext();
   const router = useRouter();
 
   const [modalImportacao, setModalImportacao] = useState(false);
   const [modalMatch, setModalMatch] = useState(false);
   const [modalDetalhes, setModalDetalhes] = useState(false);
   const [vendaSelecionada, setVendaSelecionada] = useState<VendaRegistrada | null>(null);
+  const [periodoVendas, setPeriodoVendas] = useState<PeriodoImportacao | null>(periodoAtualGestao);
 
-  // Verificar se há custos operacionais para o período atual
-  const verificarCustosOperacionaisPeriodo = () => {
-    if (!filtros.periodo.inicio || !filtros.periodo.fim) return [];
-
-    const mesAtual = filtros.periodo.inicio.getMonth() + 1;
-    const anoAtual = filtros.periodo.inicio.getFullYear();
-    const mesFim = filtros.periodo.fim.getMonth() + 1;
-    const anoFim = filtros.periodo.fim.getFullYear();
-
-    let custosPeriodo = [];
-    for (let ano = anoAtual; ano <= anoFim; ano++) {
-      const mesInicioAno = ano === anoAtual ? mesAtual : 1;
-      const mesFimAno = ano === anoFim ? mesFim : 12;
-
-      for (let mes = mesInicioAno; mes <= mesFimAno; mes++) {
-        const custo = custosOperacionais.find(c => c.mes === mes && c.ano === ano);
-        if (custo) {
-          custosPeriodo.push(custo);
-        }
-      }
+  // Obter período de referência baseado nos filtros atuais ou sugerir melhor período
+  const getPeriodoReferencia = (): PeriodoImportacao | null => {
+    if (periodoVendas) {
+      return periodoVendas;
     }
 
-    return custosPeriodo;
+    if (vendasRegistradas.length > 0) {
+      return sugerirMelhorPeriodo(vendasRegistradas, custosOperacionais);
+    }
+
+    return null;
   };
 
-  const custosEncontrados = verificarCustosOperacionaisPeriodo();
-  const totalCustosOperacionais = custosEncontrados.reduce((total, custo) => total + custo.valor, 0);
+  // Obter status do período atual
+  const getStatusPeriodoAtual = () => {
+    const periodo = getPeriodoReferencia();
+    if (!periodo) return null;
+
+    const statusExistente = statusPeriodos.get(periodo.mesReferencia);
+    if (statusExistente) return statusExistente;
+
+    return obterStatusPeriodo(periodo.mesReferencia, vendasRegistradas, custosOperacionais);
+  };
+
+  // Verificar consistência entre vendas e custos
+  const isPeriodsConsistent = (): boolean => {
+    const periodoRef = getPeriodoReferencia();
+    if (!periodoRef) return false;
+
+    const hasCustos = custosOperacionais.some(custo => {
+      const custoPeriodo = `${custo.ano || new Date().getFullYear()}-${String((custo.mes || 1)).padStart(2, '0')}`;
+      return custoPeriodo === periodoRef.mesReferencia;
+    });
+
+    return hasCustos && vendasRegistradas.length > 0;
+  };
+
+  const handlePeriodoChange = (periodo: PeriodoImportacao) => {
+    setPeriodoVendas(periodo);
+    setPeriodoGestao(periodo);
+
+    // Atualizar filtros de vendas para corresponder ao período
+    atualizarFiltros({
+      ...filtros,
+      periodo: {
+        inicio: periodo.dataInicio,
+        fim: periodo.dataFim
+      }
+    });
+
+    toast.success(`Período atualizado para ${formatarPeriodoDisplay(periodo)}`);
+  };
 
   const handleNavegacaoDashboardGestao = () => {
     const params = new URLSearchParams();
@@ -207,6 +243,65 @@ export default function AnaliseVendas() {
 
         {/* System Status */}
         <VendasSystemStatus systemInfo={systemInfo} />
+
+        {/* Period Status Card */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Status do Período
+              </CardTitle>
+              {getPeriodoReferencia() && (
+                <Badge variant="outline">
+                  {formatarPeriodoDisplay(getPeriodoReferencia()!)}
+                </Badge>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <SimplePeriodAlert
+              hasVendas={vendasRegistradas.length > 0}
+              hasCustos={custosOperacionais.length > 0}
+              periodosConsistentes={isPeriodsConsistent()}
+              onAddVendas={() => setModalImportacao(true)}
+              onAddCustos={() => router.push('/custos-operacionais')}
+            />
+
+            {getPeriodoReferencia() && getStatusPeriodoAtual() && (
+              <div className="mt-4">
+                <PeriodConsistencyAlert
+                  periodoVendas={getPeriodoReferencia()!}
+                  statusPeriodoVendas={getStatusPeriodoAtual()!}
+                  onFixInconsistency={() => setModalImportacao(true)}
+                  onViewDetails={() => router.push('/dashboard-gestao')}
+                />
+              </div>
+            )}
+
+            {/* Resumo Rápido */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 p-4 bg-gray-50 rounded-lg">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-green-600">
+                  {vendasRegistradas.length}
+                </p>
+                <p className="text-xs text-gray-600">Vendas Registradas</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-blue-600">
+                  {custosOperacionais.length}
+                </p>
+                <p className="text-xs text-gray-600">Custos Registrados</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-purple-600">
+                  {dashboardData ? formatarMoeda(dashboardData.faturamentoReal) : 'R$ 0,00'}
+                </p>
+                <p className="text-xs text-gray-600">Faturamento Total</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Dashboard KPIs */}
         <VendasDashboard dashboard={dashboardData} loading={loading} />

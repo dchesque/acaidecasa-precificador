@@ -1,9 +1,12 @@
+import { PeriodoImportacao } from './periodo';
+
 export interface ImportacaoVendas {
   id: string;
   nomeArquivo: string;
   dataImportacao: Date;
   periodoInicio: Date;
   periodoFim: Date;
+  periodoImportacao: PeriodoImportacao;
   totalRegistros: number;
   totalImportados: number;
   totalDuplicados: number;
@@ -104,6 +107,7 @@ export interface ResumoImportacao {
     inicio: Date;
     fim: Date;
   };
+  periodoImportacao: PeriodoImportacao;
   totalRegistros: number;
   registrosNovos: number;
   registrosDuplicados: number;

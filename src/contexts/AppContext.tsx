@@ -30,6 +30,10 @@ import {
   PeriodoDashboard
 } from '@/types/financeiro';
 import {
+  PeriodoImportacao,
+  StatusPeriodo
+} from '@/types/periodo';
+import {
   mockCategorias,
   mockUnidadesMedida,
   mockFornecedores,
@@ -82,6 +86,10 @@ interface AppState {
   // Financial state
   custosOperacionais: CustoOperacional[];
   dashboardGestao: DashboardGestaoEstado;
+  // Period management
+  periodoAtualGestao: PeriodoImportacao | null;
+  custosOperacionaisPorPeriodo: Map<string, CustoOperacional[]>;
+  statusPeriodos: Map<string, StatusPeriodo>;
   loading: boolean;
   error: string | null;
 }
@@ -150,7 +158,12 @@ type AppAction =
   | { type: 'DELETE_CUSTO_OPERACIONAL'; payload: string }
   | { type: 'SET_DASHBOARD_GESTAO_PERIODO'; payload: PeriodoDashboard }
   | { type: 'UPDATE_DASHBOARD_GESTAO_METRICAS'; payload: DashboardGestaoMetricas }
-  | { type: 'SET_DASHBOARD_GESTAO_LOADING'; payload: boolean };
+  | { type: 'SET_DASHBOARD_GESTAO_LOADING'; payload: boolean }
+  // Period management actions
+  | { type: 'SET_PERIODO_GESTAO'; payload: PeriodoImportacao | null }
+  | { type: 'ADD_CUSTOS_POR_PERIODO'; payload: { periodo: string; custos: CustoOperacional[] } }
+  | { type: 'UPDATE_STATUS_PERIODO'; payload: { periodo: string; status: StatusPeriodo } }
+  | { type: 'VALIDATE_PERIODO_CONSISTENCY'; payload: void };
 
 // Initial State
 const initialState: AppState = {
@@ -201,6 +214,10 @@ const initialState: AppState = {
     loading: false,
     alertas: []
   },
+  // Period management initial state
+  periodoAtualGestao: null,
+  custosOperacionaisPorPeriodo: new Map(),
+  statusPeriodos: new Map(),
   loading: false,
   error: null,
 };
@@ -560,6 +577,36 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
         }
       };
 
+    // Period management cases
+    case 'SET_PERIODO_GESTAO':
+      return {
+        ...state,
+        periodoAtualGestao: action.payload
+      };
+
+    case 'ADD_CUSTOS_POR_PERIODO': {
+      const newMap = new Map(state.custosOperacionaisPorPeriodo);
+      newMap.set(action.payload.periodo, action.payload.custos);
+      return {
+        ...state,
+        custosOperacionaisPorPeriodo: newMap
+      };
+    }
+
+    case 'UPDATE_STATUS_PERIODO': {
+      const newStatusMap = new Map(state.statusPeriodos);
+      newStatusMap.set(action.payload.periodo, action.payload.status);
+      return {
+        ...state,
+        statusPeriodos: newStatusMap
+      };
+    }
+
+    case 'VALIDATE_PERIODO_CONSISTENCY':
+      // Esta action pode ser usada para disparar validações
+      // Por ora, apenas retorna o estado atual
+      return state;
+
     default:
       return state;
   }
@@ -605,6 +652,11 @@ interface AppContextValue {
   // Financial getters
   custosOperacionais: CustoOperacional[];
   dashboardGestao: DashboardGestaoEstado;
+
+  // Period management getters
+  periodoAtualGestao: PeriodoImportacao | null;
+  custosOperacionaisPorPeriodo: Map<string, CustoOperacional[]>;
+  statusPeriodos: Map<string, StatusPeriodo>;
 
   // Auth actions
   setUser: (user: User | null) => void;
@@ -657,6 +709,12 @@ interface AppContextValue {
   setDashboardGestaoPeriodo: (periodo: PeriodoDashboard) => void;
   updateDashboardGestaoMetricas: (metricas: DashboardGestaoMetricas) => void;
   setDashboardGestaoLoading: (loading: boolean) => void;
+
+  // Period management actions
+  setPeriodoGestao: (periodo: PeriodoImportacao | null) => void;
+  addCustosPorPeriodo: (periodo: string, custos: CustoOperacional[]) => void;
+  updateStatusPeriodo: (periodo: string, status: StatusPeriodo) => void;
+  validatePeriodoConsistency: () => void;
 
   // Price helper functions
   getPrecoVendaItem: (tipo: 'INSUMO' | 'RECEITA' | 'COPO_BASE', itemId: string) => number | null;
@@ -777,6 +835,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const updateDashboardGestaoMetricas = (metricas: DashboardGestaoMetricas) => dispatch({ type: 'UPDATE_DASHBOARD_GESTAO_METRICAS', payload: metricas });
   const setDashboardGestaoLoading = (loading: boolean) => dispatch({ type: 'SET_DASHBOARD_GESTAO_LOADING', payload: loading });
 
+  // Period management functions
+  const setPeriodoGestao = (periodo: PeriodoImportacao | null) => dispatch({ type: 'SET_PERIODO_GESTAO', payload: periodo });
+  const addCustosPorPeriodo = (periodo: string, custos: CustoOperacional[]) => dispatch({ type: 'ADD_CUSTOS_POR_PERIODO', payload: { periodo, custos } });
+  const updateStatusPeriodo = (periodo: string, status: StatusPeriodo) => dispatch({ type: 'UPDATE_STATUS_PERIODO', payload: { periodo, status } });
+  const validatePeriodoConsistency = () => dispatch({ type: 'VALIDATE_PERIODO_CONSISTENCY', payload: void 0 });
+
   // Price helper functions
   const getPrecoVendaItem = (tipo: 'INSUMO' | 'RECEITA' | 'COPO_BASE', itemId: string): number | null => {
     const itemCardapio = state.cardapio.find(item => {
@@ -829,6 +893,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     custosOperacionais: state.custosOperacionais,
     dashboardGestao: state.dashboardGestao,
 
+    // Period management getters
+    periodoAtualGestao: state.periodoAtualGestao,
+    custosOperacionaisPorPeriodo: state.custosOperacionaisPorPeriodo,
+    statusPeriodos: state.statusPeriodos,
+
     // Auth actions
     setUser,
     setSession,
@@ -880,6 +949,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setDashboardGestaoPeriodo,
     updateDashboardGestaoMetricas,
     setDashboardGestaoLoading,
+
+    // Period management actions
+    setPeriodoGestao,
+    addCustosPorPeriodo,
+    updateStatusPeriodo,
+    validatePeriodoConsistency,
 
     // Price helper functions
     getPrecoVendaItem,

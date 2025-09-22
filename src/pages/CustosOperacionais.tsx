@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Table,
   TableBody,
@@ -23,478 +23,480 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
   Plus,
-  Edit,
-  Trash2,
-  TrendingUp,
-  TrendingDown,
   DollarSign,
   Calendar,
   BarChart3,
-  AlertTriangle
+  TrendingUp,
+  TrendingDown,
+  Eye,
+  Edit,
+  Trash2,
+  Receipt,
+  AlertCircle
 } from 'lucide-react';
-import { CustoOperacional } from '@/types/financeiro';
-import { CustosOperacionaisService } from '@/services/custosOperacionaisService';
-import { useAppContext } from '@/contexts/AppContext';
 import {
-  formatarMoeda,
-  formatarPercentual,
-  obterNomeMes,
-  obterNomeMesAbreviado,
-  calcularVariacaoPercentual
-} from '@/utils/calculosFinanceiros';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
+} from 'recharts';
+import { useAppContext } from '@/contexts/AppContext';
+import { PeriodConsistencyAlert } from '@/components/common/PeriodConsistencyAlert';
+import { CustosOperacionaisModal } from '@/components/modals/CustosOperacionaisModal';
+import {
+  CustoOperacional,
+  CustoOperacionalInput,
+  CATEGORIAS_CUSTO_LABELS,
+  CATEGORIAS_CUSTO_ICONS,
+  CategoriaCusto
+} from '@/types/custos-operacionais';
+import { PeriodoImportacao } from '@/types/periodo';
+import {
+  mockCustosOperacionaisPorMes,
+  obterCustosDoMes,
+  obterResumoConsolidadoCustos
+} from '@/data/mockCustosOperacionaisPorMes';
+import {
+  gerarUltimos12Meses,
+  formatarPeriodoDisplay,
+  sugerirMelhorPeriodo,
+  obterStatusPeriodo
+} from '@/utils/periodoUtils';
+import { formatarMoeda } from '@/utils/calculosFinanceiros';
+import { toast } from 'sonner';
 
-interface CustoFormData {
-  mes: number;
-  ano: number;
-  valor: number;
-  observacoes: string;
-}
+const CORES_GRAFICO = ['#8B5CF6', '#06B6D4', '#10B981', '#F59E0B', '#EF4444', '#EC4899', '#F97316', '#84CC16'];
 
-const CustosOperacionais = () => {
-  const { custosOperacionais, setCustosOperacionais, addCustoOperacional, updateCustoOperacional, deleteCustoOperacional } = useAppContext();
+export default function CustosOperacionais() {
+  const {
+    custosOperacionais,
+    vendasAnalise,
+    periodoAtualGestao,
+    statusPeriodos,
+    setPeriodoGestao,
+    addCustosPorPeriodo
+  } = useAppContext();
 
-  const [loading, setLoading] = useState(true);
-  const [filtroAno, setFiltroAno] = useState<number>(new Date().getFullYear());
-  const [anosDisponiveis, setAnosDisponiveis] = useState<number[]>([]);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingCusto, setEditingCusto] = useState<CustoOperacional | null>(null);
-  const [formData, setFormData] = useState<CustoFormData>({
-    mes: new Date().getMonth() + 1,
-    ano: new Date().getFullYear(),
-    valor: 0,
-    observacoes: ''
-  });
-  const [formErrors, setFormErrors] = useState<string[]>([]);
-  const [metricas, setMetricas] = useState({
-    custoMesAtual: 0,
-    mediaDozeMeses: 0,
-    variacaoMesAnterior: 0,
-    totalAnoAtual: 0
-  });
-  const [evolucaoData, setEvolucaoData] = useState<any[]>([]);
+  const [modalCustos, setModalCustos] = useState(false);
+  const [periodoSelecionado, setPeriodoSelecionado] = useState<string>('');
+  const [custosVisualizacao, setCustosVisualizacao] = useState<CustoOperacional[]>([]);
+  const [resumoConsolidado, setResumoConsolidado] = useState<any>(null);
+  const [tabAtiva, setTabAtiva] = useState<'resumo' | 'detalhes' | 'graficos'>('resumo');
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  const meses = gerarUltimos12Meses();
 
-  useEffect(() => {
-    if (custosOperacionais.length > 0) {
-      loadMetricas();
-      loadEvolucaoData();
-    }
-  }, [custosOperacionais]);
-
-  const loadData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const [custos, anos] = await Promise.all([
-        CustosOperacionaisService.getAll(),
-        CustosOperacionaisService.getAnosDisponiveis()
-      ]);
-
-      setCustosOperacionais(custos);
-      setAnosDisponiveis(anos);
-    } catch (error) {
-      console.error('Erro ao carregar custos operacionais:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [setCustosOperacionais, setAnosDisponiveis, setLoading]);
-
-  const loadMetricas = async () => {
-    try {
-      const metrics = await CustosOperacionaisService.getMetricasResumo();
-      setMetricas(metrics);
-    } catch (error) {
-      console.error('Erro ao carregar métricas:', error);
-    }
-  };
-
-  const loadEvolucaoData = async () => {
-    try {
-      const evolucao = await CustosOperacionaisService.getEvolucaoUltimosMeses(12);
-      setEvolucaoData(evolucao);
-    } catch (error) {
-      console.error('Erro ao carregar evolução:', error);
-    }
-  };
-
-  const custosFiltrados = custosOperacionais.filter(custo => custo.ano === filtroAno);
-
-  const handleOpenModal = (custo?: CustoOperacional) => {
-    if (custo) {
-      setEditingCusto(custo);
-      setFormData({
-        mes: custo.mes,
-        ano: custo.ano,
-        valor: custo.valor,
-        observacoes: custo.observacoes || ''
-      });
-    } else {
-      setEditingCusto(null);
-      setFormData({
-        mes: new Date().getMonth() + 1,
-        ano: new Date().getFullYear(),
-        valor: 0,
-        observacoes: ''
-      });
-    }
-    setFormErrors([]);
-    setModalOpen(true);
-  };
-
-  const handleSave = async () => {
-    const validation = CustosOperacionaisService.validateCustoData(formData);
-    if (!validation.isValid) {
-      setFormErrors(validation.errors);
-      return;
-    }
-
-    try {
-      if (editingCusto) {
-        const updated = await CustosOperacionaisService.update(editingCusto.id, formData);
-        updateCustoOperacional(updated);
-      } else {
-        const created = await CustosOperacionaisService.create(formData);
-        addCustoOperacional(created);
+  // Estado derivado para período atual
+  const periodoAtual = useMemo(() => {
+    if (periodoSelecionado) {
+      const mes = meses.find(m => m.mesReferencia === periodoSelecionado);
+      if (mes) {
+        return {
+          tipo: 'MES_COMPLETO' as const,
+          mesReferencia: mes.mesReferencia,
+          ano: mes.ano,
+          mes: mes.mes,
+          dataInicio: mes.dataInicio,
+          dataFim: mes.dataFim,
+          status: 'EM_ANDAMENTO' as const,
+          diasTotais: mes.diasTotais,
+          diasImportados: 0
+        };
       }
+    }
+    return null;
+  }, [periodoSelecionado, meses]);
 
-      setModalOpen(false);
-      await loadMetricas();
-      await loadEvolucaoData();
-    } catch (error: any) {
-      setFormErrors([error.message || 'Erro ao salvar custo operacional']);
+  // Carregar dados na inicialização
+  useEffect(() => {
+    const mesAtual = new Date();
+    const mesRef = `${mesAtual.getFullYear()}-${String(mesAtual.getMonth() + 1).padStart(2, '0')}`;
+    setPeriodoSelecionado(mesRef);
+
+    // Carregar resumo consolidado
+    const resumo = obterResumoConsolidadoCustos();
+    setResumoConsolidado(resumo);
+  }, []);
+
+  // Atualizar custos quando período muda
+  useEffect(() => {
+    if (periodoSelecionado) {
+      const dadosPeriodo = obterCustosDoMes(periodoSelecionado);
+      if (dadosPeriodo) {
+        setCustosVisualizacao(dadosPeriodo.custos);
+      } else {
+        setCustosVisualizacao([]);
+      }
+    }
+  }, [periodoSelecionado]);
+
+  const handlePeriodoChange = (novoMes: string) => {
+    setPeriodoSelecionado(novoMes);
+
+    const mesData = meses.find(m => m.mesReferencia === novoMes);
+    if (mesData) {
+      const periodo: PeriodoImportacao = {
+        tipo: 'MES_COMPLETO',
+        mesReferencia: novoMes,
+        ano: mesData.ano,
+        mes: mesData.mes,
+        dataInicio: mesData.dataInicio,
+        dataFim: mesData.dataFim,
+        status: 'EM_ANDAMENTO',
+        diasTotais: mesData.diasTotais,
+        diasImportados: 0
+      };
+
+      setPeriodoGestao(periodo);
+      toast.success(`Período alterado para ${formatarPeriodoDisplay(periodo)}`);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir este custo operacional?')) {
-      return;
-    }
+  const handleConfirmCustos = (custos: CustoOperacionalInput[], periodo: PeriodoImportacao) => {
+    // Converter inputs para CustoOperacional completo
+    const custosCompletos: CustoOperacional[] = custos.map((custo, index) => ({
+      ...custo,
+      id: `custo-${periodo.mesReferencia}-${Date.now()}-${index}`,
+      periodoImportacao: periodo,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }));
 
-    try {
-      await CustosOperacionaisService.delete(id);
-      deleteCustoOperacional(id);
-      await loadMetricas();
-      await loadEvolucaoData();
-    } catch (error: any) {
-      alert(error.message || 'Erro ao excluir custo operacional');
-    }
+    // Atualizar no contexto
+    addCustosPorPeriodo(periodo.mesReferencia, custosCompletos);
+
+    // Atualizar visualização local
+    setCustosVisualizacao(prev => [...prev, ...custosCompletos]);
+
+    toast.success(`${custos.length} custos adicionados para ${formatarPeriodoDisplay(periodo)}`);
+    setModalCustos(false);
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-10 w-32" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-32" />
-          ))}
-        </div>
-        <Skeleton className="h-96" />
-      </div>
-    );
-  }
+  const totalMesAtual = custosVisualizacao.reduce((acc, custo) => acc + custo.valor, 0);
+
+  const custosPorCategoria = custosVisualizacao.reduce((acc, custo) => {
+    acc[custo.categoria] = (acc[custo.categoria] || 0) + custo.valor;
+    return acc;
+  }, {} as Record<CategoriaCusto, number>);
+
+  // Dados para gráficos
+  const dadosEvolucao = meses.slice(0, 6).reverse().map(mes => {
+    const dados = obterCustosDoMes(mes.mesReferencia);
+    return {
+      mes: mes.nome,
+      total: dados ? dados.totalMes : 0
+    };
+  });
+
+  const dadosCategoria = Object.entries(custosPorCategoria).map(([categoria, valor], index) => ({
+    name: CATEGORIAS_CUSTO_LABELS[categoria as CategoriaCusto],
+    value: valor,
+    color: CORES_GRAFICO[index % CORES_GRAFICO.length]
+  }));
+
+  const statusPeriodoAtual = periodoAtual ? obterStatusPeriodo(
+    periodoAtual.mesReferencia,
+    vendasAnalise.vendasRegistradas,
+    custosVisualizacao
+  ) : null;
 
   return (
     <Layout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Custos Operacionais</h1>
-          <p className="text-gray-600 mt-1">Gerencie os custos mensais do seu negócio</p>
-        </div>
-        <Button onClick={() => handleOpenModal()} className="bg-purple-600 hover:bg-purple-700">
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Custo
-        </Button>
-      </div>
-
-      {/* Métricas Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Custo Mês Atual</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatarMoeda(metricas.custoMesAtual)}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Média 12 Meses</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatarMoeda(metricas.mediaDozeMeses)}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Variação Mês Anterior</CardTitle>
-            {metricas.variacaoMesAnterior >= 0 ? (
-              <TrendingUp className="h-4 w-4 text-red-500" />
-            ) : (
-              <TrendingDown className="h-4 w-4 text-green-500" />
-            )}
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${metricas.variacaoMesAnterior >= 0 ? 'text-red-600' : 'text-green-600'}`}>
-              {formatarPercentual(metricas.variacaoMesAnterior)}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Receipt className="h-8 w-8 text-red-600" />
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Custos Operacionais
+              </h1>
+              <p className="text-sm text-gray-600">
+                Gerencie custos operacionais por período para análise precisa de margem
+              </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setModalCustos(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Adicionar Custos
+            </Button>
+          </div>
+        </div>
 
+        {/* Period Status */}
+        {periodoAtual && (
+          <PeriodConsistencyAlert
+            periodoCustos={periodoAtual}
+            statusPeriodoCustos={statusPeriodoAtual || undefined}
+            onFixInconsistency={() => setModalCustos(true)}
+            onViewDetails={() => setTabAtiva('detalhes')}
+          />
+        )}
+
+        {/* Period Selector */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Ano Atual</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Seleção de Período
+              </CardTitle>
+              {periodoAtual && (
+                <Badge variant="outline">
+                  {formatarPeriodoDisplay(periodoAtual)}
+                </Badge>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatarMoeda(metricas.totalAnoAtual)}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Gráfico de Evolução */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Evolução dos Custos - Últimos 12 Meses</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={evolucaoData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="label"
-                  fontSize={12}
-                />
-                <YAxis
-                  fontSize={12}
-                  tickFormatter={(value) => formatarMoeda(value)}
-                />
-                <Tooltip
-                  formatter={(value: number) => [formatarMoeda(value), 'Custo']}
-                  labelFormatter={(label) => `Período: ${label}`}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="valor"
-                  stroke="#8B5CF6"
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Filtros e Tabela */}
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <CardTitle>Histórico de Custos</CardTitle>
-            <Select value={filtroAno.toString()} onValueChange={(value) => setFiltroAno(parseInt(value))}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {anosDisponiveis.map(ano => (
-                  <SelectItem key={ano} value={ano.toString()}>{ano}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Período</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead className="hidden md:table-cell">Observações</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {custosFiltrados.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8 text-gray-500">
-                      Nenhum custo operacional cadastrado para {filtroAno}
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  custosFiltrados.map((custo) => (
-                    <TableRow key={custo.id}>
-                      <TableCell>
-                        <div className="font-medium">
-                          {obterNomeMes(custo.mes)} {custo.ano}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-semibold">{formatarMoeda(custo.valor)}</span>
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        <div className="max-w-xs truncate" title={custo.observacoes}>
-                          {custo.observacoes || '-'}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleOpenModal(custo)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDelete(custo.id)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Modal de Cadastro/Edição */}
-      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {editingCusto ? 'Editar Custo Operacional' : 'Novo Custo Operacional'}
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            {formErrors.length > 0 && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  <ul className="list-disc list-inside">
-                    {formErrors.map((error, index) => (
-                      <li key={index}>{error}</li>
-                    ))}
-                  </ul>
-                </AlertDescription>
-              </Alert>
-            )}
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="mes">Mês</Label>
-                <Select
-                  value={formData.mes.toString()}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, mes: parseInt(value) }))}
-                >
-                  <SelectTrigger id="mes">
-                    <SelectValue />
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="md:col-span-2">
+                <Select value={periodoSelecionado} onValueChange={handlePeriodoChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um mês" />
                   </SelectTrigger>
                   <SelectContent>
-                    {Array.from({ length: 12 }, (_, i) => i + 1).map(mes => (
-                      <SelectItem key={mes} value={mes.toString()}>
-                        {obterNomeMes(mes)}
+                    {meses.map((mes) => (
+                      <SelectItem key={mes.mesReferencia} value={mes.mesReferencia}>
+                        <div className="flex items-center gap-2">
+                          <span>{mes.nomeCompleto}</span>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="ano">Ano</Label>
-                <Select
-                  value={formData.ano.toString()}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, ano: parseInt(value) }))}
-                >
-                  <SelectTrigger id="ano">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({ length: 6 }, (_, i) => new Date().getFullYear() - 2 + i).map(ano => (
-                      <SelectItem key={ano} value={ano.toString()}>{ano}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-red-600">
+                  {formatarMoeda(totalMesAtual)}
+                </p>
+                <p className="text-xs text-gray-600">Total do Período</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-gray-600">
+                  {custosVisualizacao.length}
+                </p>
+                <p className="text-xs text-gray-600">Custos Registrados</p>
               </div>
             </div>
+          </CardContent>
+        </Card>
 
-            <div className="space-y-2">
-              <Label htmlFor="valor">Valor Total (R$)</Label>
-              <Input
-                id="valor"
-                type="number"
-                step="0.01"
-                min="0"
-                max="1000000"
-                value={formData.valor}
-                onChange={(e) => setFormData(prev => ({ ...prev, valor: parseFloat(e.target.value) || 0 }))}
-                placeholder="0,00"
-              />
+        {/* Tabs Content */}
+        <Tabs value={tabAtiva} onValueChange={(value: any) => setTabAtiva(value)}>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="resumo">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Resumo
+            </TabsTrigger>
+            <TabsTrigger value="detalhes">
+              <Eye className="h-4 w-4 mr-2" />
+              Detalhes
+            </TabsTrigger>
+            <TabsTrigger value="graficos">
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Gráficos
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Tab: Resumo */}
+          <TabsContent value="resumo" className="space-y-6">
+            {/* Cards de Resumo por Categoria */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {Object.entries(custosPorCategoria).map(([categoria, valor]) => (
+                <Card key={categoria}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="text-2xl">
+                        {CATEGORIAS_CUSTO_ICONS[categoria as CategoriaCusto]}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">
+                          {CATEGORIAS_CUSTO_LABELS[categoria as CategoriaCusto]}
+                        </p>
+                        <p className="text-lg font-bold">
+                          {formatarMoeda(valor)}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="observacoes">Observações (opcional)</Label>
-              <Textarea
-                id="observacoes"
-                value={formData.observacoes}
-                onChange={(e) => setFormData(prev => ({ ...prev, observacoes: e.target.value }))}
-                placeholder="Detalhamento dos custos do mês..."
-                maxLength={500}
-                rows={3}
-              />
-              <div className="text-xs text-gray-500 text-right">
-                {formData.observacoes.length}/500
-              </div>
-            </div>
+            {/* Resumo Consolidado */}
+            {resumoConsolidado && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Resumo Consolidado</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="text-center">
+                      <p className="text-3xl font-bold text-red-600">
+                        {formatarMoeda(resumoConsolidado.custoTotalConsolidado)}
+                      </p>
+                      <p className="text-sm text-gray-600">Total Geral</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-3xl font-bold text-blue-600">
+                        {formatarMoeda(resumoConsolidado.custoPorMesMedio)}
+                      </p>
+                      <p className="text-sm text-gray-600">Média Mensal</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-3xl font-bold text-purple-600">
+                        {resumoConsolidado.totalMeses}
+                      </p>
+                      <p className="text-sm text-gray-600">Meses Registrados</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
 
-            <div className="flex justify-end gap-3 pt-4">
-              <Button
-                variant="outline"
-                onClick={() => setModalOpen(false)}
-              >
-                Cancelar
-              </Button>
-              <Button onClick={handleSave}>
-                {editingCusto ? 'Salvar' : 'Cadastrar'}
-              </Button>
+          {/* Tab: Detalhes */}
+          <TabsContent value="detalhes" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Custos do Período</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {custosVisualizacao.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Receipt className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600 mb-4">Nenhum custo registrado para este período</p>
+                    <Button onClick={() => setModalCustos(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Adicionar Primeiro Custo
+                    </Button>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Categoria</TableHead>
+                        <TableHead>Descrição</TableHead>
+                        <TableHead>Valor</TableHead>
+                        <TableHead>Vencimento</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {custosVisualizacao.map((custo) => (
+                        <TableRow key={custo.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span>{CATEGORIAS_CUSTO_ICONS[custo.categoria]}</span>
+                              <span>{CATEGORIAS_CUSTO_LABELS[custo.categoria]}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>{custo.descricao}</TableCell>
+                          <TableCell className="font-medium">
+                            {formatarMoeda(custo.valor)}
+                          </TableCell>
+                          <TableCell>
+                            {custo.dataVencimento.toLocaleDateString('pt-BR')}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={custo.dataPagamento ? 'default' : 'secondary'}>
+                              {custo.dataPagamento ? 'Pago' : 'Pendente'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button variant="ghost" size="sm">
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="sm">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Tab: Gráficos */}
+          <TabsContent value="graficos" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Gráfico de Evolução */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Evolução dos Custos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={dadosEvolucao}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="mes" />
+                      <YAxis />
+                      <Tooltip formatter={(value: any) => formatarMoeda(value)} />
+                      <Line
+                        type="monotone"
+                        dataKey="total"
+                        stroke="#ef4444"
+                        strokeWidth={2}
+                        dot={{ fill: '#ef4444' }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              {/* Gráfico de Categorias */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Distribuição por Categoria</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={dadosCategoria}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        outerRadius={100}
+                        fill="#8884d8"
+                        dataKey="value"
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      >
+                        {dadosCategoria.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value: any) => formatarMoeda(value)} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </TabsContent>
+        </Tabs>
+
+        {/* Modal */}
+        <CustosOperacionaisModal
+          isOpen={modalCustos}
+          onClose={() => setModalCustos(false)}
+          onConfirm={handleConfirmCustos}
+          periodoInicial={periodoAtual || undefined}
+        />
       </div>
     </Layout>
   );
-};
-
-export default CustosOperacionais;
+}
