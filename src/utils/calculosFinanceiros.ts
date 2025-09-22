@@ -217,3 +217,96 @@ export const calcularCoeficienteVariacao = (valores: number[]): number => {
 
   return (desvioPadrao / media) * 100;
 };
+
+export const calcularLucroPorVenda = (
+  lucroLiquido: number,
+  quantidadeVendas: number
+): number => {
+  if (quantidadeVendas <= 0) return 0;
+  return lucroLiquido / quantidadeVendas;
+};
+
+export const calcularMetaFaturamento = (
+  lucroDesejado: number,
+  margemLiquida: number
+): number => {
+  if (margemLiquida <= 0) return 0;
+  return lucroDesejado / (margemLiquida / 100);
+};
+
+export const calcularProgressoMeta = (
+  receitaAtual: number,
+  metaReceita: number
+): number => {
+  if (metaReceita <= 0) return 0;
+  return Math.min((receitaAtual / metaReceita) * 100, 100);
+};
+
+export const analisarTendenciaNegocio = (
+  valoresUltimos3Meses: number[]
+): {
+  status: 'crescimento' | 'queda' | 'estavel';
+  emoji: string;
+  descricao: string;
+} => {
+  if (valoresUltimos3Meses.length < 3) {
+    return {
+      status: 'estavel',
+      emoji: '➡️',
+      descricao: 'Dados insuficientes para análise'
+    };
+  }
+
+  const tendencia = determinarTendencia(valoresUltimos3Meses);
+
+  switch (tendencia) {
+    case 'crescimento':
+      return {
+        status: 'crescimento',
+        emoji: '📈',
+        descricao: 'Negócio em crescimento'
+      };
+    case 'queda':
+      return {
+        status: 'queda',
+        emoji: '📉',
+        descricao: 'Negócio em queda'
+      };
+    default:
+      return {
+        status: 'estavel',
+        emoji: '➡️',
+        descricao: 'Negócio estável'
+      };
+  }
+};
+
+export const encontrarMelhorPiorMes = (
+  dados: Array<{ periodo: string; valor: number }>
+): {
+  melhor: { periodo: string; valor: number };
+  pior: { periodo: string; valor: number };
+  diferenca: number;
+} => {
+  if (dados.length === 0) {
+    return {
+      melhor: { periodo: '', valor: 0 },
+      pior: { periodo: '', valor: 0 },
+      diferenca: 0
+    };
+  }
+
+  const melhor = dados.reduce((max, current) =>
+    current.valor > max.valor ? current : max
+  );
+
+  const pior = dados.reduce((min, current) =>
+    current.valor < min.valor ? current : min
+  );
+
+  return {
+    melhor,
+    pior,
+    diferenca: melhor.valor - pior.valor
+  };
+};

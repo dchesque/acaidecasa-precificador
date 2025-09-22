@@ -34,11 +34,30 @@ export interface DashboardGestaoEstado {
 
 export interface AlertaFinanceiro {
   id: string;
-  tipo: 'margem_baixa' | 'custo_alto' | 'lucro_negativo' | 'sem_dados';
+  tipo: 'warning' | 'danger' | 'info' | 'success';
   titulo: string;
   descricao: string;
-  severidade: 'info' | 'warning' | 'error';
+  acao?: {
+    label: string;
+    link?: string;
+    onClick?: () => void;
+  };
   createdAt: Date;
+}
+
+export interface MetricaComparativa {
+  melhorMes: {
+    periodo: string;
+    valor: number;
+    tipo: 'receita' | 'lucro' | 'margem';
+  };
+  piorMes: {
+    periodo: string;
+    valor: number;
+    tipo: 'receita' | 'lucro' | 'margem';
+  };
+  tendencia: 'crescimento' | 'queda' | 'estavel';
+  projecaoProximoMes: number;
 }
 
 export interface EvolucaoMensal {
