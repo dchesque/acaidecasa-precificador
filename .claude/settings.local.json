@@ -37,7 +37,8 @@
       "Bash(rm:*)",
       "mcp__ide__executeCode",
       "Bash(move src/pages/Combinados.backup.tsx src/pages/Combinados.backup.tsx.disabled)",
-      "Bash(del /S /Q .next)"
+      "Bash(del /S /Q .next)",
+      "Bash(findstr:*)"
     ],
     "deny": [],
     "ask": []

@@ -30,7 +30,8 @@ import {
   GlassWater,
   TrendingUp,
   Calculator,
-  BarChart3
+  BarChart3,
+  Briefcase
 } from "lucide-react";
 
 export const Navigation = () => {
@@ -141,29 +142,62 @@ export const Navigation = () => {
           color="text-indigo-400"
         />
 
-        <NavItem
-          href="/analise-vendas"
-          icon={<TrendingUp className="h-5 w-5" />}
-          label="Análise de Vendas"
-          isCollapsed={isCollapsed}
-          color="text-green-500"
-        />
+        {!isCollapsed && (
+          <NavItem
+            isSection
+            icon={<Briefcase className="h-5 w-5" />}
+            label="Gestão do Negócio"
+            color="text-purple-400"
+          >
+            <NavItem
+              href="/dashboard-gestao"
+              icon={<BarChart3 className="h-4 w-4" />}
+              label="Dashboard"
+              isSubItem
+              color="text-emerald-400"
+            />
+            <NavItem
+              href="/analise-vendas"
+              icon={<TrendingUp className="h-4 w-4" />}
+              label="Análise de Vendas"
+              isSubItem
+              color="text-green-500"
+            />
+            <NavItem
+              href="/custos-operacionais"
+              icon={<Calculator className="h-4 w-4" />}
+              label="Custos Operacionais"
+              isSubItem
+              color="text-red-400"
+            />
+          </NavItem>
+        )}
 
-        <NavItem
-          href="/custos-operacionais"
-          icon={<Calculator className="h-5 w-5" />}
-          label="Custos Operacionais"
-          isCollapsed={isCollapsed}
-          color="text-red-400"
-        />
-
-        <NavItem
-          href="/dashboard-gestao"
-          icon={<BarChart3 className="h-5 w-5" />}
-          label="Dashboard Gestão"
-          isCollapsed={isCollapsed}
-          color="text-emerald-400"
-        />
+        {isCollapsed && (
+          <>
+            <NavItem
+              href="/dashboard-gestao"
+              icon={<BarChart3 className="h-5 w-5" />}
+              label="Dashboard"
+              isCollapsed={isCollapsed}
+              color="text-emerald-400"
+            />
+            <NavItem
+              href="/analise-vendas"
+              icon={<TrendingUp className="h-5 w-5" />}
+              label="Análise Vendas"
+              isCollapsed={isCollapsed}
+              color="text-green-500"
+            />
+            <NavItem
+              href="/custos-operacionais"
+              icon={<Calculator className="h-5 w-5" />}
+              label="Custos Operacionais"
+              isCollapsed={isCollapsed}
+              color="text-red-400"
+            />
+          </>
+        )}
       </nav>
 
       {/* Footer */}
