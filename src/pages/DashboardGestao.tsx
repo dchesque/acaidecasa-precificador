@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -97,11 +97,7 @@ const DashboardGestao = () => {
   const [metaLucro, setMetaLucro] = useState<number>(5000);
   const [resumoMensal, setResumoMensal] = useState<any[]>([]);
 
-  useEffect(() => {
-    loadDashboardData();
-  }, [periodo, vendasAnalise.dashboardData, custosOperacionais]);
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       setLoading(true);
       setDashboardGestaoLoading(true);
@@ -122,7 +118,12 @@ const DashboardGestao = () => {
       setLoading(false);
       setDashboardGestaoLoading(false);
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [periodo, vendasAnalise.dashboardData, custosOperacionais]);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, [loadDashboardData]);
 
   const calcularMetricasPeriodo = async (): Promise<DashboardGestaoMetricas> => {
     const vendasDashboard = vendasAnalise.dashboardData;

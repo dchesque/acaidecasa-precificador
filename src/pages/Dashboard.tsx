@@ -1,5 +1,5 @@
 "use client"
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -47,12 +47,17 @@ const Dashboard = () => {
     dispatch({ type: 'SET_CARDAPIO', payload: mockCardapio });
   }, [dispatch]);
 
-  // Check for alerts when data changes (without dependency on verificarAlertas to avoid infinite loop)
-  useEffect(() => {
+  // Wrap verificarAlertas in useCallback to avoid circular dependency
+  const handleVerificarAlertas = useCallback(() => {
     if (state.coposBase.length > 0 || state.combinados.length > 0) {
       verificarAlertas();
     }
-  }, [state.coposBase, state.combinados]); // Removed verificarAlertas from deps to break circular dependency
+  }, [state.coposBase, state.combinados, verificarAlertas]);
+
+  // Check for alerts when data changes
+  useEffect(() => {
+    handleVerificarAlertas();
+  }, [handleVerificarAlertas]);
 
   const stats = {
     totalItens: state.cardapio.filter(item => item.ativo).length,

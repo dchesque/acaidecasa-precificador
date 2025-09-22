@@ -39,7 +39,8 @@
       "Bash(move src/pages/Combinados.backup.tsx src/pages/Combinados.backup.tsx.disabled)",
       "Bash(del /S /Q .next)",
       "Bash(findstr:*)",
-      "Bash(move:*)"
+      "Bash(move:*)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": []

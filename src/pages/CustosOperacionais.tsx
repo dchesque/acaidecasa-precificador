@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -86,7 +86,7 @@ const CustosOperacionais = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
 
   useEffect(() => {
     if (custosOperacionais.length > 0) {
@@ -95,7 +95,7 @@ const CustosOperacionais = () => {
     }
   }, [custosOperacionais]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const [custos, anos] = await Promise.all([
@@ -110,7 +110,7 @@ const CustosOperacionais = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [setCustosOperacionais, setAnosDisponiveis, setLoading]);
 
   const loadMetricas = async () => {
     try {

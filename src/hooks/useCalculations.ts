@@ -224,7 +224,7 @@ export const useCalculations = () => {
         payload: novosAlertasCompletos,
       });
     }
-  }, [state.coposBase, state.combinados, dispatch]);
+  }, [state.coposBase, state.combinados, state.alertas, dispatch]);
 
   return {
     recalcularInsumo,

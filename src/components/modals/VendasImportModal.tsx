@@ -45,6 +45,53 @@ export const VendasImportModal: React.FC<VendasImportModalProps> = ({
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
+  const processarArquivo = useCallback(async (arquivo: File) => {
+    try {
+      setStep('processing');
+      setProgress(20);
+
+      // Simular processamento progressivo
+      const intervalId = setInterval(() => {
+        setProgress(prev => Math.min(prev + 10, 80));
+      }, 200);
+
+      const vendas = await importarVendasFromExcel(arquivo, cardapio);
+
+      clearInterval(intervalId);
+      setProgress(100);
+
+      const vendasExistentes = vendasAnalise.vendasRegistradas || [];
+      const vendasJaRegistradas = vendas.filter(venda =>
+        vendasExistentes.some(existente =>
+          existente.data === venda.data &&
+          existente.produto === venda.produto &&
+          existente.valor === venda.valor
+        )
+      );
+
+      const vendasNovas = vendas.filter(venda =>
+        !vendasExistentes.some(existente =>
+          existente.data === venda.data &&
+          existente.produto === venda.produto &&
+          existente.valor === venda.valor
+        )
+      );
+
+      setVendas(vendasNovas);
+      setResumo({
+        totalRegistros: vendas.length,
+        registrosNovos: vendasNovas.length,
+        registrosDuplicados: vendasJaRegistradas.length,
+        arquivo: arquivo.name
+      });
+      setStep('preview');
+    } catch (error) {
+      console.error('Erro ao processar arquivo:', error);
+      setError(error instanceof Error ? error.message : 'Erro ao processar arquivo');
+      setStep('upload');
+    }
+  }, [cardapio, vendasAnalise.vendasRegistradas]);
+
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const arquivo = acceptedFiles[0];
     if (!arquivo) return;
@@ -58,42 +105,7 @@ export const VendasImportModal: React.FC<VendasImportModalProps> = ({
     setFile(arquivo);
     setError(null);
     processarArquivo(arquivo);
-  }, [cardapio, vendasAnalise.vendasRegistradas]);
-
-  const processarArquivo = async (arquivo: File) => {
-    try {
-      setStep('processing');
-      setProgress(20);
-
-      // Simular processamento progressivo
-      const intervalId = setInterval(() => {
-        setProgress(prev => Math.min(prev + 10, 90));
-      }, 200);
-
-      const resultado = await analiseVendasService.processarArquivoVendas(
-        arquivo,
-        cardapio,
-        vendasAnalise.vendasRegistradas
-      );
-
-      clearInterval(intervalId);
-      setProgress(100);
-
-      // Gerar vendas processadas (simulação)
-      const vendasProcessadas: VendaRegistrada[] = [];
-      // Aqui você adicionaria as vendas reais processadas do arquivo
-      // Por enquanto, apenas definimos como array vazio
-
-      setResumo(resultado);
-      setVendas(vendasProcessadas);
-      setStep('preview');
-    } catch (err) {
-      console.error('Erro ao processar arquivo:', err);
-      setError(err instanceof Error ? err.message : 'Erro ao processar arquivo');
-      setStep('upload');
-      setProgress(0);
-    }
-  };
+  }, [processarArquivo]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
