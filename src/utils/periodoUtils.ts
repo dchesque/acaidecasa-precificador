@@ -188,7 +188,7 @@ export const obterStatusPeriodo = (
   });
 
   const custosDoPeriodo = custos.filter(custo =>
-    custo.periodoImportacao.mesReferencia === periodo
+    custo.periodoImportacao && custo.periodoImportacao.mesReferencia === periodo
   );
 
   const [ano, mes] = periodo.split('-').map(Number);

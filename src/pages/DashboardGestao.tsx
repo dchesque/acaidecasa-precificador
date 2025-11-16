@@ -239,7 +239,7 @@ const DashboardGestao = () => {
           label: 'Ver Custos',
           onClick: () => console.log('Navegar para custos')
         },
-        createdAt: new Date()
+        createdAt: new Date('2024-01-01')
       });
     }
 
@@ -253,7 +253,7 @@ const DashboardGestao = () => {
           label: 'Analisar Preços',
           onClick: () => console.log('Navegar para preços')
         },
-        createdAt: new Date()
+        createdAt: new Date('2024-01-01')
       });
     }
 
@@ -267,11 +267,11 @@ const DashboardGestao = () => {
           label: 'Revisar Custos',
           onClick: () => console.log('Navegar para custos operacionais')
         },
-        createdAt: new Date()
+        createdAt: new Date('2024-01-01')
       });
     }
 
-    if (custoOperacionais.length === 0) {
+    if (custosOperacionais.length === 0) {
       novosAlertas.push({
         id: 'sem-dados',
         tipo: 'info',
@@ -281,7 +281,7 @@ const DashboardGestao = () => {
           label: 'Cadastrar Custos',
           onClick: () => console.log('Navegar para cadastro de custos')
         },
-        createdAt: new Date()
+        createdAt: new Date('2024-01-01')
       });
     }
 
@@ -294,7 +294,7 @@ const DashboardGestao = () => {
         tipo: 'success',
         titulo: 'Meta Atingida!',
         descricao: `Parabéns! Meta de faturamento superada em ${formatarPercentual(progressoMeta - 100)}`,
-        createdAt: new Date()
+        createdAt: new Date('2024-01-01')
       });
     }
 

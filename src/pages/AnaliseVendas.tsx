@@ -106,6 +106,16 @@ export default function AnaliseVendas() {
     return hasCustos && vendasRegistradas.length > 0;
   };
 
+  // Calcular custos do período atual
+  const periodoReferencia = getPeriodoReferencia();
+  const custosEncontrados = custosOperacionais.filter(custo => {
+    if (!periodoReferencia) return false;
+    if (!custo.periodoImportacao) return false;
+    return custo.periodoImportacao.mesReferencia === periodoReferencia.mesReferencia;
+  });
+
+  const totalCustosOperacionais = custosEncontrados.reduce((total, custo) => total + custo.valor, 0);
+
   const handlePeriodoChange = (periodo: PeriodoImportacao) => {
     setPeriodoVendas(periodo);
     setPeriodoGestao(periodo);
