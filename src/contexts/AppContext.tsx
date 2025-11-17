@@ -24,11 +24,13 @@ import {
   DashboardVendas
 } from '@/types/analise-vendas';
 import {
-  CustoOperacional,
   DashboardGestaoEstado,
   DashboardGestaoMetricas,
   PeriodoDashboard
 } from '@/types/financeiro';
+import {
+  CustoOperacional
+} from '@/types/custos-operacionais';
 import {
   PeriodoImportacao,
   StatusPeriodo
@@ -52,8 +54,8 @@ import {
   mockDashboardVendas
 } from '@/data/mockVendasData';
 import {
-  mockCustosOperacionais
-} from '@/data/mockFinanceiroData';
+  mockCustosOperacionaisDual
+} from '@/data/mockCustosOperacionaisDual';
 
 // App State Interface
 interface AppState {
@@ -205,7 +207,7 @@ const initialState: AppState = {
     dashboardData: mockDashboardVendas
   },
   // Financial initial state
-  custosOperacionais: mockCustosOperacionais,
+  custosOperacionais: mockCustosOperacionaisDual,
   dashboardGestao: {
     periodo: {
       inicio: new Date(new Date().getFullYear(), 0, 1), // Janeiro do ano atual

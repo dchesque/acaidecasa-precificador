@@ -208,6 +208,7 @@ export const CombinadoForm = ({
       descricao: `Categoria de combinados: ${editCategoryName.trim()}`,
       cor: editCategoryColor,
       ativo: true,
+      createdAt: new Date(),
       updatedAt: new Date(),
     };
 
