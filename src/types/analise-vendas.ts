@@ -107,12 +107,13 @@ export interface ResumoImportacao {
     inicio: Date;
     fim: Date;
   };
-  periodoImportacao: PeriodoImportacao;
+  periodoImportacao?: PeriodoImportacao;
   totalRegistros: number;
   registrosNovos: number;
   registrosDuplicados: number;
   produtosSemMatch: ProdutoSemMatch[];
   valorTotalNovo: number;
+  vendas?: VendaRegistrada[]; // Vendas processadas
 }
 
 export interface VendaDetalhada extends VendaRegistrada {

@@ -144,7 +144,8 @@ export class AnaliseVendasService {
       registrosNovos: vendasProcessadas.length,
       registrosDuplicados,
       produtosSemMatch: Array.from(produtosSemMatch.values()),
-      valorTotalNovo
+      valorTotalNovo,
+      vendas: vendasProcessadas
     };
   }
 
@@ -199,12 +200,17 @@ export class AnaliseVendasService {
     vendas: VendaRegistrada[],
     resumo: ResumoImportacao
   ): Promise<ImportacaoVendas> {
+    if (!resumo.periodoImportacao) {
+      throw new Error('Período de importação não definido');
+    }
+
     const importacao: ImportacaoVendas = {
       id: this.generateId(),
       nomeArquivo: arquivo,
       dataImportacao: new Date(),
       periodoInicio: resumo.periodo.inicio,
       periodoFim: resumo.periodo.fim,
+      periodoImportacao: resumo.periodoImportacao,
       totalRegistros: resumo.totalRegistros,
       totalImportados: resumo.registrosNovos,
       totalDuplicados: resumo.registrosDuplicados,
