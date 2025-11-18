@@ -54,7 +54,7 @@ export const Header = () => {
           </span>
         </div>
         <div className="flex items-center gap-2 text-muted-foreground">
-          <Calendar className="h-5 w-5" />
+          <Calendar className="h-5 w-5 text-purple-600" />
           <span className="text-sm font-medium">
             {dataAtual}
           </span>
