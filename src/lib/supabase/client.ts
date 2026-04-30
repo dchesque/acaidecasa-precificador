@@ -1,9 +1,11 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { clientEnv, assertProductionEnv } from "@/lib/env";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+assertProductionEnv();
 
 export const supabase: SupabaseClient | null =
-  supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
+  clientEnv.NEXT_PUBLIC_SUPABASE_URL && clientEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    ? createClient(clientEnv.NEXT_PUBLIC_SUPABASE_URL, clientEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+    : null;
 
 export const isSupabaseConfigured = () => Boolean(supabase);

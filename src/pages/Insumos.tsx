@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { InsumoModal } from "@/components/modals/InsumoModal";
 import { useAppContext } from "@/contexts/AppContext";
+import { useConfirm } from "@/components/common/ConfirmProvider";
 import { Insumo } from "@/types/database";
 import { formatarMoeda, formatarCustoPorUnidade, calcularCustoPorGrama, obterDadosFornecedorPadrao } from "@/utils/calculations";
 import {
@@ -59,6 +60,7 @@ import { Label } from "@/components/ui/label";
 
 const Insumos = () => {
   const { state, dispatch } = useAppContext();
+  const confirm = useConfirm();
   const [modalOpen, setModalOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [categoriasModalOpen, setCategoriasModalOpen] = useState(false);
@@ -201,11 +203,16 @@ const Insumos = () => {
     setEditCategoryColor("#8B5CF6");
   };
 
-  const handleDeleteCategory = (categoryId: string) => {
+  const handleDeleteCategory = async (categoryId: string) => {
     const categoria = state.categorias.find(cat => cat.id === categoryId);
-    if (window.confirm(`Tem certeza que deseja excluir a categoria "${categoria?.nome}"?`)) {
+    const ok = await confirm({
+      title: "Excluir categoria",
+      description: `Tem certeza que deseja excluir a categoria "${categoria?.nome}"?`,
+      destructive: true,
+      confirmLabel: "Excluir",
+    });
+    if (ok) {
       dispatch({ type: 'DELETE_CATEGORIA', payload: categoryId });
-      console.log("🗑️ Categoria de insumo excluída:", categoria?.nome);
     }
   };
 
@@ -382,8 +389,14 @@ const Insumos = () => {
     setViewModalOpen(true);
   };
 
-  const handleDeleteInsumo = (insumo: Insumo) => {
-    if (window.confirm(`Tem certeza que deseja excluir "${insumo.nome}"?`)) {
+  const handleDeleteInsumo = async (insumo: Insumo) => {
+    const ok = await confirm({
+      title: "Excluir insumo",
+      description: `Tem certeza que deseja excluir "${insumo.nome}"?`,
+      destructive: true,
+      confirmLabel: "Excluir",
+    });
+    if (ok) {
       dispatch({ type: 'DELETE_INSUMO', payload: insumo.id });
     }
   };

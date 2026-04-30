@@ -41,6 +41,7 @@ import { cn } from "@/lib/utils";
 import { combinadoSchema, CombinadoFormData } from "@/types/forms";
 import { Combinado } from "@/types/database";
 import { useAppContext } from "@/contexts/AppContext";
+import { useConfirm } from "@/components/common/ConfirmProvider";
 import { formatarMoeda, formatarCustoPorUnidade, calcularCustoPorGrama, calcularPrecoVendaCombinado, calcularEconomiaCombinado } from "@/utils/calculations";
 import { Plus, Trash2, Calculator, Package, Tags, Settings, ChevronLeft, ChevronRight, GripVertical, X } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -60,6 +61,7 @@ export const CombinadoForm = ({
   isLoading = false,
 }: CombinadoFormProps) => {
   const { state, dispatch, categorias, coposBase, insumos, receitas, cardapio, insumoFornecedores, getPrecoVendaItem } = useAppContext();
+  const confirm = useConfirm();
   const [categoriaModalOpen, setCategoriaModalOpen] = React.useState(false);
 
   // Estados para modal de categorias (padrão cardápio)
@@ -229,11 +231,16 @@ export const CombinadoForm = ({
     setEditCategoryColor("#8B5CF6");
   };
 
-  const handleDeleteCategory = (categoryId: string) => {
+  const handleDeleteCategory = async (categoryId: string) => {
     const categoria = state.categorias.find(cat => cat.id === categoryId);
-    if (window.confirm(`Tem certeza que deseja excluir a categoria "${categoria?.nome}"?`)) {
+    const ok = await confirm({
+      title: "Excluir categoria",
+      description: `Tem certeza que deseja excluir a categoria "${categoria?.nome}"?`,
+      destructive: true,
+      confirmLabel: "Excluir",
+    });
+    if (ok) {
       dispatch({ type: 'DELETE_CATEGORIA', payload: categoryId });
-      console.log("🗑️ Categoria de combinado excluída:", categoria?.nome);
     }
   };
 

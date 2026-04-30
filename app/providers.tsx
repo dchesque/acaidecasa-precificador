@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { AppProvider } from "@/contexts/AppContext"
 import { ThemeProvider } from "next-themes"
 import { SuspenseBoundary } from "@/components/layout/SuspenseBoundary"
+import { ConfirmProvider } from "@/components/common/ConfirmProvider"
 
 const queryClient = new QueryClient()
 
@@ -16,17 +17,19 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <ThemeProvider
         attribute="class"
         defaultTheme="light"
-        forcedTheme="light"
+        enableSystem
         disableTransitionOnChange
       >
         <AppProvider>
-          <TooltipProvider>
-            <SuspenseBoundary>
-              {children}
-            </SuspenseBoundary>
-            <Toaster />
-            <Sonner />
-          </TooltipProvider>
+          <ConfirmProvider>
+            <TooltipProvider>
+              <SuspenseBoundary>
+                {children}
+              </SuspenseBoundary>
+              <Sonner />
+              <Toaster />
+            </TooltipProvider>
+          </ConfirmProvider>
         </AppProvider>
       </ThemeProvider>
     </QueryClientProvider>

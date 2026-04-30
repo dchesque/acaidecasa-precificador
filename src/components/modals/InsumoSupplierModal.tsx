@@ -26,16 +26,27 @@ import { InsumoFornecedor } from "@/types/database";
 import { formatarCustoPorUnidade } from "@/utils/calculations";
 import { z } from "zod";
 
-const insumoSupplierSchema = z.object({
-  fornecedorId: z.string().min(1, "Fornecedor é obrigatório"),
-  precoBruto: z.number().min(0.01, "Preço bruto deve ser maior que zero"),
-  precoComDesconto: z.number().min(0).optional(),
-  quantidadeComprada: z.number().min(0.001, "Quantidade deve ser maior que zero"),
-  usarPrecoComDesconto: z.boolean().default(false),
-  prazoEntrega: z.number().min(0).optional(),
-  observacoes: z.string().optional(),
-  ativo: z.boolean().default(true),
-});
+const insumoSupplierSchema = z
+  .object({
+    fornecedorId: z.string().min(1, "Fornecedor é obrigatório"),
+    precoBruto: z.number().min(0.01, "Preço bruto deve ser maior que zero"),
+    precoComDesconto: z.number().min(0).optional(),
+    quantidadeComprada: z.number().min(0.001, "Quantidade deve ser maior que zero"),
+    usarPrecoComDesconto: z.boolean().default(false),
+    prazoEntrega: z.number().min(0).optional(),
+    observacoes: z.string().optional(),
+    ativo: z.boolean().default(true),
+  })
+  .refine(
+    (data) =>
+      !data.precoComDesconto ||
+      data.precoComDesconto === 0 ||
+      data.precoComDesconto <= data.precoBruto,
+    {
+      message: "Preço com desconto deve ser menor ou igual ao preço bruto",
+      path: ["precoComDesconto"],
+    }
+  );
 
 type InsumoSupplierFormData = z.infer<typeof insumoSupplierSchema>;
 

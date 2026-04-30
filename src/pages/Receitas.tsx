@@ -18,12 +18,14 @@ import {
 } from "@/components/ui/select";
 import { ReceitaModal } from "@/components/modals/ReceitaModal";
 import { useAppContext } from "@/contexts/AppContext";
+import { useConfirm } from "@/components/common/ConfirmProvider";
 import { Receita } from "@/types/database";
 import { formatarMoeda, formatarCustoPorUnidade, formatarPorcentagem } from "@/utils/calculations";
 import { Plus, ChefHat, Clock, Calculator, Edit, Trash2, Search, Users, Eye, Settings, Package, ChevronLeft, ChevronRight, Coffee, Utensils, ShoppingCart, Grid3X3, GripVertical, Cherry, Cake, Apple, Banana, Cookie, Pizza, Salad, Sandwich, IceCream, Milk, Wine, Zap, Heart, Star, Flame, Sparkles, Crown, Gift, Target, Palette, Tag, MenuSquare, DollarSign, TrendingUp, BarChart3, AlertTriangle, X } from "lucide-react";
 
 const Receitas = () => {
   const { state, dispatch } = useAppContext();
+  const confirm = useConfirm();
   const [modalOpen, setModalOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [editingReceita, setEditingReceita] = useState<Receita | undefined>();
@@ -163,11 +165,16 @@ const Receitas = () => {
     setEditCategoryColor("#8B5CF6");
   };
 
-  const handleDeleteCategory = (categoryId: string) => {
+  const handleDeleteCategory = async (categoryId: string) => {
     const categoria = state.categorias.find(cat => cat.id === categoryId);
-    if (window.confirm(`Tem certeza que deseja excluir a categoria "${categoria?.nome}"?`)) {
+    const ok = await confirm({
+      title: "Excluir categoria",
+      description: `Tem certeza que deseja excluir a categoria "${categoria?.nome}"?`,
+      destructive: true,
+      confirmLabel: "Excluir",
+    });
+    if (ok) {
       dispatch({ type: 'DELETE_CATEGORIA', payload: categoryId });
-      console.log("🗑️ Categoria de receita excluída:", categoria?.nome);
     }
   };
 
@@ -754,8 +761,14 @@ const Receitas = () => {
     setViewModalOpen(true);
   };
 
-  const handleDeleteReceita = (receita: Receita) => {
-    if (window.confirm(`Tem certeza que deseja excluir "${receita.nome}"?`)) {
+  const handleDeleteReceita = async (receita: Receita) => {
+    const ok = await confirm({
+      title: "Excluir receita",
+      description: `Tem certeza que deseja excluir "${receita.nome}"?`,
+      destructive: true,
+      confirmLabel: "Excluir",
+    });
+    if (ok) {
       dispatch({ type: 'DELETE_RECEITA', payload: receita.id });
     }
   };

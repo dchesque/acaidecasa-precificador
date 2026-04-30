@@ -28,6 +28,8 @@ import { Label } from "@/components/ui/label";
 import { insumoSchema, InsumoFormData } from "@/types/forms";
 import { Insumo, Categoria, Fornecedor, InsumoFornecedor } from "@/types/database";
 import { useAppContext } from "@/contexts/AppContext";
+import { useConfirm } from "@/components/common/ConfirmProvider";
+import { newId } from "@/lib/ids";
 import { formatarMoeda, formatarCustoPorUnidade } from "@/utils/calculations";
 import { ChevronLeft, ChevronRight, Package, Tag, Building2, DollarSign, Plus, Calculator, Edit, Trash2, Star, Users, Coffee, Settings, Check, X, Tags } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -74,6 +76,7 @@ export const InsumoFormSteps = ({
   const [editingSupplier, setEditingSupplier] = useState<InsumoFornecedor | undefined>();
   const [insumoSuppliers, setInsumoSuppliers] = useState<InsumoFornecedor[]>([]);
   const { state, dispatch } = useAppContext();
+  const confirm = useConfirm();
 
   // Estados para modal de categorias (padrão cardápio)
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -187,7 +190,7 @@ export const InsumoFormSteps = ({
     } else {
       // Add new supplier
       const newSupplier: InsumoFornecedor = {
-        id: Date.now().toString(),
+        id: newId(),
         insumoId: insumo?.id || '',
         ...supplierData,
         createdAt: new Date(),
@@ -328,11 +331,16 @@ export const InsumoFormSteps = ({
     setEditCategoryColor("#8B5CF6");
   };
 
-  const handleDeleteCategory = (categoryId: string) => {
+  const handleDeleteCategory = async (categoryId: string) => {
     const categoria = state.categorias.find(cat => cat.id === categoryId);
-    if (window.confirm(`Tem certeza que deseja excluir a categoria "${categoria?.nome}"?`)) {
+    const ok = await confirm({
+      title: "Excluir categoria",
+      description: `Tem certeza que deseja excluir a categoria "${categoria?.nome}"?`,
+      destructive: true,
+      confirmLabel: "Excluir",
+    });
+    if (ok) {
       dispatch({ type: 'DELETE_CATEGORIA', payload: categoryId });
-      console.log("🗑️ Categoria de insumo excluída:", categoria?.nome);
     }
   };
 

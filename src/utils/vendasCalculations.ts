@@ -30,13 +30,28 @@ export const calcularLucro = (
   };
 };
 
+export const LIMITE_DIVERGENCIA_LEVE = 5;
+export const LIMITE_DIVERGENCIA_GRAVE = 15;
+
 export const classificarVenda = (
   divergenciaPercent: number,
   margem: number
 ): StatusVenda => {
   if (margem < 0) return 'prejuizo';
-  if (Math.abs(divergenciaPercent) > 15) return 'divergencia';
-  if (Math.abs(divergenciaPercent) > 5) return 'divergencia';
+  const absoluto = Math.abs(divergenciaPercent);
+  if (absoluto > LIMITE_DIVERGENCIA_LEVE) return 'divergencia';
+  return 'ok';
+};
+
+// Granular classification — exposes the leve/grave distinction for UI badges/charts.
+export type DivergenciaSeveridade = 'ok' | 'leve' | 'grave';
+
+export const classificarSeveridadeDivergencia = (
+  divergenciaPercent: number
+): DivergenciaSeveridade => {
+  const absoluto = Math.abs(divergenciaPercent);
+  if (absoluto > LIMITE_DIVERGENCIA_GRAVE) return 'grave';
+  if (absoluto > LIMITE_DIVERGENCIA_LEVE) return 'leve';
   return 'ok';
 };
 
@@ -124,10 +139,11 @@ export const calcularTendencia = (vendas: VendaRegistrada[], periodo: 'dia' | 's
       case 'dia':
         key = data.toISOString().split('T')[0];
         break;
-      case 'semana':
-        const semana = Math.floor(data.getDate() / 7);
-        key = `${data.getFullYear()}-${data.getMonth() + 1}-S${semana + 1}`;
+      case 'semana': {
+        const semana = Math.floor((data.getDate() - 1) / 7) + 1;
+        key = `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}-S${semana}`;
         break;
+      }
       case 'mes':
         key = `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}`;
         break;
@@ -193,7 +209,8 @@ export const formatarMoeda = (valor: number): string => {
 };
 
 export const formatarPercentual = (valor: number): string => {
-  return `${valor.toFixed(1)}%`;
+  if (!Number.isFinite(valor)) return '0,0%';
+  return `${valor.toFixed(1).replace('.', ',')}%`;
 };
 
 export const formatarData = (data: Date | string): string => {

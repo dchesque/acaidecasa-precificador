@@ -14,6 +14,7 @@ import { formatarMoeda } from "@/utils/calculations";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { fetchFornecedores, deleteFornecedor as deleteFornecedorService } from "@/services/fornecedoresService";
 import { useToast } from "@/hooks/use-toast";
+import { useConfirm } from "@/components/common/ConfirmProvider";
 import { Plus, Users, Phone, Mail, Edit, Trash2, Search, Package, Eye, Clock, DollarSign, MessageCircle } from "lucide-react";
 
 const Fornecedores = () => {
@@ -26,6 +27,7 @@ const Fornecedores = () => {
   const [syncingSupabase, setSyncingSupabase] = useState(false);
   const supabaseEnabled = isSupabaseConfigured();
   const { toast } = useToast();
+  const confirm = useConfirm();
 
   const handleNewFornecedor = () => {
     setEditingFornecedor(undefined);
@@ -43,9 +45,13 @@ const Fornecedores = () => {
   };
 
   const handleDeleteFornecedor = async (fornecedor: Fornecedor) => {
-    if (!window.confirm(`Tem certeza que deseja excluir "${fornecedor.nome}"?`)) {
-      return;
-    }
+    const ok = await confirm({
+      title: "Excluir fornecedor",
+      description: `Tem certeza que deseja excluir "${fornecedor.nome}"?`,
+      destructive: true,
+      confirmLabel: "Excluir",
+    });
+    if (!ok) return;
 
     try {
       if (supabaseEnabled) {

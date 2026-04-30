@@ -39,12 +39,19 @@ export const calcularTicketMedioNecessario = (
   return receitaNecessaria / quantidadeVendasMedio;
 };
 
+// Returns the percentage variation between two values, using the absolute prior
+// value as denominator so a smaller loss vs. a larger loss reads as positive growth.
 export const calcularVariacaoPercentual = (
   valorAtual: number,
   valorAnterior: number
 ): number => {
-  if (valorAnterior === 0) return valorAtual > 0 ? 100 : 0;
-  return ((valorAtual - valorAnterior) / valorAnterior) * 100;
+  if (!Number.isFinite(valorAtual) || !Number.isFinite(valorAnterior)) return 0;
+  if (valorAnterior === 0) {
+    if (valorAtual > 0) return 100;
+    if (valorAtual < 0) return -100;
+    return 0;
+  }
+  return ((valorAtual - valorAnterior) / Math.abs(valorAnterior)) * 100;
 };
 
 export const calcularMediaMovel = (
@@ -70,7 +77,10 @@ export const formatarMoeda = (valor: number): string => {
   }).format(valor);
 };
 
+// Formats a percentage given as 0-100 (e.g. 25 -> "25,0%").
+// `Intl.NumberFormat({style:'percent'})` expects a 0-1 decimal, so we divide here.
 export const formatarPercentual = (valor: number, casasDecimais: number = 1): string => {
+  if (!Number.isFinite(valor)) return '0%';
   return new Intl.NumberFormat('pt-BR', {
     style: 'percent',
     minimumFractionDigits: casasDecimais,
@@ -152,7 +162,13 @@ export const determinarTendencia = (valores: number[]): 'crescimento' | 'queda' 
   const mediaInicial = metadeInicial.reduce((sum, val) => sum + val, 0) / metadeInicial.length;
   const mediaFinal = metadeFinal.reduce((sum, val) => sum + val, 0) / metadeFinal.length;
 
-  const diferenca = ((mediaFinal - mediaInicial) / mediaInicial) * 100;
+  if (mediaInicial === 0) {
+    if (mediaFinal > 0) return 'crescimento';
+    if (mediaFinal < 0) return 'queda';
+    return 'estavel';
+  }
+
+  const diferenca = ((mediaFinal - mediaInicial) / Math.abs(mediaInicial)) * 100;
 
   if (diferenca > 5) return 'crescimento';
   if (diferenca < -5) return 'queda';
@@ -177,7 +193,13 @@ export const calcularProjecao = (
   const somaXY = x.reduce((sum, val, i) => sum + (val * y[i]), 0);
   const somaX2 = x.reduce((sum, val) => sum + (val * val), 0);
 
-  const inclinacao = (n * somaXY - somaX * somaY) / (n * somaX2 - somaX * somaX);
+  const denominador = n * somaX2 - somaX * somaX;
+  if (denominador === 0) {
+    const ultimo = valoresHistoricos[valoresHistoricos.length - 1] ?? 0;
+    return Array(periodosProjetados).fill(Math.max(0, ultimo));
+  }
+
+  const inclinacao = (n * somaXY - somaX * somaY) / denominador;
   const intercepto = (somaY - inclinacao * somaX) / n;
 
   const projecoes: number[] = [];

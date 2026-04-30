@@ -4,6 +4,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAppContext } from "@/contexts/AppContext";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NavItem } from "./NavItem";
 import {
@@ -39,6 +41,7 @@ export const Navigation = () => {
   const router = useRouter();
   const isMobile = useIsMobile();
   const { userProfile } = useAppContext();
+  const { signOut, isConfigured } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(isMobile);
 
   // Get user initials for avatar fallback
@@ -56,10 +59,16 @@ export const Navigation = () => {
     setIsCollapsed(isMobile);
   }, [isMobile]);
 
-  const handleLogout = () => {
-    // Implementar lógica de logout aqui
-    console.log("Logout");
-    // router.push("/login");
+  const handleLogout = async () => {
+    try {
+      if (isConfigured) {
+        await signOut();
+      }
+      router.push("/auth/login");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erro ao sair";
+      toast.error(message);
+    }
   };
 
   return (

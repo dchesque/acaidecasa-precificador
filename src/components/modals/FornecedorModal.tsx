@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Package } from "lucide-react";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { createFornecedor as createFornecedorService, updateFornecedor as updateFornecedorService } from "@/services/fornecedoresService";
+import { newId } from "@/lib/ids";
 
 interface FornecedorModalProps {
   open: boolean;
@@ -42,7 +43,7 @@ export const FornecedorModal = ({
           addFornecedor(novoFornecedor);
         } else {
           const novoFornecedor: Fornecedor = {
-            id: Date.now().toString(),
+            id: newId(),
             ...data,
             createdAt: new Date(),
             updatedAt: new Date()

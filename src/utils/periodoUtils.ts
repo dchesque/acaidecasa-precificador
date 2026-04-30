@@ -68,8 +68,9 @@ export const criarPeriodoMesCompleto = (mesReferencia: string): PeriodoImportaca
  * Cria um período customizado
  */
 export const criarPeriodoCustomizado = (dataInicio: Date, dataFim: Date): PeriodoImportacao => {
-  const diffTime = Math.abs(dataFim.getTime() - dataInicio.getTime());
-  const diasTotais = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+  const inicioUtc = Date.UTC(dataInicio.getFullYear(), dataInicio.getMonth(), dataInicio.getDate());
+  const fimUtc = Date.UTC(dataFim.getFullYear(), dataFim.getMonth(), dataFim.getDate());
+  const diasTotais = Math.max(1, Math.round(Math.abs(fimUtc - inicioUtc) / (1000 * 60 * 60 * 24)) + 1);
 
   const mesInicio = dataInicio.getMonth() + 1;
   const anoInicio = dataInicio.getFullYear();

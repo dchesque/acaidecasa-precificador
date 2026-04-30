@@ -14,7 +14,7 @@ export default function SignupPage() {
 
     try {
       if (isSupabaseConfigured() && supabase) {
-        const { data: authData, error } = await supabase.auth.signInWithPassword({
+        const { error } = await supabase.auth.signInWithPassword({
           email: data.email,
           password: data.password,
         })
@@ -25,13 +25,9 @@ export default function SignupPage() {
 
         router.push("/")
       } else {
-        console.log("Supabase não configurado - simulando login:", data)
         await new Promise(resolve => setTimeout(resolve, 1000))
         router.push("/")
       }
-    } catch (error) {
-      console.error("Erro no login:", error)
-      throw error
     } finally {
       setIsLoading(false)
     }
@@ -42,7 +38,7 @@ export default function SignupPage() {
 
     try {
       if (isSupabaseConfigured() && supabase) {
-        const { data: authData, error } = await supabase.auth.signUp({
+        const { error } = await supabase.auth.signUp({
           email: data.email,
           password: data.password,
           options: {
@@ -58,13 +54,9 @@ export default function SignupPage() {
 
         router.push("/auth/login")
       } else {
-        console.log("Supabase não configurado - simulando cadastro:", data)
         await new Promise(resolve => setTimeout(resolve, 1000))
         router.push("/auth/login")
       }
-    } catch (error) {
-      console.error("Erro no cadastro:", error)
-      throw error
     } finally {
       setIsLoading(false)
     }

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAppContext } from "@/contexts/AppContext";
 import { Categoria } from "@/types/database";
 import { useToast } from "@/hooks/use-toast";
+import { useConfirm } from "@/components/common/ConfirmProvider";
 import { Plus, Search, Edit, Trash2, ChefHat, Palette } from "lucide-react";
 
 interface ReceitaCategoriasManagerModalProps {
@@ -20,6 +21,7 @@ export const ReceitaCategoriasManagerModal = ({
 }: ReceitaCategoriasManagerModalProps) => {
   const { state, dispatch } = useAppContext();
   const { toast } = useToast();
+  const confirm = useConfirm();
   const [searchTerm, setSearchTerm] = useState("");
   const [categoriaModalOpen, setCategoriaModalOpen] = useState(false);
   const [editingCategoria, setEditingCategoria] = useState<Categoria | undefined>();
@@ -34,8 +36,7 @@ export const ReceitaCategoriasManagerModal = ({
     setCategoriaModalOpen(true);
   };
 
-  const handleDeleteCategoria = (categoria: Categoria) => {
-    // Check if there are recipes using this category
+  const handleDeleteCategoria = async (categoria: Categoria) => {
     const hasReceitas = state.receitas?.some(receita => receita.categoriaId === categoria.id);
 
     if (hasReceitas) {
@@ -47,7 +48,13 @@ export const ReceitaCategoriasManagerModal = ({
       return;
     }
 
-    if (window.confirm(`Tem certeza que deseja excluir a categoria "${categoria.nome}"?`)) {
+    const ok = await confirm({
+      title: "Excluir categoria",
+      description: `Tem certeza que deseja excluir a categoria "${categoria.nome}"?`,
+      destructive: true,
+      confirmLabel: "Excluir",
+    });
+    if (ok) {
       dispatch({ type: 'DELETE_CATEGORIA', payload: categoria.id });
       toast({
         title: "Categoria excluída",

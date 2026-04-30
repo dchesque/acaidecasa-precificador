@@ -759,24 +759,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const updateUserProfile = (updates: Partial<UserProfile>) => {
     dispatch({ type: 'UPDATE_USER_PROFILE', payload: updates });
-    // Save to localStorage after update
-    setTimeout(() => {
-      if (state.userProfile) {
-        const updatedProfile = { ...state.userProfile, ...updates, updatedAt: new Date() };
-        saveUserProfileToStorage(updatedProfile);
-      }
-    }, 0);
+    if (state.userProfile) {
+      saveUserProfileToStorage({ ...state.userProfile, ...updates, updatedAt: new Date() });
+    }
   };
 
   const updateUserAvatar = (avatar: string) => {
     dispatch({ type: 'UPDATE_USER_AVATAR', payload: avatar });
-    // Save to localStorage after update
-    setTimeout(() => {
-      if (state.userProfile) {
-        const updatedProfile = { ...state.userProfile, avatar, updatedAt: new Date() };
-        saveUserProfileToStorage(updatedProfile);
-      }
-    }, 0);
+    if (state.userProfile) {
+      saveUserProfileToStorage({ ...state.userProfile, avatar, updatedAt: new Date() });
+    }
   };
 
   const getUserProfile = (): UserProfile | null => {
@@ -858,7 +850,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       }
     });
 
-    return itemCardapio?.precoAtual || null;
+    return itemCardapio?.precoAtual ?? null;
   };
 
   const contextValue: AppContextValue = {

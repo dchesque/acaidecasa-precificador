@@ -104,16 +104,22 @@ export const calcularCustoReceita = (
   return { custoTotal, custoPorGrama };
 };
 
+export const CUSTO_EMBALAGEM_PADRAO = 0.58;
+
 // Calculate total cost for a base cup
+// `custoEmbalagemOverride` lets callers pass the configured packaging cost; falls back to the default.
 export const calcularCustoCopoBase = (
   copoBase: Partial<CopoBase>,
   insumos: Insumo[],
-  insumoFornecedores?: InsumoFornecedor[]
+  insumoFornecedores?: InsumoFornecedor[],
+  custoEmbalagemOverride?: number
 ): { custoBase: number; custoEmbalagens: number; custoTotal: number } => {
   let custoBase = 0;
-  let custoEmbalagens = 0.58; // Fixed packaging cost
+  const custoEmbalagens =
+    typeof custoEmbalagemOverride === "number" && custoEmbalagemOverride >= 0
+      ? custoEmbalagemOverride
+      : CUSTO_EMBALAGEM_PADRAO;
 
-  // Calculate base ingredient cost
   if (copoBase.insumoBaseId && copoBase.quantidadeBase) {
     const insumoBase = insumos.find(i => i.id === copoBase.insumoBaseId);
     if (insumoBase) {
@@ -121,8 +127,6 @@ export const calcularCustoCopoBase = (
       custoBase = custoPorGrama * copoBase.quantidadeBase;
     }
   }
-
-  // Fixed packaging costs (simplified)
 
   const custoTotal = custoBase + custoEmbalagens;
 
@@ -170,37 +174,40 @@ export const calcularCustoCombo = (
   return { custoCopoBase, custoComplementos, custoTotal };
 };
 
-// Calculate suggested price based on markup
+const roundToCent = (valor: number): number => Math.round(valor * 100) / 100;
+
+// Calculate suggested price based on markup.
+// Order: cost × (1 + markup/100) × (1 + tax/100), then optional cent rounding.
 export const calcularPrecoSugerido = (
   custo: number,
-  configuracao: Partial<Configuracao>
+  configuracao: Partial<Configuracao> & { aliquotaImposto?: number }
 ): number => {
-  if (!configuracao.markupPadrao) return custo;
-  
+  if (!Number.isFinite(custo) || custo <= 0) return 0;
+  if (!configuracao.markupPadrao) return roundToCent(custo);
+
   let precoSugerido = custo * (1 + configuracao.markupPadrao / 100);
-  
-  // Add taxes if configured
+
   if (configuracao.incluirImpostos) {
-    precoSugerido *= 1.1; // Assuming 10% tax
+    const aliquota =
+      typeof configuracao.aliquotaImposto === "number" && configuracao.aliquotaImposto >= 0
+        ? configuracao.aliquotaImposto
+        : 10;
+    precoSugerido *= 1 + aliquota / 100;
   }
-  
-  // Round prices if configured
-  if (configuracao.arredondarPrecos) {
-    precoSugerido = Math.ceil(precoSugerido);
-  }
-  
-  return precoSugerido;
+
+  return configuracao.arredondarPrecos ? roundToCent(precoSugerido) : precoSugerido;
 };
 
-// Calculate profit margin
+// Margin (lucro sobre venda) — uses the sale price as denominator.
+// Returns 0 when sale price is zero/invalid to avoid division-by-zero.
 export const calcularMargem = (preco: number, custo: number): number => {
-  if (custo === 0) return 0;
+  if (!Number.isFinite(preco) || preco <= 0) return 0;
   return ((preco - custo) / preco) * 100;
 };
 
-// Calculate markup percentage
+// Markup (lucro sobre custo) — uses cost as denominator.
 export const calcularMarkup = (preco: number, custo: number): number => {
-  if (custo === 0) return 0;
+  if (!Number.isFinite(custo) || custo <= 0) return 0;
   return ((preco - custo) / custo) * 100;
 };
 
@@ -265,7 +272,7 @@ export const obterPrecoVendaItem = (
     }
   });
 
-  return itemCardapio?.precoAtual || null;
+  return itemCardapio?.precoAtual ?? null;
 };
 
 // Calculate sales price for combo based on cardápio prices
@@ -309,8 +316,8 @@ export const calcularPrecoVendaCombinado = (
       }
 
       if (precoItem !== null) {
-        // Preço de venda é unitário (não multiplicado pela quantidade)
-        precoComplementos += precoItem;
+        const quantidade = complemento.quantidade > 0 ? complemento.quantidade : 1;
+        precoComplementos += precoItem * quantidade;
         itensComPreco += 1;
 
         // Create complement with sales price info
