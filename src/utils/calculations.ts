@@ -180,7 +180,7 @@ const roundToCent = (valor: number): number => Math.round(valor * 100) / 100;
 // Order: cost × (1 + markup/100) × (1 + tax/100), then optional cent rounding.
 export const calcularPrecoSugerido = (
   custo: number,
-  configuracao: Partial<Configuracao> & { aliquotaImposto?: number }
+  configuracao: Partial<Configuracao>
 ): number => {
   if (!Number.isFinite(custo) || custo <= 0) return 0;
   if (!configuracao.markupPadrao) return roundToCent(custo);

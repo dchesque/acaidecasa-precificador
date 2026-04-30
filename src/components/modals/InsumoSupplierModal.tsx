@@ -39,11 +39,10 @@ const insumoSupplierSchema = z
   })
   .refine(
     (data) =>
-      !data.precoComDesconto ||
-      data.precoComDesconto === 0 ||
-      data.precoComDesconto <= data.precoBruto,
+      data.precoComDesconto === undefined ||
+      (data.precoComDesconto > 0 && data.precoComDesconto <= data.precoBruto),
     {
-      message: "Preço com desconto deve ser menor ou igual ao preço bruto",
+      message: "Preço com desconto deve ser maior que zero e menor ou igual ao preço bruto",
       path: ["precoComDesconto"],
     }
   );
@@ -73,7 +72,7 @@ export const InsumoSupplierModal = ({
     defaultValues: {
       fornecedorId: editingSupplier?.fornecedorId || "",
       precoBruto: editingSupplier?.precoBruto || 0,
-      precoComDesconto: editingSupplier?.precoComDesconto || 0,
+      precoComDesconto: editingSupplier?.precoComDesconto ?? undefined,
       quantidadeComprada: editingSupplier?.quantidadeComprada || 1,
       usarPrecoComDesconto: editingSupplier?.usarPrecoComDesconto || false,
       prazoEntrega: editingSupplier?.prazoEntrega || 0,
@@ -188,8 +187,11 @@ export const InsumoSupplierModal = ({
                       min="0"
                       step="0.01"
                       placeholder="0,00"
-                      {...field}
-                      onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        const raw = e.target.value;
+                        field.onChange(raw === "" ? undefined : Number(raw));
+                      }}
                     />
                   </FormControl>
                   <FormMessage />

@@ -41,7 +41,7 @@ export const Navigation = () => {
   const router = useRouter();
   const isMobile = useIsMobile();
   const { userProfile } = useAppContext();
-  const { signOut, isConfigured } = useAuth();
+  const { signOut } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(isMobile);
 
   // Get user initials for avatar fallback
@@ -61,9 +61,7 @@ export const Navigation = () => {
 
   const handleLogout = async () => {
     try {
-      if (isConfigured) {
-        await signOut();
-      }
+      await signOut();
       router.push("/auth/login");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Erro ao sair";

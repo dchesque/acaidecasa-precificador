@@ -85,8 +85,9 @@ export function useAuth() {
   }
 
   const signOut = async () => {
+    // No-op in mock mode so callers (e.g. the nav menu) can always invoke it.
     if (!isSupabaseConfigured() || !supabase) {
-      throw new Error('Supabase não está configurado')
+      return
     }
 
     const { error } = await supabase.auth.signOut()

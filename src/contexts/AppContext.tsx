@@ -757,18 +757,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Build the new profile locally so we can persist the exact same shape that
+  // the reducer will produce — avoids reading stale closure state.
   const updateUserProfile = (updates: Partial<UserProfile>) => {
+    const current = state.userProfile;
+    if (!current) return;
+    const nextProfile: UserProfile = { ...current, ...updates, updatedAt: new Date() };
     dispatch({ type: 'UPDATE_USER_PROFILE', payload: updates });
-    if (state.userProfile) {
-      saveUserProfileToStorage({ ...state.userProfile, ...updates, updatedAt: new Date() });
-    }
+    saveUserProfileToStorage(nextProfile);
   };
 
   const updateUserAvatar = (avatar: string) => {
+    const current = state.userProfile;
+    if (!current) return;
+    const nextProfile: UserProfile = { ...current, avatar, updatedAt: new Date() };
     dispatch({ type: 'UPDATE_USER_AVATAR', payload: avatar });
-    if (state.userProfile) {
-      saveUserProfileToStorage({ ...state.userProfile, avatar, updatedAt: new Date() });
-    }
+    saveUserProfileToStorage(nextProfile);
   };
 
   const getUserProfile = (): UserProfile | null => {
