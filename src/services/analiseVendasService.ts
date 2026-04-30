@@ -21,17 +21,16 @@ import {
 
 // Service class para análise de vendas
 export class AnaliseVendasService {
-  private supabaseEnabled: boolean = false;
+  private supabaseEnabled: boolean;
 
   constructor() {
-    // Verificar se Supabase está configurado
-    this.checkSupabaseConfig();
-  }
-
-  private checkSupabaseConfig() {
-    // TODO: Verificar se as variáveis de ambiente do Supabase estão configuradas
-    // this.supabaseEnabled = !!process.env.NEXT_PUBLIC_SUPABASE_URL;
-    this.supabaseEnabled = false; // Por enquanto usar mock
+    // Persistence is handled by AppContext.addVendasRegistradas (which calls
+    // svc.insertVendasRegistradas under the hood). This flag is kept for
+    // legacy callsites that branch on it; the service itself only orchestrates
+    // the file parsing/match logic.
+    this.supabaseEnabled = Boolean(
+      process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    );
   }
 
   // Processar arquivo de vendas
@@ -218,9 +217,9 @@ export class AnaliseVendasService {
       status: 'concluido'
     };
 
-    if (this.supabaseEnabled) {
-      // TODO: Salvar no Supabase
-    }
+    // Persistence: AppContext.addVendasRegistradas already inserts vendas via
+    // svc.insertVendasRegistradas. Importacao metadata (header) is currently
+    // session-scoped — wiring it to `vendas_importacoes` is tracked separately.
 
     return importacao;
   }
@@ -233,9 +232,9 @@ export class AnaliseVendasService {
       importacaoId
     }));
 
-    if (this.supabaseEnabled) {
-      // TODO: Salvar no Supabase
-    }
+    // Persistence: AppContext.addVendasRegistradas already inserts vendas via
+    // svc.insertVendasRegistradas. Importacao metadata (header) is currently
+    // session-scoped — wiring it to `vendas_importacoes` is tracked separately.
 
     return vendasComImportacao;
   }
@@ -255,9 +254,9 @@ export class AnaliseVendasService {
       totalImportacoes: 1 // Incrementar baseado nas importações existentes
     };
 
-    if (this.supabaseEnabled) {
-      // TODO: Salvar no Supabase
-    }
+    // Persistence: AppContext.addVendasRegistradas already inserts vendas via
+    // svc.insertVendasRegistradas. Importacao metadata (header) is currently
+    // session-scoped — wiring it to `vendas_importacoes` is tracked separately.
 
     return systemInfo;
   }
@@ -384,9 +383,8 @@ export class AnaliseVendasService {
     venda.itemCardapioId = itemCardapioId;
     venda.statusMatch = 'manual';
 
-    if (this.supabaseEnabled) {
-      // TODO: Atualizar no Supabase
-    }
+    // Persistence: AppContext.resolveProdutoMatch fires
+    // svc.updateVendaProdutoMatch in parallel — nothing to do here.
 
     return venda;
   }

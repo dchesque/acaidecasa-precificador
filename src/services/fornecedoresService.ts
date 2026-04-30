@@ -1,122 +1,39 @@
-import { supabase, isSupabaseConfigured } from "@/lib/supabase/client";
+/**
+ * Legacy facade kept for compatibility with `Fornecedores.tsx` and
+ * `FornecedorModal.tsx`. New code should call `services/supabase` directly —
+ * this file simply forwards to it and adapts the form-data shape.
+ */
+
 import { Fornecedor } from "@/types/database";
 import { FornecedorFormData } from "@/types/forms";
+import {
+  listFornecedores,
+  createFornecedor as svcCreate,
+  updateFornecedor as svcUpdate,
+  deleteFornecedor as svcDelete,
+} from "@/services/supabase";
 
-const TABLE_NAME = "fornecedores";
-
-type FornecedorRecord = {
-  id: string;
-  nome: string;
-  contato: string | null;
-  telefone: string | null;
-  email: string | null;
-  endereco: string | null;
-  cnpj: string | null;
-  prazo_entrega: number | null;
-  pedido_minimo: number | null;
-  observacoes: string | null;
-  ativo: boolean;
-  created_at: string;
-  updated_at: string;
-};
-
-const mapRecordToFornecedor = (record: FornecedorRecord): Fornecedor => ({
-  id: record.id,
-  nome: record.nome,
-  contato: record.contato ?? undefined,
-  telefone: record.telefone ?? undefined,
-  email: record.email ?? undefined,
-  endereco: record.endereco ?? undefined,
-  cnpj: record.cnpj ?? undefined,
-  prazoEntrega: record.prazo_entrega ?? undefined,
-  pedidoMinimo: record.pedido_minimo ?? undefined,
-  observacoes: record.observacoes ?? undefined,
-  ativo: record.ativo,
-  createdAt: new Date(record.created_at),
-  updatedAt: new Date(record.updated_at),
-});
-
-const mapFormDataToPayload = (data: FornecedorFormData) => ({
+const formDataToFornecedor = (data: FornecedorFormData): Partial<Fornecedor> => ({
   nome: data.nome,
-  contato: data.contato ?? null,
-  telefone: data.telefone ?? null,
-  email: data.email ?? null,
-  endereco: data.endereco ?? null,
-  cnpj: data.cnpj ?? null,
-  prazo_entrega: data.prazoEntrega ?? null,
-  pedido_minimo: data.pedidoMinimo ?? null,
-  observacoes: data.observacoes ?? null,
+  contato: data.contato ?? undefined,
+  telefone: data.telefone ?? undefined,
+  email: data.email ?? undefined,
+  endereco: data.endereco ?? undefined,
+  cnpj: data.cnpj ?? undefined,
+  prazoEntrega: data.prazoEntrega ?? undefined,
+  pedidoMinimo: data.pedidoMinimo ?? undefined,
+  observacoes: data.observacoes ?? undefined,
   ativo: data.ativo,
 });
 
-export const fetchFornecedores = async (): Promise<Fornecedor[]> => {
-  if (!isSupabaseConfigured() || !supabase) {
-    return [];
-  }
+export const fetchFornecedores = (): Promise<Fornecedor[]> => listFornecedores();
 
-  const { data, error } = await supabase
-    .from(TABLE_NAME)
-    .select("*")
-    .order("nome", { ascending: true });
+export const createFornecedor = (formData: FornecedorFormData): Promise<Fornecedor> =>
+  svcCreate(formDataToFornecedor(formData));
 
-  if (error) {
-    throw new Error(error.message);
-  }
+export const updateFornecedor = (
+  id: string,
+  formData: FornecedorFormData
+): Promise<Fornecedor> => svcUpdate(id, formDataToFornecedor(formData));
 
-  return (data ?? []).map(mapRecordToFornecedor);
-};
-
-export const createFornecedor = async (formData: FornecedorFormData): Promise<Fornecedor> => {
-  if (!isSupabaseConfigured() || !supabase) {
-    throw new Error("Supabase não configurado");
-  }
-
-  const payload = mapFormDataToPayload(formData);
-  const { data, error } = await supabase
-    .from(TABLE_NAME)
-    .insert(payload)
-    .select()
-    .single();
-
-  if (error || !data) {
-    throw new Error(error?.message ?? "Erro ao criar fornecedor");
-  }
-
-  return mapRecordToFornecedor(data);
-};
-
-export const updateFornecedor = async (id: string, formData: FornecedorFormData): Promise<Fornecedor> => {
-  if (!isSupabaseConfigured() || !supabase) {
-    throw new Error("Supabase não configurado");
-  }
-
-  const payload = mapFormDataToPayload(formData);
-  const { data, error } = await supabase
-    .from(TABLE_NAME)
-    .update(payload)
-    .eq("id", id)
-    .select()
-    .single();
-
-  if (error || !data) {
-    throw new Error(error?.message ?? "Erro ao atualizar fornecedor");
-  }
-
-  return mapRecordToFornecedor(data);
-};
-
-export const deleteFornecedor = async (id: string): Promise<void> => {
-  if (!isSupabaseConfigured() || !supabase) {
-    throw new Error("Supabase não configurado");
-  }
-
-  const { error } = await supabase
-    .from(TABLE_NAME)
-    .delete()
-    .eq("id", id);
-
-  if (error) {
-    throw new Error(error.message);
-  }
-};
-
+export const deleteFornecedor = (id: string): Promise<void> => svcDelete(id);

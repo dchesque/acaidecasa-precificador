@@ -75,6 +75,27 @@ Siga os passos abaixo para configurar e executar o projeto em seu ambiente local
    NEXT_PUBLIC_SUPABASE_ANON_KEY=SUA_CHAVE_ANONIMA_SUPABASE
    ```
 
+> Sem essas variáveis o app inicia em **modo de demonstração** — todos os dados ficam em memória, são pré-populados com mocks e nada é persistido. Um banner amarelo no topo deixa esse estado claro.
+
+### Configurando o banco no Supabase
+
+1. Crie um projeto novo em [supabase.com](https://supabase.com) e copie a URL + a chave anon para o `.env.local`.
+2. Aplique as migrations em `supabase/migrations/` na ordem numérica:
+
+   **Pelo dashboard:**
+   `Database → SQL Editor → New query`, cole o conteúdo de cada arquivo e execute.
+
+   **Pelo CLI** ([instalação](https://supabase.com/docs/guides/cli)):
+   ```sh
+   supabase login
+   supabase link --project-ref <seu-project-ref>
+   supabase db push
+   ```
+
+3. **`0001_initial_schema.sql`** cria todas as tabelas (insumos, fornecedores, receitas, copos_base, combinados, cardapio, custos_operacionais, vendas_*) com `user_id` em cada linha e RLS já ativada.
+4. **`0002_seed_defaults.sql`** instala um trigger em `auth.users` que popula categorias e unidades-padrão para todo novo usuário no signup.
+5. (Opcional) Em `Authentication → URL Configuration`, configure o `Site URL` e o `Redirect URL` para `https://seu-dominio/auth/reset-password`, ou `http://localhost:3000/auth/reset-password` em dev.
+
 ### Executando a Aplicação
 
 Com as dependências instaladas e as variáveis de ambiente configuradas, inicie o servidor de desenvolvimento:
