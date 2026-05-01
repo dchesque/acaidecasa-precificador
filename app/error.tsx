@@ -3,6 +3,7 @@
 import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle } from "lucide-react"
+import { captureException } from "@/lib/observability"
 
 export default function Error({
   error,
@@ -12,9 +13,7 @@ export default function Error({
   reset: () => void
 }) {
   useEffect(() => {
-    if (process.env.NODE_ENV !== "production") {
-      console.error("[app/error]", error)
-    }
+    captureException(error, { boundary: "app/error", digest: error.digest })
   }, [error])
 
   return (

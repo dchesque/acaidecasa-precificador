@@ -12,6 +12,7 @@ import { useAppContext } from '@/contexts/AppContext';
 import { VendaResumoCard } from '@/components/analise-vendas/VendaResumoCard';
 import { VendaVisualizacaoTabela } from '@/components/analise-vendas/VendaVisualizacaoTabela';
 import { TopProdutosCard } from '@/components/analise-vendas/TopProdutosCard';
+import { ProdutosSemMatchCard } from '@/components/analise-vendas/ProdutosSemMatchCard';
 import { VendasImportModalSimples } from '@/components/modals/VendasImportModalSimples';
 import { VendaRegistrada, ResumoImportacao } from '@/types/analise-vendas';
 import { toast } from 'sonner';
@@ -267,8 +268,8 @@ export default function AnaliseVendas() {
           />
         )}
 
-        {/* TODO: Histórico accordion - implementar depois */}
-        {/* <HistoricoVendasAccordion vendasRegistradas={vendasRegistradas} /> */}
+        {/* Vínculos pendentes de produtos do ERP que não bateram com o cardápio */}
+        <ProdutosSemMatchCard vendas={vendasDoMes} />
 
         {/* Modal de Importação */}
         <VendasImportModalSimples

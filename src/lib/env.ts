@@ -6,6 +6,8 @@
 type ClientEnv = {
   NEXT_PUBLIC_SUPABASE_URL: string | null;
   NEXT_PUBLIC_SUPABASE_ANON_KEY: string | null;
+  NEXT_PUBLIC_SENTRY_DSN: string | null;
+  NEXT_PUBLIC_SENTRY_ENVIRONMENT: string | null;
 };
 
 const readEnv = (key: keyof ClientEnv): string | null => {
@@ -16,10 +18,15 @@ const readEnv = (key: keyof ClientEnv): string | null => {
 export const clientEnv: ClientEnv = {
   NEXT_PUBLIC_SUPABASE_URL: readEnv("NEXT_PUBLIC_SUPABASE_URL"),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: readEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
+  NEXT_PUBLIC_SENTRY_DSN: readEnv("NEXT_PUBLIC_SENTRY_DSN"),
+  NEXT_PUBLIC_SENTRY_ENVIRONMENT:
+    readEnv("NEXT_PUBLIC_SENTRY_ENVIRONMENT") ?? process.env.NODE_ENV ?? null,
 };
 
 export const isSupabaseEnvConfigured = (): boolean =>
   Boolean(clientEnv.NEXT_PUBLIC_SUPABASE_URL && clientEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
+export const isSentryEnabled = (): boolean => Boolean(clientEnv.NEXT_PUBLIC_SENTRY_DSN);
 
 /**
  * Surfaces missing env vars at build time when `NODE_ENV === 'production'`.

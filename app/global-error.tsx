@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
+import { captureException } from "@/lib/observability"
 
 export default function GlobalError({
   error,
@@ -10,9 +11,7 @@ export default function GlobalError({
   reset: () => void
 }) {
   useEffect(() => {
-    if (process.env.NODE_ENV !== "production") {
-      console.error("[app/global-error]", error)
-    }
+    captureException(error, { boundary: "app/global-error", digest: error.digest })
   }, [error])
 
   return (

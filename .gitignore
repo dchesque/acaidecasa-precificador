@@ -177,3 +177,8 @@ temp/
 .out
 .storybook-out
 storybook-static
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/

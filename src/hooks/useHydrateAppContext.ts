@@ -19,6 +19,7 @@ import {
   getConfiguracao,
 } from "@/services/supabase";
 import { toast } from "sonner";
+import { captureException, identifyUser } from "@/lib/observability";
 
 /**
  * Hydrates the entire AppContext with data from Supabase right after the user
@@ -38,7 +39,10 @@ export function useHydrateAppContext() {
     // Wait for an authenticated session before issuing RLS-gated queries.
     if (!isAuthenticated) return;
     // Mirror auth state into AppContext so consumers like Header/Navigation see it.
-    if (user) dispatch({ type: "SET_USER", payload: user });
+    if (user) {
+      dispatch({ type: "SET_USER", payload: user });
+      identifyUser({ id: user.id, email: user.email ?? undefined });
+    }
 
     let cancelled = false;
     dispatch({ type: "SET_LOADING", payload: true });
@@ -91,6 +95,7 @@ export function useHydrateAppContext() {
         const message = error instanceof Error ? error.message : "Erro ao carregar dados";
         dispatch({ type: "SET_ERROR", payload: message });
         toast.error(message);
+        captureException(error, { hook: "useHydrateAppContext" });
       } finally {
         if (!cancelled) dispatch({ type: "SET_LOADING", payload: false });
       }
