@@ -265,7 +265,7 @@ export const CopoBaseForm = ({
   const insumos = state.insumos.filter(i => i.ativo);
 
   // Component for searchable select
-  const SearchableSelect = ({
+  const SearchableSelect = <T,>({
     value,
     onValueChange,
     placeholder,
@@ -275,8 +275,8 @@ export const CopoBaseForm = ({
     value: string;
     onValueChange: (value: string) => void;
     placeholder: string;
-    options: any[];
-    renderOption: (item: any) => { value: string; label: string; details: string };
+    options: T[];
+    renderOption: (item: T) => { value: string; label: string; details: string };
   }) => {
     const [open, setOpen] = React.useState(false);
 

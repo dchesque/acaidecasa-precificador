@@ -16,7 +16,8 @@ import {
   calcularEstatisticasVendas,
   parseCSV,
   detectarColunasVendas,
-  calcularHashArquivo
+  calcularHashArquivo,
+  type CsvRow,
 } from '@/utils/vendasCalculations';
 
 // Service class para análise de vendas
@@ -159,11 +160,24 @@ export class AnaliseVendasService {
   }
 
   // Parse data baseado na extensão
-  private parseData(fileName: string, content: string): any[] {
+  private parseData(fileName: string, content: string): CsvRow[] {
     if (fileName.endsWith('.csv')) {
       return parseCSV(content);
     } else if (fileName.endsWith('.json')) {
-      return JSON.parse(content);
+      const parsed: unknown = JSON.parse(content);
+      if (!Array.isArray(parsed)) {
+        throw new Error('Arquivo JSON precisa conter um array de linhas.');
+      }
+      return parsed.map((row) => {
+        if (typeof row !== 'object' || row === null) {
+          throw new Error('Cada item do JSON precisa ser um objeto.');
+        }
+        const out: CsvRow = {};
+        for (const [k, v] of Object.entries(row as Record<string, unknown>)) {
+          out[k] = v == null ? '' : String(v);
+        }
+        return out;
+      });
     } else {
       // Para Excel, seria necessário uma biblioteca como xlsx
       throw new Error('Formato de arquivo não suportado. Use CSV ou JSON.');

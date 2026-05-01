@@ -3,7 +3,7 @@ import { BaseModal } from "./BaseModal";
 import { FornecedorForm } from "@/components/forms/FornecedorForm";
 import { useAppContext } from "@/contexts/AppContext";
 import { FornecedorFormData } from "@/types/forms";
-import { Fornecedor } from "@/types/database";
+import { Fornecedor, Insumo, InsumoFornecedor } from "@/types/database";
 import { formatarMoeda } from "@/utils/calculations";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
@@ -94,7 +94,7 @@ export const FornecedorModal = ({
   const renderViewMode = () => {
     if (!fornecedor) return null;
 
-    const insumosFornecidos = [];
+    const insumosFornecidos: Array<InsumoFornecedor & { insumo?: Insumo }> = [];
 
     return (
       <div className="space-y-6">
@@ -189,7 +189,7 @@ export const FornecedorModal = ({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {insumosFornecidos.map((item: any) => (
+                {insumosFornecidos.map((item: InsumoFornecedor & { insumo?: Insumo }) => (
                   <TableRow key={item.id}>
                     <TableCell>{item.nome}</TableCell>
                     <TableCell>{item.preco ? formatarMoeda(item.preco) : formatarMoeda(0)}</TableCell>

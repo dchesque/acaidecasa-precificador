@@ -11,6 +11,7 @@ import {
   listCoposBase,
   listCustosOperacionais,
   listFornecedores,
+  listImportacoes,
   listInsumoFornecedores,
   listInsumos,
   listReceitas,
@@ -62,6 +63,7 @@ export function useHydrateAppContext() {
           cardapio,
           custosOperacionais,
           vendas,
+          importacoes,
         ] = await Promise.all([
           getConfiguracao(),
           listCategorias(),
@@ -75,6 +77,7 @@ export function useHydrateAppContext() {
           listCardapio(),
           listCustosOperacionais(),
           listVendasRegistradas(),
+          listImportacoes(),
         ]);
 
         if (cancelled) return;
@@ -91,6 +94,10 @@ export function useHydrateAppContext() {
         dispatch({ type: "SET_CARDAPIO", payload: cardapio });
         dispatch({ type: "SET_CUSTOS_OPERACIONAIS", payload: custosOperacionais });
         dispatch({ type: "ADD_VENDAS_REGISTRADAS", payload: vendas });
+        // Replace mock importacoes with whatever the user already has on file.
+        importacoes.forEach((imp) =>
+          dispatch({ type: "INIT_IMPORTACAO", payload: imp })
+        );
       } catch (error) {
         const message = error instanceof Error ? error.message : "Erro ao carregar dados";
         dispatch({ type: "SET_ERROR", payload: message });

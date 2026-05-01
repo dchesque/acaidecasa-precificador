@@ -126,7 +126,7 @@ export const VendasFilters: React.FC<VendasFiltersProps> = ({
         <div>
           <Select
             value={filtros.statusAnalise}
-            onValueChange={(value) => onUpdateFiltros({ statusAnalise: value as any })}
+            onValueChange={(value) => onUpdateFiltros({ statusAnalise: value as FiltrosVendas['statusAnalise'] })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Status" />
@@ -147,8 +147,8 @@ export const VendasFilters: React.FC<VendasFiltersProps> = ({
             onValueChange={(value) => {
               const [orderBy, orderDirection] = value.split('-');
               onUpdateFiltros({
-                orderBy: orderBy as any,
-                orderDirection: orderDirection as any
+                orderBy: orderBy as FiltrosVendas['orderBy'],
+                orderDirection: orderDirection as FiltrosVendas['orderDirection']
               });
             }}
           >
@@ -259,7 +259,7 @@ export const VendasFilters: React.FC<VendasFiltersProps> = ({
             <Label className="text-sm">Vínculo com cardápio</Label>
             <Select
               value={filtros.statusMatch}
-              onValueChange={(value) => onUpdateFiltros({ statusMatch: value as any })}
+              onValueChange={(value) => onUpdateFiltros({ statusMatch: value as FiltrosVendas['statusMatch'] })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Status do match" />

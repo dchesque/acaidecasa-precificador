@@ -4,7 +4,7 @@ import {
   StatusPeriodo,
   ValidacaoPeriodo
 } from '@/types/periodo';
-import { CustoOperacional } from '@/types/custos-operacionais';
+import { CustoOperacional, CategoriaCustoSimples } from '@/types/custos-operacionais';
 import { VendaRegistrada } from '@/types/analise-vendas';
 
 const MESES = [
@@ -151,10 +151,17 @@ export const validarConsistenciaPeriodo = (
       sugestoes.push('Adicione custos operacionais para análise de margem precisa');
     }
 
-    const categoriasEssenciais = ['ALUGUEL', 'ENERGIA', 'AGUA', 'SALARIOS'];
-    const categoriasPresentes = [...new Set(custosNoPeriodo.map(c => c.categoria))];
-    const categoriasFaltantes = categoriasEssenciais.filter(cat =>
-      !categoriasPresentes.includes(cat as any)
+    const categoriasEssenciais: CategoriaCustoSimples[] = [
+      'ALUGUEL',
+      'ENERGIA',
+      'AGUA',
+      'SALARIOS',
+    ];
+    const categoriasPresentes = new Set<CategoriaCustoSimples>(
+      custosNoPeriodo.map((c) => c.categoria)
+    );
+    const categoriasFaltantes = categoriasEssenciais.filter(
+      (cat) => !categoriasPresentes.has(cat)
     );
 
     if (categoriasFaltantes.length > 0) {

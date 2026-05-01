@@ -57,12 +57,16 @@ export const EvolucaoFinanceira = ({
     periodoLabel: formatPeriodoLabel(d.periodo, periodo)
   }));
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: {
+    active?: boolean;
+    payload?: Array<{ value: number; name: string; color: string; dataKey: string }>;
+    label?: string | number;
+  }) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white p-3 border rounded-lg shadow-lg">
           <p className="font-semibold text-sm mb-2">{label}</p>
-          {payload.map((entry: any, index: number) => (
+          {payload.map((entry: { value: number; name: string; color: string; dataKey: string }, index: number) => (
             <div key={index} className="flex items-center gap-2 text-xs">
               <div
                 className="w-3 h-3 rounded-full"

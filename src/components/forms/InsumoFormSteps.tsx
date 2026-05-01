@@ -178,7 +178,9 @@ export const InsumoFormSteps = ({
     }
   };
 
-  const handleSupplierSave = (supplierData: any) => {
+  const handleSupplierSave = (
+    supplierData: Omit<InsumoFornecedor, 'id' | 'insumoId' | 'createdAt' | 'updatedAt'>
+  ) => {
     if (editingSupplier) {
       // Update existing supplier
       setInsumoSuppliers(prev => 

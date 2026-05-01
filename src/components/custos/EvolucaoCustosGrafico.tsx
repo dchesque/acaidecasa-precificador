@@ -69,7 +69,7 @@ export const EvolucaoCustosGrafico: React.FC<EvolucaoCustosGraficoProps> = ({
   // Preparar dados para gráfico stacked (por categoria)
   const dadosStackedChart = useMemo(() => {
     return dadosEvolucao.map(item => {
-      const base: any = {
+      const base: Record<string, number | string> = {
         mes: item.mesNome,
         total: item.total
       };
@@ -85,7 +85,11 @@ export const EvolucaoCustosGrafico: React.FC<EvolucaoCustosGraficoProps> = ({
   }, [dadosEvolucao]);
 
   // Tooltip customizado
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: {
+    active?: boolean;
+    payload?: Array<{ value: number; name: string; color: string; dataKey: string }>;
+    label?: string | number;
+  }) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
@@ -101,7 +105,7 @@ export const EvolucaoCustosGrafico: React.FC<EvolucaoCustosGraficoProps> = ({
             </div>
           ) : (
             <div className="space-y-1">
-              {payload.map((entry: any, index: number) => (
+              {payload.map((entry: { value: number; name: string; color: string; dataKey: string }, index: number) => (
                 <div key={index} className="flex items-center gap-2">
                   <div
                     className="w-3 h-3 rounded-full"
@@ -119,7 +123,7 @@ export const EvolucaoCustosGrafico: React.FC<EvolucaoCustosGraficoProps> = ({
                 <span className="text-sm font-semibold text-gray-700">Total:</span>
                 <span className="text-sm font-bold text-gray-900">
                   {formatarMoeda(
-                    payload.reduce((acc: number, p: any) => acc + p.value, 0)
+                    payload.reduce((acc: number, p: { value: number; name: string; color: string; dataKey: string }) => acc + p.value, 0)
                   )}
                 </span>
               </div>

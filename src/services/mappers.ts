@@ -22,7 +22,8 @@ import type {
   UnidadeMedida,
 } from "@/types/database";
 import type { CustoOperacional, CustoItem } from "@/types/custos-operacionais";
-import type { VendaRegistrada } from "@/types/analise-vendas";
+import type { ImportacaoVendas, VendaRegistrada } from "@/types/analise-vendas";
+import { criarPeriodoCustomizado } from "@/utils/periodoUtils";
 import type { Database } from "@/types/supabase";
 
 type Tables = Database["public"]["Tables"];
@@ -412,6 +413,60 @@ export const mapCustoItemRow = (
   descricao: row.descricao ?? "",
   valor: num(row.valor),
   ordem: row.ordem,
+});
+
+// ---------- ImportacaoVendas (header) ---------------------------------------
+const mapStatusToDb = (
+  status: ImportacaoVendas["status"]
+): "PROCESSANDO" | "CONCLUIDA" | "FALHA" =>
+  status === "concluido" ? "CONCLUIDA" : status === "erro" ? "FALHA" : "PROCESSANDO";
+
+const mapStatusFromDb = (
+  status: "PROCESSANDO" | "CONCLUIDA" | "FALHA"
+): ImportacaoVendas["status"] =>
+  status === "CONCLUIDA" ? "concluido" : status === "FALHA" ? "erro" : "processando";
+
+export const mapImportacaoRow = (
+  row: Tables["vendas_importacoes"]["Row"]
+): ImportacaoVendas => {
+  // Reconstruct a synthetic month-window from `mes_referencia`. We don't store
+  // the precise inicio/fim because the DB header is per-month; the period
+  // helper gives a consistent first-day → last-day pair.
+  const [ano, mes] = row.mes_referencia.split("-").map(Number);
+  const dataInicio = new Date(ano, mes - 1, 1);
+  const dataFim = new Date(ano, mes, 0, 23, 59, 59);
+  return {
+    id: row.id,
+    nomeArquivo: row.arquivo_nome,
+    dataImportacao: toDate(row.created_at),
+    periodoInicio: dataInicio,
+    periodoFim: dataFim,
+    periodoImportacao: criarPeriodoCustomizado(dataInicio, dataFim),
+    totalRegistros: row.total_registros,
+    totalImportados: row.registros_importados,
+    totalDuplicados: row.registros_duplicados,
+    totalSemMatch: row.produtos_sem_match,
+    status: mapStatusFromDb(row.status),
+    erro: row.erro ?? undefined,
+  };
+};
+
+export const toImportacaoInsert = (
+  imp: Partial<ImportacaoVendas>,
+  userId: string,
+  mesReferencia: string
+): Tables["vendas_importacoes"]["Insert"] => ({
+  ...(imp.id ? { id: imp.id } : {}),
+  user_id: userId,
+  arquivo_nome: imp.nomeArquivo ?? "",
+  arquivo_hash: null,
+  mes_referencia: mesReferencia,
+  total_registros: imp.totalRegistros ?? 0,
+  registros_importados: imp.totalImportados ?? 0,
+  registros_duplicados: imp.totalDuplicados ?? 0,
+  produtos_sem_match: imp.totalSemMatch ?? 0,
+  status: imp.status ? mapStatusToDb(imp.status) : "CONCLUIDA",
+  erro: imp.erro ?? null,
 });
 
 // ---------- VendaRegistrada -------------------------------------------------

@@ -131,7 +131,10 @@ export interface ConversaoModalProps {
   isOpen: boolean;
   onClose: () => void;
   custo: CustoOperacional;
-  onConfirm: (novoTipo: TipoCusto, data: any) => void;
+  onConfirm: (
+    novoTipo: TipoCusto,
+    data: CustoOperacionalRapidoInput | CustoOperacionalDetalhadoInput
+  ) => void;
 }
 
 // ============================================================================

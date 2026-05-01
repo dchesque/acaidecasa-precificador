@@ -907,7 +907,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // Vendas action functions
-  const initImportacao = (importacao: ImportacaoVendas) => dispatch({ type: 'INIT_IMPORTACAO', payload: importacao });
+  const initImportacao = (importacao: ImportacaoVendas) => {
+    dispatch({ type: 'INIT_IMPORTACAO', payload: importacao });
+    // The header uses the venda's mes-format. We pull it from the period's
+    // start date to keep the SQL CHECK happy even for custom ranges.
+    const mesReferencia =
+      importacao.periodoImportacao?.mesReferencia ??
+      `${importacao.periodoInicio.getFullYear()}-${String(
+        importacao.periodoInicio.getMonth() + 1
+      ).padStart(2, '0')}`;
+    persist(() => svc.upsertImportacao(importacao, mesReferencia));
+  };
   const addVendasRegistradas = (vendas: VendaRegistrada[]) => {
     dispatch({ type: 'ADD_VENDAS_REGISTRADAS', payload: vendas });
     persist(() => svc.insertVendasRegistradas(vendas));

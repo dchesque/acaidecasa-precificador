@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { Database, Calendar, Upload, AlertCircle } from 'lucide-react';
+import { VendasSystemInfo } from '@/types/analise-vendas';
 
 interface VendasSystemStatusProps {
-  systemInfo: any;
+  systemInfo: VendasSystemInfo;
 }
 
 export function VendasSystemStatus({ systemInfo }: VendasSystemStatusProps) {
@@ -13,7 +14,7 @@ export function VendasSystemStatus({ systemInfo }: VendasSystemStatusProps) {
   useEffect(() => {
     setIsClient(true);
   }, []);
-  const formatarTempoDecorrido = (data: any) => {
+  const formatarTempoDecorrido = (data: Date | string | null) => {
     if (!data) return 'Nunca';
 
     const agora = new Date();
@@ -33,7 +34,7 @@ export function VendasSystemStatus({ systemInfo }: VendasSystemStatusProps) {
     }
   };
 
-  const formatarData = (data: any) => {
+  const formatarData = (data: Date | string | null) => {
     if (!data) return '';
     const d = new Date(data);
     return d.toLocaleDateString('pt-BR');

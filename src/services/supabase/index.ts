@@ -28,7 +28,7 @@ import {
   UnidadeMedida,
 } from "@/types/database";
 import { CustoOperacional, CustoItem } from "@/types/custos-operacionais";
-import { VendaRegistrada } from "@/types/analise-vendas";
+import { ImportacaoVendas, VendaRegistrada } from "@/types/analise-vendas";
 import {
   mapCardapioRow,
   mapCategoriaRow,
@@ -40,6 +40,7 @@ import {
   mapCustoItemRow,
   mapCustoOperacionalRow,
   mapFornecedorRow,
+  mapImportacaoRow,
   mapInsumoFornecedorRow,
   mapInsumoRow,
   mapReceitaIngredienteRow,
@@ -52,6 +53,7 @@ import {
   toConfiguracaoUpsert,
   toCopoBaseInsert,
   toFornecedorInsert,
+  toImportacaoInsert,
   toInsumoFornecedorInsert,
   toInsumoInsert,
   toReceitaInsert,
@@ -494,7 +496,33 @@ export const deleteCustoOperacional = async (id: string): Promise<void> => {
 };
 
 // ============================================================================
-// VENDAS
+// VENDAS — IMPORTACOES (header)
+// ============================================================================
+export const listImportacoes = async (): Promise<ImportacaoVendas[]> => {
+  const { data, error } = await getSupabase()
+    .from("vendas_importacoes")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) throwIf(error, "Falha ao listar importações");
+  return (data ?? []).map(mapImportacaoRow);
+};
+
+export const upsertImportacao = async (
+  imp: Partial<ImportacaoVendas>,
+  mesReferencia: string
+): Promise<ImportacaoVendas> => {
+  const userId = await requireUserId();
+  const payload = toImportacaoInsert(imp, userId, mesReferencia);
+  const query = imp.id
+    ? getSupabase().from("vendas_importacoes").update(payload).eq("id", imp.id)
+    : getSupabase().from("vendas_importacoes").insert(payload);
+  const { data, error } = await query.select().single();
+  if (error || !data) throwIf(error, "Falha ao salvar importação");
+  return mapImportacaoRow(data!);
+};
+
+// ============================================================================
+// VENDAS — REGISTRADAS
 // ============================================================================
 export const listVendasRegistradas = async (): Promise<VendaRegistrada[]> => {
   const { data, error } = await getSupabase()
