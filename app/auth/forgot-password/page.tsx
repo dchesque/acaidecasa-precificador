@@ -20,12 +20,8 @@ export default function ForgotPasswordPage() {
           throw error
         }
       } else {
-        console.log("Supabase não configurado - simulando recuperação de senha:", data)
         await new Promise(resolve => setTimeout(resolve, 1000))
       }
-    } catch (error) {
-      console.error("Erro na recuperação de senha:", error)
-      throw error
     } finally {
       setIsLoading(false)
     }

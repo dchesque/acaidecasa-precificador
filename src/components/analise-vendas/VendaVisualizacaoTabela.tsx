@@ -67,8 +67,8 @@ export function VendaVisualizacaoTabela({ vendas, loading = false }: VendaVisual
 
     // Ordenar
     resultado.sort((a, b) => {
-      let valorA: any;
-      let valorB: any;
+      let valorA: string | number | Date;
+      let valorB: string | number | Date;
 
       switch (ordenacao) {
         case 'data':

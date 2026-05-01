@@ -26,16 +26,26 @@ import { InsumoFornecedor } from "@/types/database";
 import { formatarCustoPorUnidade } from "@/utils/calculations";
 import { z } from "zod";
 
-const insumoSupplierSchema = z.object({
-  fornecedorId: z.string().min(1, "Fornecedor é obrigatório"),
-  precoBruto: z.number().min(0.01, "Preço bruto deve ser maior que zero"),
-  precoComDesconto: z.number().min(0).optional(),
-  quantidadeComprada: z.number().min(0.001, "Quantidade deve ser maior que zero"),
-  usarPrecoComDesconto: z.boolean().default(false),
-  prazoEntrega: z.number().min(0).optional(),
-  observacoes: z.string().optional(),
-  ativo: z.boolean().default(true),
-});
+const insumoSupplierSchema = z
+  .object({
+    fornecedorId: z.string().min(1, "Fornecedor é obrigatório"),
+    precoBruto: z.number().min(0.01, "Preço bruto deve ser maior que zero"),
+    precoComDesconto: z.number().min(0).optional(),
+    quantidadeComprada: z.number().min(0.001, "Quantidade deve ser maior que zero"),
+    usarPrecoComDesconto: z.boolean().default(false),
+    prazoEntrega: z.number().min(0).optional(),
+    observacoes: z.string().optional(),
+    ativo: z.boolean().default(true),
+  })
+  .refine(
+    (data) =>
+      data.precoComDesconto === undefined ||
+      (data.precoComDesconto > 0 && data.precoComDesconto <= data.precoBruto),
+    {
+      message: "Preço com desconto deve ser maior que zero e menor ou igual ao preço bruto",
+      path: ["precoComDesconto"],
+    }
+  );
 
 type InsumoSupplierFormData = z.infer<typeof insumoSupplierSchema>;
 
@@ -62,7 +72,7 @@ export const InsumoSupplierModal = ({
     defaultValues: {
       fornecedorId: editingSupplier?.fornecedorId || "",
       precoBruto: editingSupplier?.precoBruto || 0,
-      precoComDesconto: editingSupplier?.precoComDesconto || 0,
+      precoComDesconto: editingSupplier?.precoComDesconto ?? undefined,
       quantidadeComprada: editingSupplier?.quantidadeComprada || 1,
       usarPrecoComDesconto: editingSupplier?.usarPrecoComDesconto || false,
       prazoEntrega: editingSupplier?.prazoEntrega || 0,
@@ -177,8 +187,11 @@ export const InsumoSupplierModal = ({
                       min="0"
                       step="0.01"
                       placeholder="0,00"
-                      {...field}
-                      onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        const raw = e.target.value;
+                        field.onChange(raw === "" ? undefined : Number(raw));
+                      }}
                     />
                   </FormControl>
                   <FormMessage />

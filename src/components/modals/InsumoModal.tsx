@@ -5,6 +5,7 @@ import { useAppContext } from "@/contexts/AppContext";
 import { Insumo, InsumoFornecedor } from "@/types/database";
 import { useToast } from "@/hooks/use-toast";
 import { calcularCustoPorGrama } from "@/utils/calculations";
+import { newId } from "@/lib/ids";
 
 interface InsumoModalProps {
   open: boolean;
@@ -58,7 +59,7 @@ export const InsumoModal = ({
           const supplierToSave: InsumoFornecedor = {
             ...supplier,
             insumoId: insumo.id,
-            id: supplier.id || Date.now().toString() + Math.random().toString(),
+            id: supplier.id || newId(),
             createdAt: supplier.createdAt || now,
             updatedAt: now,
           };
@@ -71,7 +72,7 @@ export const InsumoModal = ({
         });
       } else {
         // Create new insumo
-        const newInsumoId = Date.now().toString();
+        const newInsumoId = newId();
         const newInsumo: Insumo = {
           ...formData,
           id: newInsumoId,
@@ -84,10 +85,10 @@ export const InsumoModal = ({
         dispatch({ type: 'ADD_INSUMO', payload: newInsumo });
 
         // Add suppliers for the new insumo
-        suppliers.forEach((supplier, index) => {
+        suppliers.forEach((supplier) => {
           const supplierToSave: InsumoFornecedor = {
             ...supplier,
-            id: (Date.now() + index).toString(),
+            id: newId(),
             insumoId: newInsumoId,
             createdAt: now,
             updatedAt: now,

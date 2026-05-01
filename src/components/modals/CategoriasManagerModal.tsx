@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAppContext } from "@/contexts/AppContext";
 import { Categoria } from "@/types/database";
 import { useToast } from "@/hooks/use-toast";
+import { useConfirm } from "@/components/common/ConfirmProvider";
 import { Plus, Search, Edit, Trash2, Tag, Palette } from "lucide-react";
 
 interface CategoriasManagerModalProps {
@@ -20,6 +21,7 @@ export const CategoriasManagerModal = ({
 }: CategoriasManagerModalProps) => {
   const { state, dispatch } = useAppContext();
   const { toast } = useToast();
+  const confirm = useConfirm();
   const [searchTerm, setSearchTerm] = useState("");
   const [categoriaModalOpen, setCategoriaModalOpen] = useState(false);
   const [editingCategoria, setEditingCategoria] = useState<Categoria | undefined>();
@@ -34,8 +36,14 @@ export const CategoriasManagerModal = ({
     setCategoriaModalOpen(true);
   };
 
-  const handleDeleteCategoria = (categoria: Categoria) => {
-    if (window.confirm(`Tem certeza que deseja excluir a categoria "${categoria.nome}"?`)) {
+  const handleDeleteCategoria = async (categoria: Categoria) => {
+    const ok = await confirm({
+      title: "Excluir categoria",
+      description: `Tem certeza que deseja excluir a categoria "${categoria.nome}"?`,
+      destructive: true,
+      confirmLabel: "Excluir",
+    });
+    if (ok) {
       dispatch({ type: 'DELETE_CATEGORIA', payload: categoria.id });
       toast({
         title: "Categoria excluída",
@@ -125,15 +133,17 @@ export const CategoriasManagerModal = ({
                         variant="ghost"
                         size="sm"
                         onClick={() => handleEditCategoria(categoria)}
+                        aria-label={`Editar categoria ${categoria.nome}`}
                       >
-                        <Edit className="h-4 w-4" />
+                        <Edit className="h-4 w-4" aria-hidden="true" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDeleteCategoria(categoria)}
+                        aria-label={`Excluir categoria ${categoria.nome}`}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4" aria-hidden="true" />
                       </Button>
                     </div>
                   </div>

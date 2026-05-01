@@ -36,7 +36,11 @@ export const BaseModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`${sizeClasses[size]} max-h-[90vh] overflow-hidden`}>
+      {/* `w-[calc(100%-2rem)]` keeps the modal inside the viewport on mobile,
+          where `max-w-2xl` alone would overflow. */}
+      <DialogContent
+        className={`${sizeClasses[size]} w-[calc(100%-2rem)] max-h-[90vh] overflow-hidden`}
+      >
         <DialogHeader className="px-6 pt-6">
           <DialogTitle className="text-xl font-semibold">{title}</DialogTitle>
           {description && (
@@ -45,11 +49,11 @@ export const BaseModal = ({
             </DialogDescription>
           )}
         </DialogHeader>
-        
+
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
           {children}
         </div>
-        
+
         {footer && (
           <div className="flex justify-end gap-2 px-6 pb-6 pt-4 border-t">
             {footer}

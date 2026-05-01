@@ -28,6 +28,8 @@ import { Label } from "@/components/ui/label";
 import { insumoSchema, InsumoFormData } from "@/types/forms";
 import { Insumo, Categoria, Fornecedor, InsumoFornecedor } from "@/types/database";
 import { useAppContext } from "@/contexts/AppContext";
+import { useConfirm } from "@/components/common/ConfirmProvider";
+import { newId } from "@/lib/ids";
 import { formatarMoeda, formatarCustoPorUnidade } from "@/utils/calculations";
 import { ChevronLeft, ChevronRight, Package, Tag, Building2, DollarSign, Plus, Calculator, Edit, Trash2, Star, Users, Coffee, Settings, Check, X, Tags } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -74,6 +76,7 @@ export const InsumoFormSteps = ({
   const [editingSupplier, setEditingSupplier] = useState<InsumoFornecedor | undefined>();
   const [insumoSuppliers, setInsumoSuppliers] = useState<InsumoFornecedor[]>([]);
   const { state, dispatch } = useAppContext();
+  const confirm = useConfirm();
 
   // Estados para modal de categorias (padrão cardápio)
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -175,7 +178,9 @@ export const InsumoFormSteps = ({
     }
   };
 
-  const handleSupplierSave = (supplierData: any) => {
+  const handleSupplierSave = (
+    supplierData: Omit<InsumoFornecedor, 'id' | 'insumoId' | 'createdAt' | 'updatedAt'>
+  ) => {
     if (editingSupplier) {
       // Update existing supplier
       setInsumoSuppliers(prev => 
@@ -187,7 +192,7 @@ export const InsumoFormSteps = ({
     } else {
       // Add new supplier
       const newSupplier: InsumoFornecedor = {
-        id: Date.now().toString(),
+        id: newId(),
         insumoId: insumo?.id || '',
         ...supplierData,
         createdAt: new Date(),
@@ -328,11 +333,16 @@ export const InsumoFormSteps = ({
     setEditCategoryColor("#8B5CF6");
   };
 
-  const handleDeleteCategory = (categoryId: string) => {
+  const handleDeleteCategory = async (categoryId: string) => {
     const categoria = state.categorias.find(cat => cat.id === categoryId);
-    if (window.confirm(`Tem certeza que deseja excluir a categoria "${categoria?.nome}"?`)) {
+    const ok = await confirm({
+      title: "Excluir categoria",
+      description: `Tem certeza que deseja excluir a categoria "${categoria?.nome}"?`,
+      destructive: true,
+      confirmLabel: "Excluir",
+    });
+    if (ok) {
       dispatch({ type: 'DELETE_CATEGORIA', payload: categoryId });
-      console.log("🗑️ Categoria de insumo excluída:", categoria?.nome);
     }
   };
 
@@ -671,8 +681,9 @@ export const InsumoFormSteps = ({
                                   size="sm"
                                   onClick={() => handleEditSupplier(supplier)}
                                   title="Editar fornecedor"
+                                  aria-label="Editar fornecedor"
                                 >
-                                  <Edit className="h-4 w-4" />
+                                  <Edit className="h-4 w-4" aria-hidden="true" />
                                 </Button>
                                 <Button
                                   type="button"
@@ -680,8 +691,9 @@ export const InsumoFormSteps = ({
                                   size="sm"
                                   onClick={() => handleDeleteSupplier(supplier.id)}
                                   title="Remover fornecedor"
+                                  aria-label="Remover fornecedor"
                                 >
-                                  <Trash2 className="h-4 w-4" />
+                                  <Trash2 className="h-4 w-4" aria-hidden="true" />
                                 </Button>
                               </div>
                             </TableCell>
@@ -1004,8 +1016,9 @@ export const InsumoFormSteps = ({
                             className="h-7 w-7 p-0"
                             onClick={() => handleEditCategory(categoria.id)}
                             disabled={isEditing}
+                            aria-label={`Editar categoria ${categoria.nome}`}
                           >
-                            <Settings className="w-3 h-3" />
+                            <Settings className="w-3 h-3" aria-hidden="true" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -1013,8 +1026,9 @@ export const InsumoFormSteps = ({
                             className="h-7 w-7 p-0 text-destructive hover:text-destructive"
                             onClick={() => handleDeleteCategory(categoria.id)}
                             disabled={isEditing}
+                            aria-label={`Excluir categoria ${categoria.nome}`}
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-3 h-3" aria-hidden="true" />
                           </Button>
                         </div>
                       </div>

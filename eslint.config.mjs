@@ -11,4 +11,14 @@ const compat = new FlatCompat({
 
 export default [
   ...compat.extends("next/core-web-vitals"),
+  {
+    rules: {
+      "no-console": ["warn", { allow: ["warn", "error"] }],
+      "jsx-a11y/alt-text": "warn",
+      "jsx-a11y/anchor-has-content": "warn",
+      "jsx-a11y/aria-props": "error",
+      "jsx-a11y/no-redundant-roles": "warn",
+      "jsx-a11y/role-has-required-aria-props": "error",
+    },
+  },
 ];

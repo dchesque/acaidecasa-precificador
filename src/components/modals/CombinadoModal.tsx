@@ -6,6 +6,7 @@ import { CombinadoFormData } from "@/types/forms";
 import { Combinado, CombinadoComplemento } from "@/types/database";
 import { useToast } from "@/hooks/use-toast";
 import { calcularCustoCombo, calcularCustoPorGrama } from "@/utils/calculations";
+import { newId } from "@/lib/ids";
 
 interface CombinadoModalProps {
   open: boolean;
@@ -31,10 +32,11 @@ export const CombinadoModal = ({
       const categoria = state.categorias.find(c => c.id === data.categoriaId);
       const copoBase = state.coposBase.find(c => c.id === data.copoBaseId);
 
+      const combinadoId = combinado?.id ?? newId();
       // Create complement items
-      const complementos: CombinadoComplemento[] = (data.complementos || []).map((comp, index) => ({
-        id: `${Date.now()}-${index}`,
-        combinadoId: combinado?.id || Date.now().toString(),
+      const complementos: CombinadoComplemento[] = (data.complementos || []).map((comp) => ({
+        id: newId(),
+        combinadoId,
         tipo: comp.tipo,
         insumoId: comp.tipo === 'INSUMO' ? comp.insumoId : undefined,
         receitaId: comp.tipo === 'RECEITA' ? comp.receitaId : undefined,
@@ -93,7 +95,7 @@ export const CombinadoModal = ({
         // Create new combo
         const newCombinado: Combinado = {
           ...data,
-          id: Date.now().toString(),
+          id: combinadoId,
           categoria,
           copoBase,
           complementos,

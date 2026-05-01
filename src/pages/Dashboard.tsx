@@ -10,34 +10,20 @@ import { AlertasCriticos } from "@/components/dashboard/AlertasCriticos";
 import { EvolucaoFinanceira } from "@/components/dashboard/EvolucaoFinanceira";
 import { CardapioAnalise } from "@/components/dashboard/CardapioAnalise";
 import { AcoesRapidas } from "@/components/dashboard/AcoesRapidas";
-import {
-  mockConfiguracao,
-  mockCategorias,
-  mockUnidadesMedida,
-  mockFornecedores,
-  mockInsumos,
-  mockReceitas,
-  mockCoposBase,
-  mockCombinados,
-  mockCardapio
-} from "@/data/mockData";
+import { mockConfiguracao } from "@/data/mockData";
 
 const Dashboard = () => {
   const { state, dispatch } = useAppContext();
   const { verificarAlertas } = useCalculations();
 
-  // Load mock data on mount
+  // Seed `configuracao` only if it has not been loaded yet — the rest of the
+  // domain data already lives in AppContext's initial state, so re-dispatching
+  // mocks here would silently overwrite any user edits.
   useEffect(() => {
-    dispatch({ type: 'SET_CONFIGURACAO', payload: mockConfiguracao });
-    dispatch({ type: 'SET_CATEGORIAS', payload: mockCategorias });
-    dispatch({ type: 'SET_UNIDADES_MEDIDA', payload: mockUnidadesMedida });
-    dispatch({ type: 'SET_FORNECEDORES', payload: mockFornecedores });
-    dispatch({ type: 'SET_INSUMOS', payload: mockInsumos });
-    dispatch({ type: 'SET_RECEITAS', payload: mockReceitas });
-    dispatch({ type: 'SET_COPOS_BASE', payload: mockCoposBase });
-    dispatch({ type: 'SET_COMBINADOS', payload: mockCombinados });
-    dispatch({ type: 'SET_CARDAPIO', payload: mockCardapio });
-  }, [dispatch]);
+    if (!state.configuracao) {
+      dispatch({ type: 'SET_CONFIGURACAO', payload: mockConfiguracao });
+    }
+  }, [state.configuracao, dispatch]);
 
   // Verificar alertas quando dados mudam
   const handleVerificarAlertas = useCallback(() => {

@@ -30,13 +30,28 @@ export const calcularLucro = (
   };
 };
 
+export const LIMITE_DIVERGENCIA_LEVE = 5;
+export const LIMITE_DIVERGENCIA_GRAVE = 15;
+
 export const classificarVenda = (
   divergenciaPercent: number,
   margem: number
 ): StatusVenda => {
   if (margem < 0) return 'prejuizo';
-  if (Math.abs(divergenciaPercent) > 15) return 'divergencia';
-  if (Math.abs(divergenciaPercent) > 5) return 'divergencia';
+  const absoluto = Math.abs(divergenciaPercent);
+  if (absoluto > LIMITE_DIVERGENCIA_LEVE) return 'divergencia';
+  return 'ok';
+};
+
+// Granular classification — exposes the leve/grave distinction for UI badges/charts.
+export type DivergenciaSeveridade = 'ok' | 'leve' | 'grave';
+
+export const classificarSeveridadeDivergencia = (
+  divergenciaPercent: number
+): DivergenciaSeveridade => {
+  const absoluto = Math.abs(divergenciaPercent);
+  if (absoluto > LIMITE_DIVERGENCIA_GRAVE) return 'grave';
+  if (absoluto > LIMITE_DIVERGENCIA_LEVE) return 'leve';
   return 'ok';
 };
 
@@ -89,8 +104,19 @@ export const calcularEstatisticasVendas = (vendas: VendaRegistrada[]) => {
   };
 };
 
-export const agruparVendasPorProduto = (vendas: VendaRegistrada[]) => {
-  const agrupado = vendas.reduce((acc, venda) => {
+export type AgrupamentoProduto = {
+  nome: string;
+  quantidade: number;
+  valorTotal: number;
+  custoTotal: number;
+  divergenciaTotal: number;
+  ocorrencias: number;
+};
+
+export const agruparVendasPorProduto = (
+  vendas: VendaRegistrada[]
+): AgrupamentoProduto[] => {
+  const agrupado = vendas.reduce<Record<string, AgrupamentoProduto>>((acc, venda) => {
     const key = venda.itemCardapioId || venda.produtoNome;
     if (!acc[key]) {
       acc[key] = {
@@ -99,7 +125,7 @@ export const agruparVendasPorProduto = (vendas: VendaRegistrada[]) => {
         valorTotal: 0,
         custoTotal: 0,
         divergenciaTotal: 0,
-        ocorrencias: 0
+        ocorrencias: 0,
       };
     }
 
@@ -110,13 +136,24 @@ export const agruparVendasPorProduto = (vendas: VendaRegistrada[]) => {
     acc[key].ocorrencias += 1;
 
     return acc;
-  }, {} as Record<string, any>);
+  }, {});
 
   return Object.values(agrupado).sort((a, b) => b.valorTotal - a.valorTotal);
 };
 
-export const calcularTendencia = (vendas: VendaRegistrada[], periodo: 'dia' | 'semana' | 'mes' = 'dia') => {
-  const agrupado = vendas.reduce((acc, venda) => {
+export type TendenciaPeriodo = {
+  periodo: string;
+  vendas: number;
+  valor: number;
+  lucro: number;
+  margem: number;
+};
+
+export const calcularTendencia = (
+  vendas: VendaRegistrada[],
+  periodo: 'dia' | 'semana' | 'mes' = 'dia'
+): TendenciaPeriodo[] => {
+  const agrupado = vendas.reduce<Record<string, TendenciaPeriodo>>((acc, venda) => {
     const data = new Date(venda.dataVenda);
     let key: string;
 
@@ -124,10 +161,11 @@ export const calcularTendencia = (vendas: VendaRegistrada[], periodo: 'dia' | 's
       case 'dia':
         key = data.toISOString().split('T')[0];
         break;
-      case 'semana':
-        const semana = Math.floor(data.getDate() / 7);
-        key = `${data.getFullYear()}-${data.getMonth() + 1}-S${semana + 1}`;
+      case 'semana': {
+        const semana = Math.floor((data.getDate() - 1) / 7) + 1;
+        key = `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}-S${semana}`;
         break;
+      }
       case 'mes':
         key = `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}`;
         break;
@@ -139,7 +177,7 @@ export const calcularTendencia = (vendas: VendaRegistrada[], periodo: 'dia' | 's
         vendas: 0,
         valor: 0,
         lucro: 0,
-        margem: 0
+        margem: 0,
       };
     }
 
@@ -148,31 +186,37 @@ export const calcularTendencia = (vendas: VendaRegistrada[], periodo: 'dia' | 's
     acc[key].lucro += venda.lucroBrutoReal;
 
     return acc;
-  }, {} as Record<string, any>);
+  }, {});
 
-  // Calcular margem média para cada período
-  Object.values(agrupado).forEach((periodo: any) => {
-    periodo.margem = periodo.valor > 0
-      ? (periodo.lucro / periodo.valor) * 100
-      : 0;
-    periodo.margem = Number(periodo.margem.toFixed(2));
-    periodo.valor = Number(periodo.valor.toFixed(2));
-    periodo.lucro = Number(periodo.lucro.toFixed(2));
+  Object.values(agrupado).forEach((bucket) => {
+    bucket.margem = bucket.valor > 0 ? (bucket.lucro / bucket.valor) * 100 : 0;
+    bucket.margem = Number(bucket.margem.toFixed(2));
+    bucket.valor = Number(bucket.valor.toFixed(2));
+    bucket.lucro = Number(bucket.lucro.toFixed(2));
   });
 
-  return Object.values(agrupado).sort((a: any, b: any) => a.periodo.localeCompare(b.periodo));
+  return Object.values(agrupado).sort((a, b) => a.periodo.localeCompare(b.periodo));
 };
 
-export const identificarProdutosSemMatch = (vendas: VendaRegistrada[]) => {
-  const semMatch = vendas.filter(v => v.statusMatch === 'not_found');
+export type ProdutoSemMatchAgrupado = {
+  produtoErpId: string;
+  produtoNome: string;
+  ocorrencias: number;
+  valorTotal: number;
+};
 
-  const agrupado = semMatch.reduce((acc, venda) => {
+export const identificarProdutosSemMatch = (
+  vendas: VendaRegistrada[]
+): ProdutoSemMatchAgrupado[] => {
+  const semMatch = vendas.filter((v) => v.statusMatch === 'not_found');
+
+  const agrupado = semMatch.reduce<Record<string, ProdutoSemMatchAgrupado>>((acc, venda) => {
     if (!acc[venda.produtoErpId]) {
       acc[venda.produtoErpId] = {
         produtoErpId: venda.produtoErpId,
         produtoNome: venda.produtoNome,
         ocorrencias: 0,
-        valorTotal: 0
+        valorTotal: 0,
       };
     }
 
@@ -180,7 +224,7 @@ export const identificarProdutosSemMatch = (vendas: VendaRegistrada[]) => {
     acc[venda.produtoErpId].valorTotal += venda.precoTotalVendido;
 
     return acc;
-  }, {} as Record<string, any>);
+  }, {});
 
   return Object.values(agrupado).sort((a, b) => b.ocorrencias - a.ocorrencias);
 };
@@ -193,7 +237,8 @@ export const formatarMoeda = (valor: number): string => {
 };
 
 export const formatarPercentual = (valor: number): string => {
-  return `${valor.toFixed(1)}%`;
+  if (!Number.isFinite(valor)) return '0,0%';
+  return `${valor.toFixed(1).replace('.', ',')}%`;
 };
 
 export const formatarData = (data: Date | string): string => {
@@ -241,16 +286,18 @@ export const validarArquivoVendas = (file: File): { valido: boolean; erro?: stri
   return { valido: true };
 };
 
-export const parseCSV = (text: string, delimiter: string = ','): any[] => {
-  const lines = text.split('\n').filter(line => line.trim());
+export type CsvRow = Record<string, string>;
+
+export const parseCSV = (text: string, delimiter: string = ','): CsvRow[] => {
+  const lines = text.split('\n').filter((line) => line.trim());
   if (lines.length === 0) return [];
 
-  const headers = lines[0].split(delimiter).map(h => h.trim());
-  const data = [];
+  const headers = lines[0].split(delimiter).map((h) => h.trim());
+  const data: CsvRow[] = [];
 
   for (let i = 1; i < lines.length; i++) {
     const values = lines[i].split(delimiter);
-    const row: any = {};
+    const row: CsvRow = {};
 
     headers.forEach((header, index) => {
       row[header] = values[index]?.trim() || '';
@@ -262,7 +309,7 @@ export const parseCSV = (text: string, delimiter: string = ','): any[] => {
   return data;
 };
 
-export const detectarColunasVendas = (data: any[]): {
+export const detectarColunasVendas = (data: CsvRow[]): {
   colunas: Record<string, string>;
   valido: boolean;
   erros: string[];

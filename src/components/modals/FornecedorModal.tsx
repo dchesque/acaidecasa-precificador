@@ -3,7 +3,7 @@ import { BaseModal } from "./BaseModal";
 import { FornecedorForm } from "@/components/forms/FornecedorForm";
 import { useAppContext } from "@/contexts/AppContext";
 import { FornecedorFormData } from "@/types/forms";
-import { Fornecedor } from "@/types/database";
+import { Fornecedor, Insumo, InsumoFornecedor } from "@/types/database";
 import { formatarMoeda } from "@/utils/calculations";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Package } from "lucide-react";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { createFornecedor as createFornecedorService, updateFornecedor as updateFornecedorService } from "@/services/fornecedoresService";
+import { newId } from "@/lib/ids";
 
 interface FornecedorModalProps {
   open: boolean;
@@ -42,7 +43,7 @@ export const FornecedorModal = ({
           addFornecedor(novoFornecedor);
         } else {
           const novoFornecedor: Fornecedor = {
-            id: Date.now().toString(),
+            id: newId(),
             ...data,
             createdAt: new Date(),
             updatedAt: new Date()
@@ -93,7 +94,7 @@ export const FornecedorModal = ({
   const renderViewMode = () => {
     if (!fornecedor) return null;
 
-    const insumosFornecidos = [];
+    const insumosFornecidos: Array<InsumoFornecedor & { insumo?: Insumo }> = [];
 
     return (
       <div className="space-y-6">
@@ -188,7 +189,7 @@ export const FornecedorModal = ({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {insumosFornecidos.map((item: any) => (
+                {insumosFornecidos.map((item: InsumoFornecedor & { insumo?: Insumo }) => (
                   <TableRow key={item.id}>
                     <TableCell>{item.nome}</TableCell>
                     <TableCell>{item.preco ? formatarMoeda(item.preco) : formatarMoeda(0)}</TableCell>

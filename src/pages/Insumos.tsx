@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { InsumoModal } from "@/components/modals/InsumoModal";
 import { useAppContext } from "@/contexts/AppContext";
+import { useConfirm } from "@/components/common/ConfirmProvider";
 import { Insumo } from "@/types/database";
 import { formatarMoeda, formatarCustoPorUnidade, calcularCustoPorGrama, obterDadosFornecedorPadrao } from "@/utils/calculations";
 import {
@@ -59,6 +60,7 @@ import { Label } from "@/components/ui/label";
 
 const Insumos = () => {
   const { state, dispatch } = useAppContext();
+  const confirm = useConfirm();
   const [modalOpen, setModalOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [categoriasModalOpen, setCategoriasModalOpen] = useState(false);
@@ -201,11 +203,16 @@ const Insumos = () => {
     setEditCategoryColor("#8B5CF6");
   };
 
-  const handleDeleteCategory = (categoryId: string) => {
+  const handleDeleteCategory = async (categoryId: string) => {
     const categoria = state.categorias.find(cat => cat.id === categoryId);
-    if (window.confirm(`Tem certeza que deseja excluir a categoria "${categoria?.nome}"?`)) {
+    const ok = await confirm({
+      title: "Excluir categoria",
+      description: `Tem certeza que deseja excluir a categoria "${categoria?.nome}"?`,
+      destructive: true,
+      confirmLabel: "Excluir",
+    });
+    if (ok) {
       dispatch({ type: 'DELETE_CATEGORIA', payload: categoryId });
-      console.log("🗑️ Categoria de insumo excluída:", categoria?.nome);
     }
   };
 
@@ -382,8 +389,14 @@ const Insumos = () => {
     setViewModalOpen(true);
   };
 
-  const handleDeleteInsumo = (insumo: Insumo) => {
-    if (window.confirm(`Tem certeza que deseja excluir "${insumo.nome}"?`)) {
+  const handleDeleteInsumo = async (insumo: Insumo) => {
+    const ok = await confirm({
+      title: "Excluir insumo",
+      description: `Tem certeza que deseja excluir "${insumo.nome}"?`,
+      destructive: true,
+      confirmLabel: "Excluir",
+    });
+    if (ok) {
       dispatch({ type: 'DELETE_INSUMO', payload: insumo.id });
     }
   };
@@ -453,29 +466,32 @@ const Insumos = () => {
         </TableCell>
         <TableCell className="text-center">
         <div className="flex items-center gap-1 justify-center">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="sm"
             onClick={() => handleViewInsumo(insumo)}
             title="Visualizar"
+            aria-label={`Visualizar insumo ${insumo.nome}`}
           >
-            <Eye className="w-4 h-4" />
+            <Eye className="w-4 h-4" aria-hidden="true" />
           </Button>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="sm"
             onClick={() => handleEditInsumo(insumo)}
             title="Editar"
+            aria-label={`Editar insumo ${insumo.nome}`}
           >
-            <Edit className="w-4 h-4" />
+            <Edit className="w-4 h-4" aria-hidden="true" />
           </Button>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="sm"
             onClick={() => handleDeleteInsumo(insumo)}
             title="Excluir"
+            aria-label={`Excluir insumo ${insumo.nome}`}
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-4 h-4" aria-hidden="true" />
           </Button>
         </div>
       </TableCell>
@@ -1031,8 +1047,9 @@ const Insumos = () => {
                             className="h-7 w-7 p-0"
                             onClick={() => handleEditCategory(categoria.id)}
                             disabled={isEditing}
+                            aria-label={`Editar categoria ${categoria.nome}`}
                           >
-                            <Edit className="w-3 h-3" />
+                            <Edit className="w-3 h-3" aria-hidden="true" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -1040,8 +1057,9 @@ const Insumos = () => {
                             className="h-7 w-7 p-0 text-destructive hover:text-destructive"
                             onClick={() => handleDeleteCategory(categoria.id)}
                             disabled={isEditing}
+                            aria-label={`Excluir categoria ${categoria.nome}`}
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-3 h-3" aria-hidden="true" />
                           </Button>
                         </div>
                       </div>

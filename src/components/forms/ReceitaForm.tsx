@@ -324,8 +324,9 @@ export const ReceitaForm = ({
                   size="sm"
                   onClick={() => remove(index)}
                   disabled={fields.length === 1}
+                  aria-label="Remover ingrediente"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </div>
             ))}

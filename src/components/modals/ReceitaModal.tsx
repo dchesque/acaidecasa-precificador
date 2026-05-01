@@ -7,6 +7,7 @@ import { ReceitaFormData } from "@/types/forms";
 import { Receita, ReceitaIngrediente } from "@/types/database";
 import { useToast } from "@/hooks/use-toast";
 import { calcularCustoReceita, calcularCustoPorGrama } from "@/utils/calculations";
+import { newId } from "@/lib/ids";
 
 interface ReceitaModalProps {
   open: boolean;
@@ -34,10 +35,11 @@ export const ReceitaModal = ({
       // Find related data
       const categoria = state.categorias.find(c => c.id === data.categoriaId);
 
+      const receitaId = receita?.id ?? newId();
       // Create ingredients
-      const ingredientes: ReceitaIngrediente[] = data.ingredientes.map((ing, index) => ({
-        id: `${Date.now()}-${index}`,
-        receitaId: receita?.id || Date.now().toString(),
+      const ingredientes: ReceitaIngrediente[] = data.ingredientes.map((ing) => ({
+        id: newId(),
+        receitaId,
         insumoId: ing.insumoId,
         quantidade: ing.quantidade,
         custo: 0, // Will be calculated
@@ -79,7 +81,7 @@ export const ReceitaModal = ({
         // Create new recipe
         const newReceita: Receita = {
           ...data,
-          id: Date.now().toString(),
+          id: receitaId,
           categoria,
           ingredientes,
           custoTotal: 0,

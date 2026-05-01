@@ -61,7 +61,7 @@ export interface AlertaCritico {
   quantidade: number;
   link?: string;
   acao?: string;
-  dados?: any;
+  dados?: Record<string, unknown>;
 }
 
 // ===========================

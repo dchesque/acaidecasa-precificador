@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { User, Mail, Phone, Save, Camera, Lock, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { useAppContext } from "@/contexts/AppContext"
+import { supabase, isSupabaseConfigured } from "@/lib/supabase/client"
 import { UserFormData, PasswordFormData } from "@/types/user"
 
 // Validation schemas
@@ -126,12 +127,17 @@ const MinhaConta = () => {
   const handlePasswordChange = async (data: PasswordFormData) => {
     setIsLoading(true)
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
-      // TODO: Implement Supabase password change
+      if (!isSupabaseConfigured() || !supabase) {
+        toast.error('Modo demonstração — configure o Supabase para trocar a senha.')
+        return
+      }
+      const { error } = await supabase.auth.updateUser({ password: data.novaSenha })
+      if (error) throw error
       passwordForm.reset()
       toast.success('Senha alterada com sucesso!')
     } catch (error) {
-      toast.error('Erro ao alterar senha')
+      const message = error instanceof Error ? error.message : 'Erro ao alterar senha'
+      toast.error(message)
     } finally {
       setIsLoading(false)
     }

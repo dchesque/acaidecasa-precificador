@@ -6,6 +6,7 @@ import { CopoBaseFormData } from "@/types/forms";
 import { CopoBase, CopoBaseInsumo } from "@/types/database";
 import { useToast } from "@/hooks/use-toast";
 import { calcularCustoPorGrama } from "@/utils/calculations";
+import { newId } from "@/lib/ids";
 
 interface CopoBaseModalProps {
   open: boolean;
@@ -31,10 +32,11 @@ export const CopoBaseModal = ({
       const categoria = state.categorias.find(c => c.id === data.categoriaId);
       const insumoBase = state.insumos.find(i => i.id === data.insumoBaseId);
 
+      const copoBaseId = copoBase?.id ?? newId();
       // Create additional ingredients
-      const insumos: CopoBaseInsumo[] = (data.insumos || []).map((ins, index) => ({
-        id: `${Date.now()}-${index}`,
-        copoBaseId: copoBase?.id || Date.now().toString(),
+      const insumos: CopoBaseInsumo[] = (data.insumos || []).map((ins) => ({
+        id: newId(),
+        copoBaseId,
         insumoId: ins.insumoId,
         quantidade: ins.quantidade,
         custo: 0, // Will be calculated
@@ -89,7 +91,7 @@ export const CopoBaseModal = ({
         // Create new base cup
         const newCopoBase: CopoBase = {
           ...data,
-          id: Date.now().toString(),
+          id: copoBaseId,
           categoria,
           insumoBase,
           insumos,

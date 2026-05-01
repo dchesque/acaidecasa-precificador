@@ -75,6 +75,27 @@ Siga os passos abaixo para configurar e executar o projeto em seu ambiente local
    NEXT_PUBLIC_SUPABASE_ANON_KEY=SUA_CHAVE_ANONIMA_SUPABASE
    ```
 
+> Sem essas variáveis o app inicia em **modo de demonstração** — todos os dados ficam em memória, são pré-populados com mocks e nada é persistido. Um banner amarelo no topo deixa esse estado claro.
+
+### Configurando o banco no Supabase
+
+1. Crie um projeto novo em [supabase.com](https://supabase.com) e copie a URL + a chave anon para o `.env.local`.
+2. Aplique as migrations em `supabase/migrations/` na ordem numérica:
+
+   **Pelo dashboard:**
+   `Database → SQL Editor → New query`, cole o conteúdo de cada arquivo e execute.
+
+   **Pelo CLI** ([instalação](https://supabase.com/docs/guides/cli)):
+   ```sh
+   supabase login
+   supabase link --project-ref <seu-project-ref>
+   supabase db push
+   ```
+
+3. **`0001_initial_schema.sql`** cria todas as tabelas (insumos, fornecedores, receitas, copos_base, combinados, cardapio, custos_operacionais, vendas_*) com `user_id` em cada linha e RLS já ativada.
+4. **`0002_seed_defaults.sql`** instala um trigger em `auth.users` que popula categorias e unidades-padrão para todo novo usuário no signup.
+5. (Opcional) Em `Authentication → URL Configuration`, configure o `Site URL` e o `Redirect URL` para `https://seu-dominio/auth/reset-password`, ou `http://localhost:3000/auth/reset-password` em dev.
+
 ### Executando a Aplicação
 
 Com as dependências instaladas e as variáveis de ambiente configuradas, inicie o servidor de desenvolvimento:
@@ -112,11 +133,42 @@ A estrutura de pastas do projeto está organizada da seguinte forma:
 └── ...                   # Arquivos de configuração (Next.js, Tailwind, etc.)
 ```
 
-## 🔮 Futuras Melhorias
+## 📚 Documentação detalhada
 
-Com base no estado atual do protótipo, as próximas prioridades de desenvolvimento são:
+A pasta [`docs/`](./docs/) contém a documentação técnica do projeto:
 
-- **Finalizar a Integração com o Backend:** Substituir todos os dados mockados pela persistência real no Supabase.
-- **Conectar Módulos ao `AppContext`:** Garantir que os módulos de `Cardápio` e `Análise de Vendas` utilizem os dados dinâmicos do `AppContext`.
-- **Aprimorar a Análise de Vendas:** Implementar a funcionalidade de vincular produtos não encontrados e adicionar gráficos de análise.
-- **Adicionar Testes:** Implementar testes unitários e de integração para garantir a estabilidade do código.
+- [**`regras-precificacao.md`**](./docs/regras-precificacao.md) — fórmulas
+  e políticas do engine de cálculo (markup, imposto, embalagem, cascata,
+  imutabilidade)
+- [**`arquitetura.md`**](./docs/arquitetura.md) — camadas (pages,
+  AppContext, services, hidratação, SQL triggers, PWA, observability) e
+  fluxos principais
+- [**`glossario.md`**](./docs/glossario.md) — entidades de domínio
+  (Insumo, Receita, Copo Base, Combinado, Cardápio, Vendas) e termos de
+  processo
+- [**`operacoes.md`**](./docs/operacoes.md) — runbook de setup, deploy,
+  migrations Supabase, variáveis de ambiente, troubleshooting
+
+## 📱 PWA
+
+O app é um **Progressive Web App** instalável:
+
+- Manifest em [`app/manifest.ts`](./app/manifest.ts) (Next 15 native API)
+- Service worker em [`public/sw.js`](./public/sw.js) com estratégia
+  network-first para navegação, cache-first para estáticos, fallback para
+  `/offline.html`
+- Sem cache cross-origin (Supabase nunca é cacheado)
+- Registrado em produção via [`<PWARegister />`](./src/components/common/PWARegister.tsx)
+
+Para gerar os ícones PNG a partir dos SVG fontes, veja
+[`public/icons/README.md`](./public/icons/README.md).
+
+## 🧪 Testes
+
+```sh
+npm test          # 120 testes unit (Vitest) — cobertura ~95% de utils/
+npm run test:e2e  # 17 specs E2E (Playwright) em Chromium
+```
+
+CI roda os dois em todo PR. Detalhes em
+[`docs/operacoes.md`](./docs/operacoes.md#ci).

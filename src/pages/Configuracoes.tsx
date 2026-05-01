@@ -45,7 +45,7 @@ interface ConfiguracaoCompleta {
 }
 
 const Configuracoes = () => {
-  const { userProfile, configuracao } = useAppContext();
+  const { userProfile, configuracao, setConfiguracao } = useAppContext();
   const [isLoading, setIsLoading] = useState(false);
 
   // Form for empresa data
@@ -129,27 +129,25 @@ const Configuracoes = () => {
   const handlePrecificacaoSave = async (data: PrecificacaoFormData) => {
     setIsLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API call
-
-      // TODO: Implement Supabase update
-      // await supabase
-      //   .from('configuracoes')
-      //   .upsert({
-      //     user_id: userProfile?.id,
-      //     meta_margem_padrao: data.metaMargem,
-      //     updated_at: new Date().toISOString()
-      //   })
-
-      // For now, update configuration context
-      // updateConfiguracao({
-      //   ...configuracao,
-      //   markupPadrao: data.metaMargem
-      // });
-
+      const now = new Date();
+      const next = {
+        ...(configuracao ?? {
+          id: '',
+          incluirImpostos: false,
+          arredondarPrecos: false,
+          custoFixoMensal: 0,
+          custoEnergia: 0,
+          custoMaoObra: 0,
+          taxaCartao: 0,
+          createdAt: now,
+        }),
+        markupPadrao: data.metaMargem,
+        updatedAt: now,
+      };
+      setConfiguracao(next as typeof next & { id: string });
       toast.success('Meta de margem atualizada com sucesso!');
-    } catch (error) {
+    } catch {
       toast.error('Erro ao salvar configurações de precificação');
-      console.error('Error saving pricing config:', error);
     } finally {
       setIsLoading(false);
     }

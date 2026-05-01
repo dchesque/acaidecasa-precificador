@@ -68,12 +68,28 @@ import {
 } from "lucide-react";
 import { useAppContext } from "@/contexts/AppContext";
 
+type CardapioItem = {
+  id: string;
+  nome: string;
+  tipo: string;
+  composicao?: Array<{
+    nome: string;
+    quantidade: number;
+    unidade?: string;
+    custo?: number;
+    insumoId?: string;
+    receitaId?: string;
+  }>;
+  precoAtual?: number;
+  custoAtual?: number;
+} & Record<string, unknown>;
+
 const Cardapio = () => {
   const { state } = useAppContext();
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [selectedItem, setSelectedItem] = useState<CardapioItem | null>(null);
 
   // Estados para edição
   const [editItemId, setEditItemId] = useState("");
@@ -84,7 +100,7 @@ const Cardapio = () => {
   const [editItemType, setEditItemType] = useState("");
   const [editItemQuantity, setEditItemQuantity] = useState("");
   const [editItemUnit, setEditItemUnit] = useState("");
-  const [editSelectedItem, setEditSelectedItem] = useState<any>(null);
+  const [editSelectedItem, setEditSelectedItem] = useState<CardapioItem | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [mostrarPrecos, setMostrarPrecos] = useState(true);
@@ -109,7 +125,7 @@ const Cardapio = () => {
   const [newItemModalOpen, setNewItemModalOpen] = useState(false);
   const [selectedItemCategory, setSelectedItemCategory] = useState("");
   const [selectedItemType, setSelectedItemType] = useState("");
-  const [selectedSearchItem, setSelectedSearchItem] = useState<any>(null);
+  const [selectedSearchItem, setSelectedSearchItem] = useState<CardapioItem | null>(null);
   const [itemSearchFilter, setItemSearchFilter] = useState("");
   const [itemId, setItemId] = useState("");
   const [itemName, setItemName] = useState("");
@@ -150,7 +166,7 @@ const Cardapio = () => {
   };
 
   // Função para converter unidades corretamente
-  const calcularCustoComQuantidade = (item: any, quantidade: number, tipoItem: string) => {
+  const calcularCustoComQuantidade = (item: CardapioItem, quantidade: number, tipoItem: string) => {
     if (!item || !quantidade) return 0;
 
     // Para insumos, usar multiplicação direta na unidade original
@@ -188,7 +204,7 @@ const Cardapio = () => {
     setTempPrice("");
   };
 
-  const getFornecedorDisplay = (item: any) => {
+  const getFornecedorDisplay = (item: CardapioItem) => {
     if (item.fornecedor) {
       return { texto: item.fornecedor, cor: "text-blue-600", fundo: "bg-blue-50 border-blue-200" };
     }
@@ -296,7 +312,7 @@ const Cardapio = () => {
   // Estado para categorias gerenciadas - deve vir após a declaração de categorias
   const [managedCategorias, setManagedCategorias] = useState(categorias);
 
-  const handleViewItem = (item: any) => {
+  const handleViewItem = (item: CardapioItem) => {
     // Se for copo-base, buscar a composição do mockData
     if (item.tipo === "copo-base") {
       const copoBaseData = mockData["copo-base"].find(cb => cb.id === item.itemReferencia);
@@ -325,7 +341,7 @@ const Cardapio = () => {
     setViewModalOpen(true);
   };
 
-  const handleEditItem = (item: any) => {
+  const handleEditItem = (item: CardapioItem) => {
     setSelectedItem(item);
 
     // Preencher campos automaticamente com dados do item
@@ -357,7 +373,7 @@ const Cardapio = () => {
     setEditModalOpen(true);
   };
 
-  const handleDeleteItem = (item: any) => {
+  const handleDeleteItem = (item: CardapioItem) => {
     setSelectedItem(item);
     setDeleteModalOpen(true);
   };
@@ -605,7 +621,7 @@ const Cardapio = () => {
 
       // Preparar dados da categoria
       const tableData = itensCategoria.map(item => [
-        (item as any).codigo || item.id || '-',
+        (item as { codigo?: string }).codigo || item.id || '-',
         item.nome,
         formatarMoeda(item.preco)
       ]);
@@ -631,7 +647,7 @@ const Cardapio = () => {
       });
 
       // Atualizar posição Y para próxima categoria
-      currentY = (doc as any).lastAutoTable.finalY + 15;
+      currentY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 15;
     });
 
     // Salvar o PDF
@@ -1936,7 +1952,7 @@ const Cardapio = () => {
                         </CardHeader>
                         <CardContent className="pt-2">
                           <div className="space-y-2">
-                            {selectedItem.composicao.map((comp: any, index: number) => (
+                            {selectedItem.composicao.map((comp: NonNullable<CardapioItem['composicao']>[number], index: number) => (
                               <div key={index} className="border rounded p-3 bg-gradient-to-r from-gray-50 to-gray-100">
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
@@ -2037,7 +2053,7 @@ const Cardapio = () => {
                         </CardHeader>
                         <CardContent className="pt-2">
                           <div className="space-y-2">
-                            {selectedItem.composicao.map((comp: any, index: number) => (
+                            {selectedItem.composicao.map((comp: NonNullable<CardapioItem['composicao']>[number], index: number) => (
                               <div key={index} className="border rounded p-3 bg-gradient-to-r from-orange-50 to-amber-50">
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
@@ -3486,7 +3502,7 @@ const Cardapio = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
-                        {selectedSearchItem.composicao.map((comp: any, index: number) => (
+                        {selectedSearchItem.composicao.map((comp: NonNullable<CardapioItem['composicao']>[number], index: number) => (
                           <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
                             <div className="flex items-center gap-3 flex-1">
                               <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xs">

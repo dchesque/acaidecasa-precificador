@@ -1,15 +1,12 @@
-import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
-
-  if (pathname.startsWith('/auth/')) {
-    return NextResponse.next()
-  }
-
-  return await updateSession(request)
+  // `updateSession` itself decides whether to gate or pass through based on
+  // both the path and whether Supabase is configured. Centralizing that logic
+  // here lets the middleware redirect already-authenticated users away from
+  // `/auth/login` and unauthenticated users to it.
+  return updateSession(request)
 }
 
 export const config = {

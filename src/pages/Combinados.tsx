@@ -17,6 +17,7 @@ import {
 import { CombinadoModal } from "@/components/modals/CombinadoModal";
 import { CombinadoViewModal } from "@/components/modals/CombinadoViewModal";
 import { useAppContext } from "@/contexts/AppContext";
+import { useConfirm } from "@/components/common/ConfirmProvider";
 import { Combinado, Categoria } from "@/types/database";
 import { formatarMoeda, calcularPrecoVendaCombinado, verificarComboPrecoCompleto } from "@/utils/calculations";
 import {
@@ -61,6 +62,7 @@ import { Label } from "@/components/ui/label";
 
 const Combinados = () => {
   const { state, dispatch, combinados, categorias, cardapio, getPrecoVendaItem, deleteCombinado } = useAppContext();
+  const confirm = useConfirm();
   const [modalOpen, setModalOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [editingCombinado, setEditingCombinado] = useState<Combinado | undefined>();
@@ -199,11 +201,16 @@ const Combinados = () => {
     setEditCategoryColor("#8B5CF6");
   };
 
-  const handleDeleteCategory = (categoryId: string) => {
+  const handleDeleteCategory = async (categoryId: string) => {
     const categoria = state.categorias.find(cat => cat.id === categoryId);
-    if (window.confirm(`Tem certeza que deseja excluir a categoria "${categoria?.nome}"?`)) {
+    const ok = await confirm({
+      title: "Excluir categoria",
+      description: `Tem certeza que deseja excluir a categoria "${categoria?.nome}"?`,
+      destructive: true,
+      confirmLabel: "Excluir",
+    });
+    if (ok) {
       dispatch({ type: 'DELETE_CATEGORIA', payload: categoryId });
-      console.log("🗑️ Categoria de combinado excluída:", categoria?.nome);
     }
   };
 
@@ -416,8 +423,14 @@ const Combinados = () => {
     setViewModalOpen(true);
   };
 
-  const handleDeleteCombinado = (combinado: Combinado) => {
-    if (window.confirm(`Tem certeza que deseja excluir "${combinado.nome}"?`)) {
+  const handleDeleteCombinado = async (combinado: Combinado) => {
+    const ok = await confirm({
+      title: "Excluir combinado",
+      description: `Tem certeza que deseja excluir "${combinado.nome}"?`,
+      destructive: true,
+      confirmLabel: "Excluir",
+    });
+    if (ok) {
       deleteCombinado(combinado.id);
     }
   };
@@ -494,24 +507,27 @@ const Combinados = () => {
               size="sm"
               onClick={() => handleViewCombinado(combinado)}
               title="Visualizar"
+              aria-label={`Visualizar combinado ${combinado.nome}`}
             >
-              <Eye className="w-4 h-4" />
+              <Eye className="w-4 h-4" aria-hidden="true" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => handleEditCombinado(combinado)}
               title="Editar"
+              aria-label={`Editar combinado ${combinado.nome}`}
             >
-              <Edit className="w-4 h-4" />
+              <Edit className="w-4 h-4" aria-hidden="true" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => handleDeleteCombinado(combinado)}
               title="Excluir"
+              aria-label={`Excluir combinado ${combinado.nome}`}
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-4 h-4" aria-hidden="true" />
             </Button>
           </div>
         </TableCell>
@@ -1084,8 +1100,9 @@ const Combinados = () => {
                             className="h-7 w-7 p-0"
                             onClick={() => handleEditCategory(categoria.id)}
                             disabled={isEditing}
+                            aria-label={`Editar categoria ${categoria.nome}`}
                           >
-                            <Edit className="w-3 h-3" />
+                            <Edit className="w-3 h-3" aria-hidden="true" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -1093,8 +1110,9 @@ const Combinados = () => {
                             className="h-7 w-7 p-0 text-destructive hover:text-destructive"
                             onClick={() => handleDeleteCategory(categoria.id)}
                             disabled={isEditing}
+                            aria-label={`Excluir categoria ${categoria.nome}`}
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-3 h-3" aria-hidden="true" />
                           </Button>
                         </div>
                       </div>

@@ -22,6 +22,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { PeriodoSelectorProps, PeriodoImportacao, StatusPeriodo } from '@/types/periodo';
+import { CustoOperacional } from '@/types/custos-operacionais';
 import {
   gerarUltimos12Meses,
   criarPeriodoMesCompleto,
@@ -55,7 +56,7 @@ export const PeriodSelector: React.FC<PeriodoSelectorProps> = ({
       // Aqui você calcularia o status real baseado nos dados
       // Por enquanto, simulando o cálculo
       const vendas = state.vendasAnalise?.vendasRegistradas || [];
-      const custos: any[] = []; // TODO: Pegar custos do contexto quando implementado
+      const custos: CustoOperacional[] = []; // TODO: Pegar custos do contexto quando implementado
 
       const status: StatusPeriodo = {
         periodo: mes.mesReferencia,
@@ -166,7 +167,7 @@ export const PeriodSelector: React.FC<PeriodoSelectorProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Tabs value={tabAtiva} onValueChange={(value) => setTabAtiva(value as any)} className="w-full">
+        <Tabs value={tabAtiva} onValueChange={(value) => setTabAtiva(value as 'mensal' | 'personalizado')} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="mensal" className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />

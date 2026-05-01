@@ -122,7 +122,7 @@ export const LancamentoDetalhadoModal: React.FC<LancamentoDetalhadoModalProps> =
   const handleAtualizarLinha = (
     tempId: string,
     campo: keyof CustoItemInput,
-    valor: any
+    valor: CustoItemInput[keyof CustoItemInput]
   ) => {
     setItens(
       itens.map(item =>

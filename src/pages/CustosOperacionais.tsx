@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/accordion';
 import { Receipt, Zap, BarChart3 } from 'lucide-react';
 import { useAppContext } from '@/contexts/AppContext';
+import { useConfirm } from '@/components/common/ConfirmProvider';
 import { toast } from 'sonner';
 
 // Componentes de Custos
@@ -45,6 +46,7 @@ export default function CustosOperacionais() {
     updateCustoOperacional,
     deleteCustoOperacional
   } = useAppContext();
+  const confirm = useConfirm();
 
   // Estado de modais
   const [modalRapido, setModalRapido] = useState(false);
@@ -278,13 +280,18 @@ export default function CustosOperacionais() {
     }
   };
 
-  const handleExcluir = () => {
+  const handleExcluir = async () => {
     if (!custoDoMes) return;
 
-    if (confirm(`Tem certeza que deseja excluir os custos de ${formatarMesReferenciaCompleto(mesReferencia)}?`)) {
+    const ok = await confirm({
+      title: "Excluir custos do mês",
+      description: `Tem certeza que deseja excluir os custos de ${formatarMesReferenciaCompleto(mesReferencia)}?`,
+      destructive: true,
+      confirmLabel: "Excluir",
+    });
+    if (ok) {
       deleteCustoOperacional(custoDoMes.id);
-
-      toast.success(`✅ Custos de ${formatarMesReferenciaCompleto(mesReferencia)} excluídos`);
+      toast.success(`Custos de ${formatarMesReferenciaCompleto(mesReferencia)} excluídos`);
     }
   };
 
@@ -409,10 +416,16 @@ export default function CustosOperacionais() {
                           setModalDetalhado(true);
                         }
                       }}
-                      onExcluir={() => {
-                        if (confirm(`Excluir custos de ${formatarMesReferenciaCompleto(custo.mesReferencia)}?`)) {
+                      onExcluir={async () => {
+                        const ok = await confirm({
+                          title: "Excluir custos do mês",
+                          description: `Excluir custos de ${formatarMesReferenciaCompleto(custo.mesReferencia)}?`,
+                          destructive: true,
+                          confirmLabel: "Excluir",
+                        });
+                        if (ok) {
                           deleteCustoOperacional(custo.id);
-                          toast.success(`✅ Custos de ${formatarMesReferenciaCompleto(custo.mesReferencia)} excluídos`);
+                          toast.success(`Custos de ${formatarMesReferenciaCompleto(custo.mesReferencia)} excluídos`);
                         }
                       }}
                       onConverterParaDetalhado={() => {

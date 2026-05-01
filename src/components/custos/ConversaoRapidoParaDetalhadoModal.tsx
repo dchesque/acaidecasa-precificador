@@ -99,7 +99,7 @@ export const ConversaoRapidoParaDetalhadoModal: React.FC<ConversaoRapidoParaDeta
   const handleAtualizarLinha = (
     tempId: string,
     campo: keyof CustoItemInput,
-    valor: any
+    valor: CustoItemInput[keyof CustoItemInput]
   ) => {
     setItens(
       itens.map(item =>

@@ -41,6 +41,7 @@ import { cn } from "@/lib/utils";
 import { combinadoSchema, CombinadoFormData } from "@/types/forms";
 import { Combinado } from "@/types/database";
 import { useAppContext } from "@/contexts/AppContext";
+import { useConfirm } from "@/components/common/ConfirmProvider";
 import { formatarMoeda, formatarCustoPorUnidade, calcularCustoPorGrama, calcularPrecoVendaCombinado, calcularEconomiaCombinado } from "@/utils/calculations";
 import { Plus, Trash2, Calculator, Package, Tags, Settings, ChevronLeft, ChevronRight, GripVertical, X } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -60,6 +61,7 @@ export const CombinadoForm = ({
   isLoading = false,
 }: CombinadoFormProps) => {
   const { state, dispatch, categorias, coposBase, insumos, receitas, cardapio, insumoFornecedores, getPrecoVendaItem } = useAppContext();
+  const confirm = useConfirm();
   const [categoriaModalOpen, setCategoriaModalOpen] = React.useState(false);
 
   // Estados para modal de categorias (padrão cardápio)
@@ -229,11 +231,16 @@ export const CombinadoForm = ({
     setEditCategoryColor("#8B5CF6");
   };
 
-  const handleDeleteCategory = (categoryId: string) => {
+  const handleDeleteCategory = async (categoryId: string) => {
     const categoria = state.categorias.find(cat => cat.id === categoryId);
-    if (window.confirm(`Tem certeza que deseja excluir a categoria "${categoria?.nome}"?`)) {
+    const ok = await confirm({
+      title: "Excluir categoria",
+      description: `Tem certeza que deseja excluir a categoria "${categoria?.nome}"?`,
+      destructive: true,
+      confirmLabel: "Excluir",
+    });
+    if (ok) {
       dispatch({ type: 'DELETE_CATEGORIA', payload: categoryId });
-      console.log("🗑️ Categoria de combinado excluída:", categoria?.nome);
     }
   };
 
@@ -264,7 +271,7 @@ export const CombinadoForm = ({
   const receitasAtivas = receitas.filter(r => r.ativo);
 
   // Component for searchable select
-  const SearchableSelect = ({
+  const SearchableSelect = <T,>({
     value,
     onValueChange,
     placeholder,
@@ -274,8 +281,8 @@ export const CombinadoForm = ({
     value: string;
     onValueChange: (value: string) => void;
     placeholder: string;
-    options: any[];
-    renderOption: (item: any) => { value: string; label: string; details: string };
+    options: T[];
+    renderOption: (item: T) => { value: string; label: string; details: string };
   }) => {
     const [open, setOpen] = React.useState(false);
 
@@ -783,8 +790,9 @@ export const CombinadoForm = ({
                               size="sm"
                               onClick={() => remove(index)}
                               className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                              aria-label="Remover complemento"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-4 w-4" aria-hidden="true" />
                             </Button>
                           </TableCell>
                         </TableRow>
@@ -1169,8 +1177,9 @@ export const CombinadoForm = ({
                             className="h-7 w-7 p-0"
                             onClick={() => handleEditCategory(categoria.id)}
                             disabled={isEditing}
+                            aria-label={`Editar categoria ${categoria.nome}`}
                           >
-                            <Settings className="w-3 h-3" />
+                            <Settings className="w-3 h-3" aria-hidden="true" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -1178,8 +1187,9 @@ export const CombinadoForm = ({
                             className="h-7 w-7 p-0 text-destructive hover:text-destructive"
                             onClick={() => handleDeleteCategory(categoria.id)}
                             disabled={isEditing}
+                            aria-label={`Excluir categoria ${categoria.nome}`}
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-3 h-3" aria-hidden="true" />
                           </Button>
                         </div>
                       </div>

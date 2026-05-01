@@ -1,9 +1,34 @@
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { clientEnv, assertProductionEnv } from "@/lib/env";
+import type { Database } from "@/types/supabase";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+assertProductionEnv();
 
-export const supabase: SupabaseClient | null =
-  supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
+let cached: SupabaseClient<Database> | null = null;
 
-export const isSupabaseConfigured = () => Boolean(supabase);
+const buildClient = (): SupabaseClient<Database> | null => {
+  if (cached) return cached;
+  if (!clientEnv.NEXT_PUBLIC_SUPABASE_URL || !clientEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    return null;
+  }
+  cached = createBrowserClient<Database>(
+    clientEnv.NEXT_PUBLIC_SUPABASE_URL,
+    clientEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+  return cached;
+};
+
+export const supabase: SupabaseClient<Database> | null = buildClient();
+
+export const isSupabaseConfigured = (): boolean => Boolean(supabase);
+
+// Convenience helper for hooks/components that should fail loudly when called
+// without configuration (after a runtime check has been done elsewhere).
+export const getSupabase = (): SupabaseClient<Database> => {
+  const c = supabase;
+  if (!c) {
+    throw new Error("Supabase client requested but env vars are missing.");
+  }
+  return c;
+};

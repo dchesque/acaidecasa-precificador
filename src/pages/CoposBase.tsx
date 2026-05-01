@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { CopoBaseModal } from "@/components/modals/CopoBaseModal";
 import { useAppContext } from "@/contexts/AppContext";
+import { useConfirm } from "@/components/common/ConfirmProvider";
 import { CopoBase } from "@/types/database";
 import { formatarMoeda } from "@/utils/calculations";
 import {
@@ -59,6 +60,7 @@ import { Label } from "@/components/ui/label";
 
 const CoposBase = () => {
   const { state, dispatch } = useAppContext();
+  const confirm = useConfirm();
   const [modalOpen, setModalOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [editingCopoBase, setEditingCopoBase] = useState<CopoBase | undefined>();
@@ -195,11 +197,16 @@ const CoposBase = () => {
     setEditCategoryColor("#8B5CF6");
   };
 
-  const handleDeleteCategory = (categoryId: string) => {
+  const handleDeleteCategory = async (categoryId: string) => {
     const categoria = state.categorias.find(cat => cat.id === categoryId);
-    if (window.confirm(`Tem certeza que deseja excluir a categoria "${categoria?.nome}"?`)) {
+    const ok = await confirm({
+      title: "Excluir categoria",
+      description: `Tem certeza que deseja excluir a categoria "${categoria?.nome}"?`,
+      destructive: true,
+      confirmLabel: "Excluir",
+    });
+    if (ok) {
       dispatch({ type: 'DELETE_CATEGORIA', payload: categoryId });
-      console.log("🗑️ Categoria de copo base excluída:", categoria?.nome);
     }
   };
 
@@ -362,8 +369,14 @@ const CoposBase = () => {
     setViewModalOpen(true);
   };
 
-  const handleDeleteCopoBase = (copoBase: CopoBase) => {
-    if (window.confirm(`Tem certeza que deseja excluir "${copoBase.nome}"?`)) {
+  const handleDeleteCopoBase = async (copoBase: CopoBase) => {
+    const ok = await confirm({
+      title: "Excluir copo base",
+      description: `Tem certeza que deseja excluir "${copoBase.nome}"?`,
+      destructive: true,
+      confirmLabel: "Excluir",
+    });
+    if (ok) {
       dispatch({ type: 'DELETE_COPO_BASE', payload: copoBase.id });
     }
   };
@@ -582,8 +595,9 @@ const CoposBase = () => {
                                 onClick={() => handleViewCopoBase(copoBase)}
                                 className="h-8 w-8 p-0"
                                 title="Visualizar"
+                                aria-label={`Visualizar copo base ${copoBase.nome}`}
                               >
-                                <Eye className="w-4 h-4" />
+                                <Eye className="w-4 h-4" aria-hidden="true" />
                               </Button>
                               <Button
                                 variant="ghost"
@@ -591,8 +605,9 @@ const CoposBase = () => {
                                 onClick={() => handleEditCopoBase(copoBase)}
                                 className="h-8 w-8 p-0"
                                 title="Editar"
+                                aria-label={`Editar copo base ${copoBase.nome}`}
                               >
-                                <Edit className="w-4 h-4" />
+                                <Edit className="w-4 h-4" aria-hidden="true" />
                               </Button>
                               <Button
                                 variant="ghost"
@@ -600,8 +615,9 @@ const CoposBase = () => {
                                 onClick={() => handleDeleteCopoBase(copoBase)}
                                 className="h-8 w-8 p-0"
                                 title="Excluir"
+                                aria-label={`Excluir copo base ${copoBase.nome}`}
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <Trash2 className="w-4 h-4" aria-hidden="true" />
                               </Button>
                             </div>
                           </TableCell>
@@ -703,8 +719,9 @@ const CoposBase = () => {
                                         onClick={() => handleViewCopoBase(copoBase)}
                                         className="h-8 w-8 p-0"
                                         title="Visualizar"
+                                        aria-label={`Visualizar copo base ${copoBase.nome}`}
                                       >
-                                        <Eye className="w-4 h-4" />
+                                        <Eye className="w-4 h-4" aria-hidden="true" />
                                       </Button>
                                       <Button
                                         variant="ghost"
@@ -712,8 +729,9 @@ const CoposBase = () => {
                                         onClick={() => handleEditCopoBase(copoBase)}
                                         className="h-8 w-8 p-0"
                                         title="Editar"
+                                        aria-label={`Editar copo base ${copoBase.nome}`}
                                       >
-                                        <Edit className="w-4 h-4" />
+                                        <Edit className="w-4 h-4" aria-hidden="true" />
                                       </Button>
                                       <Button
                                         variant="ghost"
@@ -721,8 +739,9 @@ const CoposBase = () => {
                                         onClick={() => handleDeleteCopoBase(copoBase)}
                                         className="h-8 w-8 p-0"
                                         title="Excluir"
+                                        aria-label={`Excluir copo base ${copoBase.nome}`}
                                       >
-                                        <Trash2 className="w-4 h-4" />
+                                        <Trash2 className="w-4 h-4" aria-hidden="true" />
                                       </Button>
                                     </div>
                                   </TableCell>
@@ -1207,8 +1226,9 @@ const CoposBase = () => {
                             className="h-7 w-7 p-0"
                             onClick={() => handleEditCategory(categoria.id)}
                             disabled={isEditing}
+                            aria-label={`Editar categoria ${categoria.nome}`}
                           >
-                            <Edit className="w-3 h-3" />
+                            <Edit className="w-3 h-3" aria-hidden="true" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -1216,8 +1236,9 @@ const CoposBase = () => {
                             className="h-7 w-7 p-0 text-destructive hover:text-destructive"
                             onClick={() => handleDeleteCategory(categoria.id)}
                             disabled={isEditing}
+                            aria-label={`Excluir categoria ${categoria.nome}`}
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-3 h-3" aria-hidden="true" />
                           </Button>
                         </div>
                       </div>

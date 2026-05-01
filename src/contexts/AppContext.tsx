@@ -56,6 +56,9 @@ import {
 import {
   mockCustosOperacionaisDual
 } from '@/data/mockCustosOperacionaisDual';
+import { isSupabaseConfigured } from '@/lib/supabase/client';
+import { toast } from 'sonner';
+import * as svc from '@/services/supabase';
 
 // App State Interface
 interface AppState {
@@ -167,6 +170,11 @@ type AppAction =
   | { type: 'UPDATE_STATUS_PERIODO'; payload: { periodo: string; status: StatusPeriodo } }
   | { type: 'VALIDATE_PERIODO_CONSISTENCY'; payload: void };
 
+// Mocks are used as initial state ONLY when the app runs without a Supabase
+// backend (e.g. local demos). Once configured, the hydration hook overwrites
+// every slice with real data on first auth.
+const useMocks = !isSupabaseConfigured();
+
 // Initial State
 const initialState: AppState = {
   // Auth state
@@ -177,20 +185,20 @@ const initialState: AppState = {
   userProfile: null,
   // App data
   configuracao: null,
-  categorias: mockCategorias,
-  unidadesMedida: mockUnidadesMedida,
-  fornecedores: mockFornecedores,
-  insumoFornecedores: mockInsumoFornecedores,
-  insumos: mockInsumos,
-  receitas: mockReceitas,
-  coposBase: mockCoposBase,
-  combinados: mockCombinados,
-  cardapio: mockCardapio,
+  categorias: useMocks ? mockCategorias : [],
+  unidadesMedida: useMocks ? mockUnidadesMedida : [],
+  fornecedores: useMocks ? mockFornecedores : [],
+  insumoFornecedores: useMocks ? mockInsumoFornecedores : [],
+  insumos: useMocks ? mockInsumos : [],
+  receitas: useMocks ? mockReceitas : [],
+  coposBase: useMocks ? mockCoposBase : [],
+  combinados: useMocks ? mockCombinados : [],
+  cardapio: useMocks ? mockCardapio : [],
   alertas: [],
   // Vendas initial state
   vendasAnalise: {
-    importacoes: mockImportacoes,
-    vendasRegistradas: mockVendasRegistradas,
+    importacoes: useMocks ? mockImportacoes : [],
+    vendasRegistradas: useMocks ? mockVendasRegistradas : [],
     systemInfo: mockVendasSystemInfo,
     filtros: {
       periodo: {
@@ -204,10 +212,10 @@ const initialState: AppState = {
       orderBy: 'data',
       orderDirection: 'desc'
     },
-    dashboardData: mockDashboardVendas
+    dashboardData: useMocks ? mockDashboardVendas : undefined
   },
   // Financial initial state
-  custosOperacionais: mockCustosOperacionaisDual,
+  custosOperacionais: useMocks ? mockCustosOperacionaisDual : [],
   dashboardGestao: {
     periodo: {
       inicio: new Date(new Date().getFullYear(), 0, 1), // Janeiro do ano atual
@@ -673,6 +681,7 @@ interface AppContextValue {
   saveUserProfileToStorage: (profile: UserProfile) => void;
 
   // Action functions
+  setConfiguracao: (configuracao: Configuracao) => void;
   addCategoria: (categoria: Categoria) => void;
   updateCategoria: (categoria: Categoria) => void;
   deleteCategoria: (id: string) => void;
@@ -757,26 +766,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Build the new profile locally so we can persist the exact same shape that
+  // the reducer will produce — avoids reading stale closure state.
   const updateUserProfile = (updates: Partial<UserProfile>) => {
+    const current = state.userProfile;
+    if (!current) return;
+    const nextProfile: UserProfile = { ...current, ...updates, updatedAt: new Date() };
     dispatch({ type: 'UPDATE_USER_PROFILE', payload: updates });
-    // Save to localStorage after update
-    setTimeout(() => {
-      if (state.userProfile) {
-        const updatedProfile = { ...state.userProfile, ...updates, updatedAt: new Date() };
-        saveUserProfileToStorage(updatedProfile);
-      }
-    }, 0);
+    saveUserProfileToStorage(nextProfile);
   };
 
   const updateUserAvatar = (avatar: string) => {
+    const current = state.userProfile;
+    if (!current) return;
+    const nextProfile: UserProfile = { ...current, avatar, updatedAt: new Date() };
     dispatch({ type: 'UPDATE_USER_AVATAR', payload: avatar });
-    // Save to localStorage after update
-    setTimeout(() => {
-      if (state.userProfile) {
-        const updatedProfile = { ...state.userProfile, avatar, updatedAt: new Date() };
-        saveUserProfileToStorage(updatedProfile);
-      }
-    }, 0);
+    saveUserProfileToStorage(nextProfile);
   };
 
   const getUserProfile = (): UserProfile | null => {
@@ -791,48 +796,154 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // ---- Optimistic-then-persist helpers --------------------------------------
+  // Pages dispatch optimistically and we fire the Supabase request without
+  // awaiting (so the UI never blocks). Errors surface via toast — the user can
+  // retry from the form. When Supabase isn't configured the local state is the
+  // source of truth, so we skip the network call entirely.
+  const persist = (op: () => Promise<unknown>): void => {
+    if (!isSupabaseConfigured()) return;
+    op().catch((err) => {
+      const message = err instanceof Error ? err.message : 'Erro ao salvar no servidor';
+      toast.error(message);
+    });
+  };
+
+  const setConfiguracao = (configuracao: Configuracao) => {
+    dispatch({ type: 'SET_CONFIGURACAO', payload: configuracao });
+    persist(() => svc.upsertConfiguracao(configuracao));
+  };
+
   // Action functions
-  const addCategoria = (categoria: Categoria) => dispatch({ type: 'ADD_CATEGORIA', payload: categoria });
-  const updateCategoria = (categoria: Categoria) => dispatch({ type: 'UPDATE_CATEGORIA', payload: categoria });
-  const deleteCategoria = (id: string) => dispatch({ type: 'DELETE_CATEGORIA', payload: id });
+  const addCategoria = (categoria: Categoria) => {
+    dispatch({ type: 'ADD_CATEGORIA', payload: categoria });
+    persist(() => svc.createCategoria(categoria));
+  };
+  const updateCategoria = (categoria: Categoria) => {
+    dispatch({ type: 'UPDATE_CATEGORIA', payload: categoria });
+    persist(() => svc.updateCategoria(categoria.id, categoria));
+  };
+  const deleteCategoria = (id: string) => {
+    dispatch({ type: 'DELETE_CATEGORIA', payload: id });
+    persist(() => svc.deleteCategoria(id));
+  };
 
-  const addFornecedor = (fornecedor: Fornecedor) => dispatch({ type: 'ADD_FORNECEDOR', payload: fornecedor });
-  const updateFornecedor = (fornecedor: Fornecedor) => dispatch({ type: 'UPDATE_FORNECEDOR', payload: fornecedor });
-  const deleteFornecedor = (id: string) => dispatch({ type: 'DELETE_FORNECEDOR', payload: id });
+  const addFornecedor = (fornecedor: Fornecedor) => {
+    dispatch({ type: 'ADD_FORNECEDOR', payload: fornecedor });
+    persist(() => svc.createFornecedor(fornecedor));
+  };
+  const updateFornecedor = (fornecedor: Fornecedor) => {
+    dispatch({ type: 'UPDATE_FORNECEDOR', payload: fornecedor });
+    persist(() => svc.updateFornecedor(fornecedor.id, fornecedor));
+  };
+  const deleteFornecedor = (id: string) => {
+    dispatch({ type: 'DELETE_FORNECEDOR', payload: id });
+    persist(() => svc.deleteFornecedor(id));
+  };
 
-  const addInsumo = (insumo: Insumo) => dispatch({ type: 'ADD_INSUMO', payload: insumo });
-  const updateInsumo = (insumo: Insumo) => dispatch({ type: 'UPDATE_INSUMO', payload: insumo });
-  const deleteInsumo = (id: string) => dispatch({ type: 'DELETE_INSUMO', payload: id });
+  const addInsumo = (insumo: Insumo) => {
+    dispatch({ type: 'ADD_INSUMO', payload: insumo });
+    persist(() => svc.createInsumo(insumo));
+  };
+  const updateInsumo = (insumo: Insumo) => {
+    dispatch({ type: 'UPDATE_INSUMO', payload: insumo });
+    persist(() => svc.updateInsumo(insumo.id, insumo));
+  };
+  const deleteInsumo = (id: string) => {
+    dispatch({ type: 'DELETE_INSUMO', payload: id });
+    persist(() => svc.deleteInsumo(id));
+  };
 
-  const addReceita = (receita: Receita) => dispatch({ type: 'ADD_RECEITA', payload: receita });
-  const updateReceita = (receita: Receita) => dispatch({ type: 'UPDATE_RECEITA', payload: receita });
-  const deleteReceita = (id: string) => dispatch({ type: 'DELETE_RECEITA', payload: id });
+  const addReceita = (receita: Receita) => {
+    dispatch({ type: 'ADD_RECEITA', payload: receita });
+    persist(() => svc.saveReceitaWithIngredientes(receita, receita.ingredientes ?? []));
+  };
+  const updateReceita = (receita: Receita) => {
+    dispatch({ type: 'UPDATE_RECEITA', payload: receita });
+    persist(() => svc.saveReceitaWithIngredientes(receita, receita.ingredientes ?? []));
+  };
+  const deleteReceita = (id: string) => {
+    dispatch({ type: 'DELETE_RECEITA', payload: id });
+    persist(() => svc.deleteReceita(id));
+  };
 
-  const addCopoBase = (copoBase: CopoBase) => dispatch({ type: 'ADD_COPO_BASE', payload: copoBase });
-  const updateCopoBase = (copoBase: CopoBase) => dispatch({ type: 'UPDATE_COPO_BASE', payload: copoBase });
-  const deleteCopoBase = (id: string) => dispatch({ type: 'DELETE_COPO_BASE', payload: id });
+  const addCopoBase = (copoBase: CopoBase) => {
+    dispatch({ type: 'ADD_COPO_BASE', payload: copoBase });
+    persist(() => svc.saveCopoBaseWithInsumos(copoBase, copoBase.insumos ?? []));
+  };
+  const updateCopoBase = (copoBase: CopoBase) => {
+    dispatch({ type: 'UPDATE_COPO_BASE', payload: copoBase });
+    persist(() => svc.saveCopoBaseWithInsumos(copoBase, copoBase.insumos ?? []));
+  };
+  const deleteCopoBase = (id: string) => {
+    dispatch({ type: 'DELETE_COPO_BASE', payload: id });
+    persist(() => svc.deleteCopoBase(id));
+  };
 
-  const addCombinado = (combinado: Combinado) => dispatch({ type: 'ADD_COMBINADO', payload: combinado });
-  const updateCombinado = (combinado: Combinado) => dispatch({ type: 'UPDATE_COMBINADO', payload: combinado });
-  const deleteCombinado = (id: string) => dispatch({ type: 'DELETE_COMBINADO', payload: id });
+  const addCombinado = (combinado: Combinado) => {
+    dispatch({ type: 'ADD_COMBINADO', payload: combinado });
+    persist(() => svc.saveCombinadoWithComplementos(combinado, combinado.complementos ?? []));
+  };
+  const updateCombinado = (combinado: Combinado) => {
+    dispatch({ type: 'UPDATE_COMBINADO', payload: combinado });
+    persist(() => svc.saveCombinadoWithComplementos(combinado, combinado.complementos ?? []));
+  };
+  const deleteCombinado = (id: string) => {
+    dispatch({ type: 'DELETE_COMBINADO', payload: id });
+    persist(() => svc.deleteCombinado(id));
+  };
 
-  const addItemCardapio = (item: ItemCardapio) => dispatch({ type: 'ADD_ITEM_CARDAPIO', payload: item });
-  const updateItemCardapio = (item: ItemCardapio) => dispatch({ type: 'UPDATE_ITEM_CARDAPIO', payload: item });
-  const deleteItemCardapio = (id: string) => dispatch({ type: 'DELETE_ITEM_CARDAPIO', payload: id });
+  const addItemCardapio = (item: ItemCardapio) => {
+    dispatch({ type: 'ADD_ITEM_CARDAPIO', payload: item });
+    persist(() => svc.upsertCardapio(item));
+  };
+  const updateItemCardapio = (item: ItemCardapio) => {
+    dispatch({ type: 'UPDATE_ITEM_CARDAPIO', payload: item });
+    persist(() => svc.upsertCardapio(item));
+  };
+  const deleteItemCardapio = (id: string) => {
+    dispatch({ type: 'DELETE_ITEM_CARDAPIO', payload: id });
+    persist(() => svc.deleteCardapio(id));
+  };
 
   // Vendas action functions
-  const initImportacao = (importacao: ImportacaoVendas) => dispatch({ type: 'INIT_IMPORTACAO', payload: importacao });
-  const addVendasRegistradas = (vendas: VendaRegistrada[]) => dispatch({ type: 'ADD_VENDAS_REGISTRADAS', payload: vendas });
+  const initImportacao = (importacao: ImportacaoVendas) => {
+    dispatch({ type: 'INIT_IMPORTACAO', payload: importacao });
+    // The header uses the venda's mes-format. We pull it from the period's
+    // start date to keep the SQL CHECK happy even for custom ranges.
+    const mesReferencia =
+      importacao.periodoImportacao?.mesReferencia ??
+      `${importacao.periodoInicio.getFullYear()}-${String(
+        importacao.periodoInicio.getMonth() + 1
+      ).padStart(2, '0')}`;
+    persist(() => svc.upsertImportacao(importacao, mesReferencia));
+  };
+  const addVendasRegistradas = (vendas: VendaRegistrada[]) => {
+    dispatch({ type: 'ADD_VENDAS_REGISTRADAS', payload: vendas });
+    persist(() => svc.insertVendasRegistradas(vendas));
+  };
   const updateSystemInfo = (info: VendasSystemInfo) => dispatch({ type: 'UPDATE_SYSTEM_INFO', payload: info });
   const setVendasFiltros = (filtros: FiltrosVendas) => dispatch({ type: 'SET_VENDAS_FILTROS', payload: filtros });
-  const resolveProdutoMatch = (vendaId: string, itemCardapioId: string) => dispatch({ type: 'RESOLVE_PRODUTO_MATCH', payload: { vendaId, itemCardapioId } });
+  const resolveProdutoMatch = (vendaId: string, itemCardapioId: string) => {
+    dispatch({ type: 'RESOLVE_PRODUTO_MATCH', payload: { vendaId, itemCardapioId } });
+    persist(() => svc.updateVendaProdutoMatch(vendaId, itemCardapioId));
+  };
   const updateDashboardVendas = (data: DashboardVendas) => dispatch({ type: 'UPDATE_DASHBOARD_VENDAS', payload: data });
 
   // Financial action functions
   const setCustosOperacionais = (custos: CustoOperacional[]) => dispatch({ type: 'SET_CUSTOS_OPERACIONAIS', payload: custos });
-  const addCustoOperacional = (custo: CustoOperacional) => dispatch({ type: 'ADD_CUSTO_OPERACIONAL', payload: custo });
-  const updateCustoOperacional = (custo: CustoOperacional) => dispatch({ type: 'UPDATE_CUSTO_OPERACIONAL', payload: custo });
-  const deleteCustoOperacional = (id: string) => dispatch({ type: 'DELETE_CUSTO_OPERACIONAL', payload: id });
+  const addCustoOperacional = (custo: CustoOperacional) => {
+    dispatch({ type: 'ADD_CUSTO_OPERACIONAL', payload: custo });
+    persist(() => svc.saveCustoOperacional(custo));
+  };
+  const updateCustoOperacional = (custo: CustoOperacional) => {
+    dispatch({ type: 'UPDATE_CUSTO_OPERACIONAL', payload: custo });
+    persist(() => svc.saveCustoOperacional(custo));
+  };
+  const deleteCustoOperacional = (id: string) => {
+    dispatch({ type: 'DELETE_CUSTO_OPERACIONAL', payload: id });
+    persist(() => svc.deleteCustoOperacional(id));
+  };
   const setDashboardGestaoPeriodo = (periodo: PeriodoDashboard) => dispatch({ type: 'SET_DASHBOARD_GESTAO_PERIODO', payload: periodo });
   const updateDashboardGestaoMetricas = (metricas: DashboardGestaoMetricas) => dispatch({ type: 'UPDATE_DASHBOARD_GESTAO_METRICAS', payload: metricas });
   const setDashboardGestaoLoading = (loading: boolean) => dispatch({ type: 'SET_DASHBOARD_GESTAO_LOADING', payload: loading });
@@ -858,7 +969,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       }
     });
 
-    return itemCardapio?.precoAtual || null;
+    return itemCardapio?.precoAtual ?? null;
   };
 
   const contextValue: AppContextValue = {
@@ -913,6 +1024,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     saveUserProfileToStorage,
 
     // Action functions
+    setConfiguracao,
     addCategoria,
     updateCategoria,
     deleteCategoria,

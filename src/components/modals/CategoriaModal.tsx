@@ -5,6 +5,7 @@ import { useAppContext } from "@/contexts/AppContext";
 import { CategoriaFormData } from "@/types/forms";
 import { Categoria } from "@/types/database";
 import { useToast } from "@/hooks/use-toast";
+import { newId } from "@/lib/ids";
 
 interface CategoriaModalProps {
   open: boolean;
@@ -46,7 +47,7 @@ export const CategoriaModal = ({
         // Create new category
         const newCategoria: Categoria = {
           ...data,
-          id: Date.now().toString(),
+          id: newId(),
           createdAt: now,
           updatedAt: now,
         } as Categoria;

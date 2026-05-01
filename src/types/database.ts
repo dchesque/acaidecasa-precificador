@@ -3,6 +3,8 @@ export interface Configuracao {
   id: string;
   markupPadrao: number;
   incluirImpostos: boolean;
+  // Tax percentage (0-100) applied when `incluirImpostos === true`. Defaults to 10 when omitted.
+  aliquotaImposto?: number;
   arredondarPrecos: boolean;
   custoFixoMensal: number;
   custoEnergia: number;
