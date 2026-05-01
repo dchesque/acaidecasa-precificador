@@ -155,16 +155,18 @@ export const ReceitaCategoriasManagerModal = ({
                           variant="ghost"
                           size="sm"
                           onClick={() => handleEditCategoria(categoria)}
+                          aria-label={`Editar categoria ${categoria.nome}`}
                         >
-                          <Edit className="h-4 w-4" />
+                          <Edit className="h-4 w-4" aria-hidden="true" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDeleteCategoria(categoria)}
                           disabled={receitasCount > 0}
+                          aria-label={`Excluir categoria ${categoria.nome}`}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" aria-hidden="true" />
                         </Button>
                       </div>
                     </div>

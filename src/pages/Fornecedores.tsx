@@ -407,28 +407,31 @@ const Fornecedores = () => {
                         <TableCell className="text-center">
                           <div className="flex items-center gap-1 justify-center">
                             <Button 
-                              variant="ghost" 
+                              variant="ghost"
                               size="sm"
                               onClick={() => handleViewFornecedor(fornecedor)}
                               title="Visualizar fornecedor"
+                              aria-label={`Visualizar fornecedor ${fornecedor.nome}`}
                             >
-                              <Eye className="w-4 h-4" />
+                              <Eye className="w-4 h-4" aria-hidden="true" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
+                            <Button
+                              variant="ghost"
                               size="sm"
                               onClick={() => handleEditFornecedor(fornecedor)}
                               title="Editar fornecedor"
+                              aria-label={`Editar fornecedor ${fornecedor.nome}`}
                             >
-                              <Edit className="w-4 h-4" />
+                              <Edit className="w-4 h-4" aria-hidden="true" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
+                            <Button
+                              variant="ghost"
                               size="sm"
                               onClick={() => handleDeleteFornecedor(fornecedor)}
                               title="Excluir fornecedor"
+                              aria-label={`Excluir fornecedor ${fornecedor.nome}`}
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-4 h-4" aria-hidden="true" />
                             </Button>
                           </div>
                         </TableCell>

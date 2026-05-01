@@ -679,8 +679,9 @@ export const InsumoFormSteps = ({
                                   size="sm"
                                   onClick={() => handleEditSupplier(supplier)}
                                   title="Editar fornecedor"
+                                  aria-label="Editar fornecedor"
                                 >
-                                  <Edit className="h-4 w-4" />
+                                  <Edit className="h-4 w-4" aria-hidden="true" />
                                 </Button>
                                 <Button
                                   type="button"
@@ -688,8 +689,9 @@ export const InsumoFormSteps = ({
                                   size="sm"
                                   onClick={() => handleDeleteSupplier(supplier.id)}
                                   title="Remover fornecedor"
+                                  aria-label="Remover fornecedor"
                                 >
-                                  <Trash2 className="h-4 w-4" />
+                                  <Trash2 className="h-4 w-4" aria-hidden="true" />
                                 </Button>
                               </div>
                             </TableCell>
@@ -1012,8 +1014,9 @@ export const InsumoFormSteps = ({
                             className="h-7 w-7 p-0"
                             onClick={() => handleEditCategory(categoria.id)}
                             disabled={isEditing}
+                            aria-label={`Editar categoria ${categoria.nome}`}
                           >
-                            <Settings className="w-3 h-3" />
+                            <Settings className="w-3 h-3" aria-hidden="true" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -1021,8 +1024,9 @@ export const InsumoFormSteps = ({
                             className="h-7 w-7 p-0 text-destructive hover:text-destructive"
                             onClick={() => handleDeleteCategory(categoria.id)}
                             disabled={isEditing}
+                            aria-label={`Excluir categoria ${categoria.nome}`}
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-3 h-3" aria-hidden="true" />
                           </Button>
                         </div>
                       </div>

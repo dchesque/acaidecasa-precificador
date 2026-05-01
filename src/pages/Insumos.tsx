@@ -466,29 +466,32 @@ const Insumos = () => {
         </TableCell>
         <TableCell className="text-center">
         <div className="flex items-center gap-1 justify-center">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="sm"
             onClick={() => handleViewInsumo(insumo)}
             title="Visualizar"
+            aria-label={`Visualizar insumo ${insumo.nome}`}
           >
-            <Eye className="w-4 h-4" />
+            <Eye className="w-4 h-4" aria-hidden="true" />
           </Button>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="sm"
             onClick={() => handleEditInsumo(insumo)}
             title="Editar"
+            aria-label={`Editar insumo ${insumo.nome}`}
           >
-            <Edit className="w-4 h-4" />
+            <Edit className="w-4 h-4" aria-hidden="true" />
           </Button>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="sm"
             onClick={() => handleDeleteInsumo(insumo)}
             title="Excluir"
+            aria-label={`Excluir insumo ${insumo.nome}`}
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-4 h-4" aria-hidden="true" />
           </Button>
         </div>
       </TableCell>
@@ -1044,8 +1047,9 @@ const Insumos = () => {
                             className="h-7 w-7 p-0"
                             onClick={() => handleEditCategory(categoria.id)}
                             disabled={isEditing}
+                            aria-label={`Editar categoria ${categoria.nome}`}
                           >
-                            <Edit className="w-3 h-3" />
+                            <Edit className="w-3 h-3" aria-hidden="true" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -1053,8 +1057,9 @@ const Insumos = () => {
                             className="h-7 w-7 p-0 text-destructive hover:text-destructive"
                             onClick={() => handleDeleteCategory(categoria.id)}
                             disabled={isEditing}
+                            aria-label={`Excluir categoria ${categoria.nome}`}
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-3 h-3" aria-hidden="true" />
                           </Button>
                         </div>
                       </div>

@@ -15,19 +15,22 @@ interface NavItemProps {
   isSubItem?: boolean
   hasAdd?: boolean
   onAddClick?: () => void
+  /** Fired after the link/button is clicked — used to close the mobile sheet. */
+  onClick?: () => void
   color?: string
 }
 
-export const NavItem = ({ 
-  href, 
-  icon, 
-  label, 
-  isCollapsed, 
-  isSection = false, 
-  children, 
+export const NavItem = ({
+  href,
+  icon,
+  label,
+  isCollapsed,
+  isSection = false,
+  children,
   isSubItem = false,
   hasAdd = false,
   onAddClick,
+  onClick,
   color
 }: NavItemProps) => {
   const pathname = usePathname()
@@ -83,6 +86,7 @@ export const NavItem = ({
   return (
     <Link
       href={href}
+      onClick={onClick}
       className={cn(
         "w-full flex items-center gap-2 px-3 text-sm rounded-lg transition-all duration-200",
         isActive

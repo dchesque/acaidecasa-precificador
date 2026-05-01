@@ -642,8 +642,9 @@ export const CopoBaseForm = ({
                               size="sm"
                               onClick={() => remove(index)}
                               className="h-8 w-8 p-0"
+                              aria-label="Remover ingrediente"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-4 w-4" aria-hidden="true" />
                             </Button>
                           </TableCell>
                         </TableRow>
@@ -951,8 +952,9 @@ export const CopoBaseForm = ({
                             className="h-7 w-7 p-0"
                             onClick={() => handleEditCategory(categoria.id)}
                             disabled={isEditing}
+                            aria-label={`Editar categoria ${categoria.nome}`}
                           >
-                            <Settings className="w-3 h-3" />
+                            <Settings className="w-3 h-3" aria-hidden="true" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -960,8 +962,9 @@ export const CopoBaseForm = ({
                             className="h-7 w-7 p-0 text-destructive hover:text-destructive"
                             onClick={() => handleDeleteCategory(categoria.id)}
                             disabled={isEditing}
+                            aria-label={`Excluir categoria ${categoria.nome}`}
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-3 h-3" aria-hidden="true" />
                           </Button>
                         </div>
                       </div>
